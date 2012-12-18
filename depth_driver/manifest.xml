@@ -1,0 +1,19 @@
+<package>
+  <description brief="depth_driver">
+
+     depth_driver
+
+  </description>
+  <author>Forrest Voight</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/depth_driver</url>
+  <depend package="roscpp"/>
+  <depend package="nodelet"/>
+
+  <export>
+    <nodelet plugin="${prefix}/nodelet.xml"/>
+  </export>
+</package>
+
+

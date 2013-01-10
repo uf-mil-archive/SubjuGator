@@ -1,0 +1,4 @@
+#!/bin/sh
+{ while sleep 1 ; do socat -d -d pty,link=/tmp/depth,raw,echo=0 tcp:127.0.0.1:10004 ; done } &
+{ while sleep 1 ; do socat -d -d pipe:/tmp/imu,wronly=1 tcp:127.0.0.1:10025 ; done ; } &
+{ while sleep 1 ; do socat -d -d pty,link=/tmp/dvl,raw,echo=0 tcp:127.0.0.1:10050 ; done } &

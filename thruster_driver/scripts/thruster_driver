@@ -1,0 +1,61 @@
+#!/usr/bin/env python
+
+import math
+import struct
+
+import numpy
+
+import roslib
+roslib.load_manifest('thruster_driver')
+import rospy
+from std_msgs.msg import Header
+from geometry_msgs.msg import Point, Vector3
+
+from thruster_mapper.msg import ThrusterInfo, ThrusterCommand
+
+from thruster_driver import embedded
+
+
+rospy.init_node('thruster_driver', anonymous=True)
+
+address = rospy.get_param('~address')
+port = rospy.get_param('~port')
+local_address = rospy.get_param('~local_address')
+remote_address = rospy.get_param('~remote_address')
+thruster_id = rospy.get_param('~thruster_id')
+frame_id = rospy.get_param('~frame_id', '/base_link')
+position = rospy.get_param('~position')
+direction = rospy.get_param('~direction')
+rev_force = rospy.get_param('~rev_force')
+fwd_force = rospy.get_param('~fwd_force')
+
+# broadcast info message every second
+info_period = rospy.Duration(1)
+thrusterinfo_publisher = rospy.Publisher('thrusters/info', ThrusterInfo)
+def sendinfo_callback(timerevent):
+    thrusterinfo_publisher.publish(ThrusterInfo(
+        header=Header(
+            stamp=rospy.Time.now(),
+            frame_id=frame_id,
+        ),
+        id=thruster_id,
+        lifetime=info_period * 2,
+        position=Point(*position),
+        direction=Vector3(*direction),
+        min_force=-rev_force,
+        max_force=+fwd_force,
+    ))
+rospy.Timer(info_period, sendinfo_callback)
+
+# forward commands to thruster
+conn = embedded.Embedded(address, port, local_address, remote_address)
+def thrustercommand_callback(msg):
+    if msg.id != thruster_id:
+        return
+    scaled = msg.force / fwd_force if msg.force >= 0 else msg.force / rev_force
+    clamped = -1 if scaled < -1 else 1 if scaled > 1 else scaled
+    x = int(math.floor(clamped * 100 * 2**8 + .5))
+    conn.send(struct.pack('<BBH', 0, 3, 0x8000|x if x >= 0 else -x))
+rospy.Subscriber('thrusters/command', ThrusterCommand, thrustercommand_callback)
+
+rospy.spin()

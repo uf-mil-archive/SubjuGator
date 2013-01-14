@@ -1,0 +1,15 @@
+<package>
+  <description brief="leaksensor_driver">
+
+     leaksensor_driver
+
+  </description>
+  <author>Forrest Voight</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/leaksensor_driver</url>
+  <depend package="rospy"/>
+
+</package>
+
+

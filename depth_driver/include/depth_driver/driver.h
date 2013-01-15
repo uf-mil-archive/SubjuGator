@@ -88,7 +88,8 @@ namespace depth_driver {
                     }
                     unescaped.erase(unescaped.end() - 2, unescaped.end());
                     
-                    return getu16le(&*unescaped.end() - 8) / 1024.;
+                    double temp = getu16le(&*unescaped.end() - 8) / 1024.;
+                    return (temp - 10.62)*1.45;
                 }
             }
             

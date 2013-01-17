@@ -106,7 +106,7 @@ def world_tick():
     body.addForce(-(100 if body.getPosition()[2] >= 0 else 10) * (V(body.getLinearVel())-water_vel))
     #body.addForce([random.gauss(0, 1) for i in xrange(3)])
     #body.addTorque([random.gauss(0, 10) for i in xrange(3)])
-    body.addTorque(-(10 if body.getPosition()[2] >= 0 else 1) * V(body.getAngularVel()))
+    body.addTorque(-(20 if body.getPosition()[2] >= 0 else 1) * V(body.getAngularVel()))
     
     #print thrusters
     

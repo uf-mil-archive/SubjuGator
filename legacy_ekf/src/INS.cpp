@@ -45,7 +45,7 @@ void INS::Update(const IMUInfo& imu)
     Vector3d a_body = MILQuaternionOps::QuatRotate(q_SUB_IMU, imu.acceleration);
 
     // Update dt
-    dt = (imu.timestamp - imuPreviousTime)*SECPERNANOSEC;
+    double dt = (imu.timestamp - imuPreviousTime)*SECPERNANOSEC;
     imuPreviousTime = imu.timestamp;
 
     //Protect the INS against the debugger and non monotonic time
@@ -61,6 +61,7 @@ void INS::Update(const IMUInfo& imu)
     if(w_body.norm() > MAX_ANG_RATE)
         return;
 
+    Eigen::Vector3d w_en_n;
     w_en_n(0) = v_prev(1) / (r_earth - p_prev(2));
     w_en_n(1) = -v_prev(0) / (r_earth - p_prev(2));
     w_en_n(2) = -v_prev(1) * tan(lat) / (r_earth - p_prev(2));
@@ -70,7 +71,8 @@ void INS::Update(const IMUInfo& imu)
     Vector3d w_dif = (w_body - w_bias);// - w_ie_b;
     Vector3d sigma = dt / 2.0 *(w_dif + w_dif_prev);
 
-    q = MILQuaternionOps::QuatNormalize(MILQuaternionOps::QuatMultiply(q_prev, MILQuaternionOps::RotVec2Quat(sigma)));
+
+    Eigen::Vector4d q = MILQuaternionOps::QuatNormalize(MILQuaternionOps::QuatMultiply(q_prev, MILQuaternionOps::RotVec2Quat(sigma)));
 
     // Integrate body forces
     Vector3d a_dif = (a_body - a_bias);
@@ -79,10 +81,10 @@ void INS::Update(const IMUInfo& imu)
     Vector3d u_n = MILQuaternionOps::QuatRotate(q_prev, (v_int + ((.5*sigma).cross(v_int))));
 
     // Sum all the components to get velocity (NED)
-    v = v_prev + u_n + dt * g -    (2.0 * dt * AttitudeHelpers::VectorSkew3(w_ie_n) - dt * AttitudeHelpers::VectorSkew3(w_en_n)) * v_prev;
+    Eigen::Vector3d v = v_prev + u_n + dt * g -    (2.0 * dt * AttitudeHelpers::VectorSkew3(w_ie_n) - dt * AttitudeHelpers::VectorSkew3(w_en_n)) * v_prev;
 
     // Integrate velocity to get position
-    p = p_prev + dt / 2.0 * (v + v_prev);
+    Eigen::Vector3d p = p_prev + dt / 2.0 * (v + v_prev);
 
     // Save previous values
     w_dif_prev = w_dif;

@@ -50,7 +50,7 @@ namespace subjugator {
         static const double MAX_ACC_MAG = 20.0;    // m/s^2
         static const double MAX_ANG_RATE = 12; // rad/s
 
-           double lat;
+        double lat;
         Eigen::Vector3d w_dif_prev;
         Eigen::Vector3d a_body_prev;
         Eigen::Vector3d p_prev;
@@ -63,14 +63,8 @@ namespace subjugator {
         Eigen::Vector4d q_SUB_IMU;
         boost::shared_ptr<INSData> prevData;
 
-        double dt;
         boost::int64_t imuPreviousTime;
         Eigen::Vector3d w_ie_n;
-        Eigen::Vector3d w_en_n;
-
-        Eigen::Vector3d p;
-        Eigen::Vector3d v;
-        Eigen::Vector4d q;
     };
 }
 

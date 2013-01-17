@@ -35,7 +35,6 @@ namespace subjugator {
     private:
         Config conf;
 
-        static const double latitudeDeg = 29.651388889; /*gainesville*/
         static const double alpha = 0.4082;
         static const double beta = 2.0;
         static const double kappa = 0;

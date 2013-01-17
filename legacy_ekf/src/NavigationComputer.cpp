@@ -18,7 +18,7 @@ NavigationComputer::NavigationComputer(const Config &conf):
     q_SUB_DVL(0.0,0.923879532511287,0.382683432365090,0.0), q_SUB_IMU(0.012621022547474,0.002181321593961,-0.004522523520991,0.999907744947984),
     initialized(false)
 {
-    referenceGravityVector = AttitudeHelpers::LocalGravity(latitudeDeg*boost::math::constants::pi<double>()/180.0, 0);
+    referenceGravityVector = AttitudeHelpers::LocalGravity(conf.latitudeDeg*boost::math::constants::pi<double>()/180.0, 0);
 
     r_ORIGIN_NAV << 0.43115992,0.0,-0.00165058;
 
@@ -39,7 +39,7 @@ void NavigationComputer::TryInit(const IMUInfo& imu)
     //INS initialization
     ins = std::auto_ptr<INS>(
             new INS(
-                    latitudeDeg*boost::math::constants::pi<double>()/180.0,
+                    conf.latitudeDeg*boost::math::constants::pi<double>()/180.0,
                     Vector3d::Zero(), // assume the sub is at rest when we start, hence omega is zero
                     MILQuaternionOps::QuatRotate(q_SUB_IMU, imu.acceleration),    // a_body prev MUST be taken from a valid IMU packet!
                     Vector3d(0, 0, depthRef) + MILQuaternionOps::QuatRotate(attRef, r_ORIGIN_NAV), // initialPosition

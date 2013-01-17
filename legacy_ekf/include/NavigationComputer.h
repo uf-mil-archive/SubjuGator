@@ -50,13 +50,10 @@ namespace subjugator {
         static const double MAX_DVL_NORM = 10; // Sub can't run at 10m/s
 
         Vector3d referenceGravityVector;
-        Vector3d initialPosition;
-        Vector3d initialVelocity;
         Vector3d white_noise_sigma_f;
         Vector3d white_noise_sigma_w;
         Vector4d q_SUB_DVL;
         Vector4d q_SUB_IMU;
-        Eigen::Matrix<double, 13, 13> covariance;
 
         bool depthRefAvailable;
         bool attRefAvailable;
@@ -69,7 +66,6 @@ namespace subjugator {
 
         Vector3d magSum;
         Vector3d accSum;
-        double acceptable_gravity_mag;
 
         std::auto_ptr<KalmanFilter> kFilter;
         std::auto_ptr<INS> ins;

@@ -14,23 +14,13 @@ using namespace Eigen;
 
 NavigationComputer::NavigationComputer(const Config &conf):
     conf(conf),
-    referenceGravityVector(0.0,0.0,1.0),
-    initialPosition(0.0,0.0,0.0), initialVelocity(0.0,0.0,0.0),
     white_noise_sigma_f(0.0005,0.0005,0.0005), white_noise_sigma_w(0.05,0.05,0.05),
     q_SUB_DVL(0.0,0.923879532511287,0.382683432365090,0.0), q_SUB_IMU(0.012621022547474,0.002181321593961,-0.004522523520991,0.999907744947984),
     initialized(false)
 {
-    covariance = .01*Matrix<double, 13, 13>::Identity();
-    covariance(0,0) *= .01;
-    covariance.block<3,3>(2,2) = 10*covariance.block<3,3>(2,2);
-
-    referenceGravityVector = AttitudeHelpers::LocalGravity(latitudeDeg*boost::math::constants::pi<double>()/180.0, initialPosition(2));
+    referenceGravityVector = AttitudeHelpers::LocalGravity(latitudeDeg*boost::math::constants::pi<double>()/180.0, 0);
 
     r_ORIGIN_NAV << 0.43115992,0.0,-0.00165058;
-
-    acceptable_gravity_mag = referenceGravityVector.norm() * 1.04;
-
-    z = Vector7d::Zero();
 
     depthRefAvailable = false;
     attRefAvailable = false;
@@ -53,16 +43,14 @@ void NavigationComputer::TryInit(const IMUInfo& imu)
     if(!depthRefAvailable || !attRefAvailable) // || !velRefAvailable)
         return;
 
-    initialPosition += MILQuaternionOps::QuatRotate(attRef, r_ORIGIN_NAV);
-
     //INS initialization
     ins = std::auto_ptr<INS>(
             new INS(
                     latitudeDeg*boost::math::constants::pi<double>()/180.0,
                     Vector3d::Zero(), // assume the sub is at rest when we start, hence omega is zero
                     MILQuaternionOps::QuatRotate(q_SUB_IMU, imu.acceleration),    // a_body prev MUST be taken from a valid IMU packet!
-                    initialPosition,
-                    initialVelocity,
+                    Vector3d(0, 0, depthRef) + MILQuaternionOps::QuatRotate(attRef, r_ORIGIN_NAV), // initialPosition
+                    Vector3d(0, 0, 0), // initialVelocity
                     referenceGravityVector,    // Gravity vector from file or equation
                     attRef,    //
                     Vector3d::Zero(),    // Initial gyro bias, rad/s
@@ -75,6 +63,11 @@ void NavigationComputer::TryInit(const IMUInfo& imu)
     // Kalman Initialization
     // Now that we have an initial attitude estimate, initialize the error terms for the kalman
     z = Vector7d::Zero();
+
+    Eigen::Matrix<double, 13, 13> covariance;
+    covariance = .01*Matrix<double, 13, 13>::Identity();
+    covariance(0,0) *= .01;
+    covariance.block<3,3>(2,2) = 10*covariance.block<3,3>(2,2);
 
     kFilter = std::auto_ptr<KalmanFilter>(
             new KalmanFilter(
@@ -196,7 +189,7 @@ void NavigationComputer::UpdateIMU(const IMUInfo& imu)
     magSum = Vector3d::Zero();
     accSum = Vector3d::Zero();
 
-    if(bodyg.norm() > acceptable_gravity_mag)    // Bad acceleration data would just hurt the filter, eliminate it
+    if(bodyg.norm() > referenceGravityVector.norm() * 1.04)    // Bad acceleration data would just hurt the filter, eliminate it
         return;
 
     attRef = triad(referenceGravityVector, conf.referenceNorthVector, bodyg, tempMag);

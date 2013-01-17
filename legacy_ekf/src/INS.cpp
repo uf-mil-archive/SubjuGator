@@ -30,7 +30,7 @@ INS::INS(double lat, Vector3d w_dif_prev, Vector3d a_body_prev, Vector3d p_prev,
             Vector4d q_SUB_IMU, boost::uint64_t imuTime):
             lat(lat), w_dif_prev(w_dif_prev), a_body_prev(a_body_prev), p_prev(p_prev),
             v_prev(v_prev), g(g), q_prev(q_prev), w_bias(w_bias), a_bias(a_bias),
-            q_SUB_IMU(q_SUB_IMU), prevData(new INSData(p_prev, v_prev, q_prev, g, a_body_prev, a_body_prev, w_dif_prev, a_bias, w_bias)),
+            q_SUB_IMU(q_SUB_IMU), prevData(new INSData(p_prev, v_prev, q_prev, g, a_body_prev, a_body_prev, w_dif_prev, a_bias, w_bias, imuTime)),
             imuPreviousTime(imuTime)
 {
     w_ie_n(0) = w_ie_e*std::cos(lat);
@@ -94,7 +94,7 @@ void INS::Update(const IMUInfo& imu)
     Vector3d g_body = MILQuaternionOps::QuatRotate(MILQuaternionOps::QuatInverse(q), g);
     //Vector3d a_body_no_gravity = a_dif + g_body;
 
-    prevData = boost::shared_ptr<INSData>(new INSData(p, v, q, g_body, a_dif, a_body, w_dif, a_bias, w_bias));
+    prevData = boost::shared_ptr<INSData>(new INSData(p, v, q, g_body, a_dif, a_body, w_dif, a_bias, w_bias, imuPreviousTime));
 }
 
 void INS::Reset(const KalmanData& kData)
@@ -111,6 +111,6 @@ void INS::Reset(const KalmanData& kData)
     Vector3d a_body_no_gravity = a_body_prev - a_bias;
     Vector3d w_dif_temp = w_dif_prev - w_bias;
 
-    prevData = boost::shared_ptr<INSData>(new INSData(p_prev, v_prev, q_prev, g_body, a_body_no_gravity, a_body_no_gravity, w_dif_temp, a_bias, w_bias));
+    prevData = boost::shared_ptr<INSData>(new INSData(p_prev, v_prev, q_prev, g_body, a_body_no_gravity, a_body_no_gravity, w_dif_temp, a_bias, w_bias, imuPreviousTime));
 }
 

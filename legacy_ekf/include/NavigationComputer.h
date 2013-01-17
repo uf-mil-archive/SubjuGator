@@ -22,16 +22,15 @@ namespace subjugator {
             Vector3d dvl_sigma;
             Vector3d att_sigma;
         };
-
+        
         NavigationComputer(const Config &config);
-        bool getInitialized() { return initialized; }
+        
         void UpdateIMU(const IMUInfo& imu);
         void UpdateDepth(const DepthInfo& dobj);
         void UpdateDVL(const DVLVelocity& dvl);
-
+        
+        bool getInitialized() { return initialized; }
         void GetNavInfo(LPOSVSSInfo& info);
-
-        void Update(boost::int64_t dtms);
 
     private:
         Config conf;
@@ -64,6 +63,7 @@ namespace subjugator {
         Vector7d z;
         Vector3d r_ORIGIN_NAV;
 
+        int attCount;
         Vector3d magSum;
         Vector3d accSum;
 
@@ -72,13 +72,11 @@ namespace subjugator {
 
         bool initialized;
 
+        boost::int64_t nextKalmanTime;
         int kalmanCount;
-        boost::int64_t kTimerMs;
-        boost::int64_t kTimer;
 
         void TryInit(const IMUInfo &imuInfo);
-        void updateKalman();
-        boost::int64_t getTimestamp(void);
+        void updateKalmanTo(boost::int64_t time);
         void resetErrors();
     };
 }

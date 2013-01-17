@@ -50,8 +50,6 @@ struct Node {
     ros::Publisher odometry_pub;
     tf::TransformBroadcaster tf_broadcaster;
     
-    ros::Time current_stamp;
-    
     boost::scoped_ptr<subjugator::NavigationComputer> navComputer;
     
     Node() :
@@ -75,13 +73,9 @@ struct Node {
         
         odometry_pub = nh.advertise<Odometry>("odom", 1);
         
-        current_stamp = ros::Time::now();
-        
         sync.registerCallback(boost::bind(&Node::imu_callback, this, _1, _2));
         depth_sub.registerCallback(boost::bind(&Node::depth_callback, this, _1));
         dvl_sub.registerCallback(boost::bind(&Node::dvl_callback, this, _1));
-        
-        timer = nh.createTimer(ros::Duration(1./200), boost::bind(&Node::timer_callback, this, _1));
     }
     
     void imu_callback(const ImuConstPtr& imu, const Vector3StampedConstPtr& mag) {
@@ -102,6 +96,8 @@ struct Node {
         imuinfo.mag_field[2] = mag->vector.z;
         
         navComputer->UpdateIMU(imuinfo);
+        
+        publish();
     }
     
     void depth_callback(const Float64StampedConstPtr& depth) {
@@ -120,23 +116,16 @@ struct Node {
         navComputer->UpdateDVL(dvlvelocity);
     }
     
-    void timer_callback(ros::TimerEvent timerevent) {
+    void publish() {
         if(!navComputer->getInitialized())
             return;
-        
-        ros::Time now = ros::Time::now();
-        ros::Duration dt = now - current_stamp;
-        
-        navComputer->Update((boost::int64_t)(dt.toSec() * 1000));
-        current_stamp = now;
-        
         
         subjugator::LPOSVSSInfo info;
         navComputer->GetNavInfo(info);
         
         // Emit the LPOSInfo every iteration
         Odometry msg;
-        msg.header.stamp = ros::Time::now();
+        msg.header.stamp.fromNSec(info.timestamp);
         msg.header.frame_id = fixed_frame;
         msg.child_frame_id = body_frame;
         

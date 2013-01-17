@@ -13,11 +13,11 @@ namespace subjugator {
         INSData();
 
     INSData(Eigen::Vector3d p, Eigen::Vector3d v, Eigen::Vector4d q, Eigen::Vector3d g_body, Eigen::Vector3d a_body, Eigen::Vector3d a_body_raw, Eigen::Vector3d w_body,
-            Eigen::Vector3d a_bias, Eigen::Vector3d w_bias) :
+            Eigen::Vector3d a_bias, Eigen::Vector3d w_bias, boost::uint64_t time) :
         Position_NED(p), Velocity_NED(v), Quaternion(q), Gravity_BODY(g_body),
             Acceleration_BODY(a_body), Acceleration_BODY_RAW(a_body_raw),
             AngularRate_BODY(w_body), AccelerationBias(a_bias),
-            AngularRateBias(w_bias) { }
+            AngularRateBias(w_bias), time(time) { }
 
         Eigen::Vector3d Position_NED;
         Eigen::Vector3d Velocity_NED;
@@ -28,6 +28,7 @@ namespace subjugator {
         Eigen::Vector3d AngularRate_BODY;
         Eigen::Vector3d AccelerationBias;
         Eigen::Vector3d AngularRateBias;
+        boost::uint64_t time;
     };
 
     class INS {

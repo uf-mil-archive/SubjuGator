@@ -25,15 +25,8 @@ NavigationComputer::NavigationComputer(const Config &conf):
     depthRefAvailable = false;
     attRefAvailable = false;
     velRefAvailable = false;
-}
-
-boost::int64_t NavigationComputer::getTimestamp(void)
-{
-    timespec t;
-    clock_gettime(CLOCK_MONOTONIC, &t);
-
-    static const uint64_t NSEC_PER_SEC = 1000000000;
-    return ((long long int)t.tv_sec * NSEC_PER_SEC) + t.tv_nsec;
+    
+    attCount = 0;
 }
 
 void NavigationComputer::TryInit(const IMUInfo& imu)
@@ -78,20 +71,24 @@ void NavigationComputer::TryInit(const IMUInfo& imu)
                     alpha, beta, kappa, bias_var_f, bias_var_w,
                     white_noise_sigma_f, white_noise_sigma_w, T_f,
                     T_w, depth_sigma, conf.dvl_sigma, conf.att_sigma,
-                    getTimestamp()
+                    imu.timestamp
             ));
-    kalmanCount = 0;
 
-    // Now build up the kalman timer.
-    kTimerMs = 1000 / 50 /*Hz*/;
-    kTimer = 0;
+    nextKalmanTime = 0;
+    kalmanCount = 0;
 
     initialized = true;
 }
 
-void NavigationComputer::updateKalman()
+void NavigationComputer::updateKalmanTo(boost::int64_t time)
 {
     assert(initialized);
+    
+    if(time >= nextKalmanTime) {
+        nextKalmanTime = time + 1e9 / 50; // 50 Hz
+    } else {
+        return;
+    }
 
     boost::shared_ptr<INSData> insdata = ins->GetData();
 
@@ -115,7 +112,7 @@ void NavigationComputer::updateKalman()
         z.block<3,1>(1,0) = insdata->Velocity_NED - velRef;
     }
 
-    kFilter->Update(z, -1*insdata->Acceleration_BODY_RAW, insdata->Velocity_NED, insdata->Quaternion, getTimestamp());
+    kFilter->Update(z, -1*insdata->Acceleration_BODY_RAW, insdata->Velocity_NED, insdata->Quaternion, time);
 
     if(++kalmanCount >= 100)    // 2s reset time
     {
@@ -142,6 +139,8 @@ void NavigationComputer::GetNavInfo(LPOSVSSInfo& info)
     boost::shared_ptr<KalmanData> kdata = kFilter->GetData();
     boost::shared_ptr<INSData> insdata = ins->GetData();
 
+    info.timestamp = insdata->time;
+
     // Do angular values first
     info.quaternion_NED_B = MILQuaternionOps::QuatMultiply(insdata->Quaternion, kdata->ErrorQuaternion);
     info.angularRate_BODY = insdata->AngularRate_BODY - kdata->Gyro_bias;
@@ -160,43 +159,46 @@ void NavigationComputer::GetNavInfo(LPOSVSSInfo& info)
 
 void NavigationComputer::UpdateIMU(const IMUInfo& imu)
 {
-    static int count = 0;
-
     // The INS has the rotation info already, so just push the packet through
     if(initialized)
         ins->Update(imu);
+    
+    if(attCount == 0) {
+        // Reset the sums
+        magSum = Vector3d::Zero();
+        accSum = Vector3d::Zero();
+    }
 
     // We just do a very basic average over the last 10 samples (reduces to 20Hz)
     // the magnetometer and accelerometer
     magSum += MILQuaternionOps::QuatRotate(q_SUB_IMU, imu.mag_field);
     accSum += MILQuaternionOps::QuatRotate(q_SUB_IMU, imu.acceleration);
 
-    count = (count + 1) % 10;
-    if(count)    // Don't have enough samples yet
-        return;
+    attCount = (attCount + 1) % 10;
+    if(attCount == 0) {
+        // Now we play some games to get a gravitational estimate. We can't feed in the
+        // gravity best estimate, because then you get circular dependencies between
+        // the filter and the reference sensor, and the filter drifts badly. So we make the assumption
+        // that accelerations are short lived. To ensure this, we check to make sure the gravitational
+        // average is close to the magnitude of normal gravity. If it isn't we ignore it, and reference
+        // attitude updates come in slower.
 
-    Vector3d tempMag = magSum / 10.0;
-    // Now we play some games to get a gravitational estimate. We can't feed in the
-    // gravity best estimate, because then you get circular dependencies between
-    // the filter and the reference sensor, and the filter drifts badly. So we make the assumption
-    // that accelerations are short lived. To ensure this, we check to make sure the gravitational
-    // average is close to the magnitude of normal gravity. If it isn't we ignore it, and reference
-    // attitude updates come in slower.
+        Vector3d bodyg = -accSum / 10;    // The INS data gives -ve gravity. This is so we get the proper direction of gravity
+        Vector3d bodym = magSum / 10;
 
-    Vector3d bodyg = -1.0*accSum / 10.0;    // The INS data gives -ve gravity. This is so we get the proper direction of gravity
+        if(bodyg.norm() <= referenceGravityVector.norm() * 1.04) {
+            // Bad acceleration data would just hurt the filter, eliminate it
 
-    // Reset the sums
-    magSum = Vector3d::Zero();
-    accSum = Vector3d::Zero();
+            attRef = triad(referenceGravityVector, conf.referenceNorthVector, bodyg, bodym);
+            attRefAvailable = true;
 
-    if(bodyg.norm() > referenceGravityVector.norm() * 1.04)    // Bad acceleration data would just hurt the filter, eliminate it
-        return;
-
-    attRef = triad(referenceGravityVector, conf.referenceNorthVector, bodyg, tempMag);
-    attRefAvailable = true;
-
-    if(!initialized)
-        TryInit(imu);
+            if(!initialized)
+                TryInit(imu);
+        }
+    }
+    
+    if(initialized)
+        updateKalmanTo(imu.timestamp);
 }
 
 void NavigationComputer::UpdateDepth(const DepthInfo& depth)
@@ -226,12 +228,4 @@ void NavigationComputer::UpdateDVL(const DVLVelocity& dvl)
     // Rotate dvl data from SUB to NED
     velRef = MILQuaternionOps::QuatRotate(MILQuaternionOps::QuatMultiply(insdata->Quaternion, kdata->ErrorQuaternion), dvl_vel);
     velRefAvailable = true;
-}
-
-void NavigationComputer::Update(boost::int64_t dtms) {
-    kTimer += dtms;
-    if (kTimer >= kTimerMs) {
-        updateKalman();
-        kTimer = 0;
-    }
 }

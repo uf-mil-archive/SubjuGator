@@ -9,18 +9,18 @@
 // math looks too time consuming.
 namespace subjugator
 {
-	class MILQuaternionOps
-	{
-	public:
-		static Eigen::Matrix3d Quat2Rot(const Eigen::Vector4d& q);
-		static Eigen::Vector4d QuatNormalize(const Eigen::Vector4d &q);
-		static Eigen::Vector4d QuatMultiply(const Eigen::Vector4d& q, const Eigen::Vector4d& p);
-		static Eigen::Vector4d QuatConjugate(const Eigen::Vector4d& q);
-		static Eigen::Vector4d QuatInverse(const Eigen::Vector4d& q);
-		static Eigen::Vector3d QuatRotate(const Eigen::Vector4d& q, const Eigen::Vector3d vec);
-		static Eigen::Vector3d Quat2Euler(const Eigen::Vector4d& q);
-		static Eigen::Vector4d RotVec2Quat(const Eigen::Vector3d& sigma);
-	};
+    class MILQuaternionOps
+    {
+    public:
+        static Eigen::Matrix3d Quat2Rot(const Eigen::Vector4d& q);
+        static Eigen::Vector4d QuatNormalize(const Eigen::Vector4d &q);
+        static Eigen::Vector4d QuatMultiply(const Eigen::Vector4d& q, const Eigen::Vector4d& p);
+        static Eigen::Vector4d QuatConjugate(const Eigen::Vector4d& q);
+        static Eigen::Vector4d QuatInverse(const Eigen::Vector4d& q);
+        static Eigen::Vector3d QuatRotate(const Eigen::Vector4d& q, const Eigen::Vector3d vec);
+        static Eigen::Vector3d Quat2Euler(const Eigen::Vector4d& q);
+        static Eigen::Vector4d RotVec2Quat(const Eigen::Vector3d& sigma);
+    };
 }
 
 #endif /* QUATERNION_H */

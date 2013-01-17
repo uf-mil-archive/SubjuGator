@@ -4,9 +4,9 @@
 #include <Eigen/Dense>
 
 namespace subjugator {
-	struct DVLVelocity {
-		Eigen::Vector3d vel;
-	};
+    struct DVLVelocity {
+        Eigen::Vector3d vel;
+    };
 }
 
 #endif

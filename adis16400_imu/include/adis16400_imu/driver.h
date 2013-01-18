@@ -15,21 +15,41 @@ namespace adis16400_imu {
     
     class Device {
         private:
+            const std::string port;
             std::ifstream is;
             
+            void open() {
+                while(true) {
+                    try {
+                        is.exceptions(std::ifstream::goodbit);
+                        is.close();
+                        is.clear();
+                        is.exceptions(std::ifstream::eofbit | std::ifstream::failbit | std::ifstream::badbit);
+                        is.open(port.c_str());
+                        return;
+                    } catch(const std::exception &exc) {
+                        ROS_ERROR("error on open(%s): %s; reopening after delay", port.c_str(), exc.what());
+                        boost::this_thread::sleep(boost::posix_time::seconds(1));
+                    }
+                }
+            }
+            
         public:
-            Device(const std::string port) {
-                is.open(port.c_str());
-                if(!is.is_open())
-                    throw std::runtime_error("couldn't open imu port"); // exception in constructor seem to get nodelet manager stuck..
+            Device(const std::string port): port(port) {
+                is.exceptions(std::ifstream::eofbit | std::ifstream::failbit | std::ifstream::badbit);
             }
             
             std::pair<sensor_msgs::Imu, geometry_msgs::Vector3Stamped> read(const std::string frame_id) {
                 char data[32];
-                is.read(data, 32);
-                if(is.gcount() != 32)
-                    throw std::runtime_error("imu read failed");
-                
+                while(true) {
+                    try {
+                        is.read(data, 32);
+                        break;
+                    } catch(const std::exception &exc) {
+                        ROS_ERROR("error on read: %s; reopening", exc.what());
+                        open();
+                    }
+                }
                 
                 sensor_msgs::Imu result;
                 result.header.frame_id = frame_id;

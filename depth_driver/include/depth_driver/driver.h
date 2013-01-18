@@ -20,6 +20,8 @@ namespace depth_driver {
             typedef std::vector<boost::uint8_t> ByteVec;
             typedef boost::crc_optimal<16, 0x1021, 0, 0, false, false> CRCCalculator;
             
+            const std::string port;
+            const int baudrate;
             boost::asio::io_service io;
             boost::asio::serial_port p;
             
@@ -45,18 +47,42 @@ namespace depth_driver {
                 
                 out.push_back(flagbyte);
                 
-                p.write_some(boost::asio::buffer(out.data(), out.size()));
+                try {
+                    p.write_some(boost::asio::buffer(out.data(), out.size()));
+                } catch(const std::exception &exc) {
+                    ROS_ERROR("error on write: %s; dropping", exc.what());
+                }
             }
             
             uint8_t read_byte() {
-                uint8_t res; p.read_some(boost::asio::buffer(&res, sizeof(res)));
-                return res;
+                while(true) {
+                    try {
+                        uint8_t res; p.read_some(boost::asio::buffer(&res, sizeof(res)));
+                        return res;
+                    } catch(const std::exception &exc) {
+                        ROS_ERROR("error on read: %s; reopening", exc.what());
+                        open();
+                    }
+                }
+            }
+            
+            void open() {
+                while(true) {
+                    try {
+                        p.close();
+                        p.open(port);
+                        p.set_option(boost::asio::serial_port::baud_rate(baudrate));
+                        return;
+                    } catch(const std::exception &exc) {
+                        ROS_ERROR("error on open(%s): %s; reopening after delay", port.c_str(), exc.what());
+                        boost::this_thread::sleep(boost::posix_time::seconds(1));
+                    }
+                }
             }
             
         public:
-            Device(const std::string port, int baudrate) : p(io) {
-                p.open(port);
-                p.set_option(boost::asio::serial_port::baud_rate(baudrate));
+            Device(const std::string port, int baudrate) : port(port), baudrate(baudrate), p(io) {
+                // open is called on first read_byte() in the _polling_ thread
             }
             
             double read() {

@@ -33,7 +33,7 @@ shift: [7.224812265160376e-05, -1.4299577176524567e-06, 2.8347929440582296e-05]
   <node pkg="legacy_ekf" type="legacy_ekf" name="legacy_ekf"><rosparam>
     fixed_frame: /map
     body_frame: /base_link
-    referenceNorthVector: [24368.1, 5238.3, 39700.4]
+    referenceNorthVector: [24151.0, -2244.2, 40572.8]
     latitudeDeg: 29.651388889
     dvl_sigma: [0.02, 0.02, 0.02]
     att_sigma: [0.5, 0.5, 0.5]

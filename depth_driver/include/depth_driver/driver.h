@@ -48,7 +48,10 @@ namespace depth_driver {
                 out.push_back(flagbyte);
                 
                 try {
-                    p.write_some(boost::asio::buffer(out.data(), out.size()));
+                    size_t written = 0;
+                    while(written < out.size()) {
+                        written += p.write_some(boost::asio::buffer(out.data() + written, out.size() - written));
+                    }
                 } catch(const std::exception &exc) {
                     ROS_ERROR("error on write: %s; dropping", exc.what());
                 }

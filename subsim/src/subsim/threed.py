@@ -238,9 +238,11 @@ class Interface(object):
         self.objs.append(Buoys(v(10, 3, 4)))
         
         rospy.init_node('sim')
-        self.image_pub = rospy.Publisher('image_rect_color', Image)
-        self.info_pub = rospy.Publisher('camera_info', CameraInfo)
+        self.image_pub = rospy.Publisher('/sim_camera/image_rect_color', Image)
+        self.info_pub = rospy.Publisher('/sim_camera/camera_info', CameraInfo)
         self.tf_br = tf.TransformBroadcaster()
+        
+        self.sub_view = False
     
     def step(self):
         dt = self.clock.tick()/1000
@@ -260,6 +262,9 @@ class Interface(object):
                     self.grabbed = not self.grabbed
                     pygame.event.set_grab(self.grabbed)
                     pygame.mouse.set_visible(not self.grabbed)
+                
+                elif event.key == pygame.K_RETURN:
+                    self.sub_view = not self.sub_view
                 
                 elif event.key == pygame.K_q:
                     sys.exit()
@@ -308,9 +313,17 @@ class Interface(object):
         ])
         # after that, +x is forward, +y is right, and +z is down
         
-        glMultMatrixf(rot_matrix.T)
-        
-        glTranslate(*-self.pos)
+        for obj in self.objs:
+            if self.sub_view and isinstance(obj, Sub):
+                glTranslate(-.4, -.2, +.3)
+                rotate_to_body(obj.body, inv=True)
+                pos = obj.body.getRelPointPos((.4, .2, -.3))
+                break
+        else:
+            glMultMatrixf(rot_matrix.T)
+            
+            glTranslate(*-self.pos)
+            pos = self.pos
         
         glEnable(GL_LIGHTING)
         glEnable(GL_LIGHT0)
@@ -322,7 +335,7 @@ class Interface(object):
         glLightfv(GL_LIGHT0, GL_DIFFUSE, [.5, .5, .5, 1])
         glLightModelfv(GL_LIGHT_MODEL_AMBIENT, [.5, .5, .5])
         
-        self.draw()
+        self.draw(pos)
         
         #print 'start'
         x = glReadPixels(0, 0, self.display.get_width(), self.display.get_height(), GL_RGBA, GL_UNSIGNED_BYTE, outputType=None)
@@ -332,17 +345,33 @@ class Interface(object):
         
         t = rospy.Time.now()
         
-        quat = transformations.quaternion_from_matrix(numpy.array([(b,a,-c,0) for a, b, c in [-left, -local_up, forward]] + [(0,0,0,1)]).T)
-        self.tf_br.sendTransform((self.pos[1],self.pos[0],-self.pos[2]),
-                     quat,
-                     t,
-                     "/camera",
-                     "/map")
+        for obj in self.objs:
+            if not isinstance(obj, Sub): continue
+            with GLMatrix:
+                rotate_to_body(obj.body)
+                glcamera_from_frdbody = glGetFloatv(GL_MODELVIEW_MATRIX).T
+                camera_from_body = numpy.array([ # camera from glcamera
+                    [1, 0, 0, 0],
+                    [0,-1, 0, 0],
+                    [0, 0,-1, 0],
+                    [0, 0, 0, 1],
+                ]).dot(glcamera_from_frdbody).dot(numpy.array([ # frdbody from body
+                    [1, 0, 0, 0],
+                    [0,-1, 0, 0],
+                    [0, 0,-1, 0],
+                    [0, 0, 0, 1],
+                ]))
+                body_from_camera = numpy.linalg.inv(camera_from_body)
+                self.tf_br.sendTransform(transformations.translation_from_matrix(body_from_camera),
+                             transformations.quaternion_from_matrix(body_from_camera),
+                             t,
+                             "/sim_camera",
+                             "/base_link")
         
         
         msg = Image()
         msg.header.stamp = t
-        msg.header.frame_id = '/camera'
+        msg.header.frame_id = '/sim_camera'
         msg.height = self.display.get_height()
         msg.width = self.display.get_width()
         msg.encoding = 'rgba8'
@@ -351,11 +380,9 @@ class Interface(object):
         msg.data = x.tostring()
         self.image_pub.publish(msg)
         
-        
-        
         msg = CameraInfo()
         msg.header.stamp = t
-        msg.header.frame_id = '/camera'
+        msg.header.frame_id = '/sim_camera'
         msg.height = self.display.get_height()
         msg.width = self.display.get_width()
         f = 1/math.tan(math.radians(self.fovy)/2)*self.display.get_height()/2
@@ -369,11 +396,13 @@ class Interface(object):
         
         pygame.display.flip()
     
-    def draw(self):
+    def draw(self, pos):
         glEnable(GL_DEPTH_TEST)
         glEnable(GL_CULL_FACE)
         
         for obj in self.objs:
+            #if self.sub_view and isinstance(obj, Sub):
+            #    continue
             obj.draw()
         
         # sun
@@ -418,7 +447,7 @@ class Interface(object):
         glEnable(GL_LIGHTING)
         
         # underwater color
-        if self.pos[2] > 0:
+        if pos[2] > 0:
             glPushMatrix()
             glLoadIdentity()
             

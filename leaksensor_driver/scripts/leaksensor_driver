@@ -58,7 +58,7 @@ while True:
         source, rssi, options = struct.unpack('>HBB', data[1:5])
         rf_data = data[5:]
         print 'received packet from', source, 'with rssi', rssi, 'and options', options
-        magic, UT, UP_, water = struct.unpack('>HHIB', rf_data[:9])
+        magic, UT, UP_, flags = struct.unpack('>HHIB', rf_data[:9])
         if magic != 0x74bf:
             print 'invalid magic'
             continue
@@ -88,6 +88,8 @@ while True:
         p = p + (X1 + X2 + 3791) // 2**4
         
         temp = T/10
+        water = bool(flags & 1)
+        saw_other = bool(flags & 2) and bool(flags & 4)
         
         report_publisher.publish(Report(
             header=Header(
@@ -98,7 +100,7 @@ while True:
             pressure=p,
         ))
         
-        print 'temp: %s pres: %s water: %s' % (temp, p, water)
+        print 'temp: %s pres: %s water: %s saw_other: %s' % (temp, p, water, saw_other)
         now = time.time()
         print 'time since last: %s' % (now - last)
         last = now

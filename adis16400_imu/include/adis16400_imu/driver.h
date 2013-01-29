@@ -53,7 +53,7 @@ namespace adis16400_imu {
                 
                 sensor_msgs::Imu result;
                 result.header.frame_id = frame_id;
-                result.header.stamp.fromNSec(get64(data + 24));
+                result.header.stamp = ros::Time::now();
                 
                 result.orientation_covariance[0] = -1; // indicate no orientation data
                 
@@ -75,7 +75,7 @@ namespace adis16400_imu {
                 
                 geometry_msgs::Vector3Stamped mag_result;
                 mag_result.header.frame_id = frame_id;
-                mag_result.header.stamp.fromNSec(get64(data + 24));
+                mag_result.header.stamp = result.header.stamp;
                 
                 static const double MAG_CONVERSION = 0.5e-3 * 0.0001; // convert to gauss and then to tesla
                 mag_result.vector.x = get16(data + 16 + 2*0) * MAG_CONVERSION;

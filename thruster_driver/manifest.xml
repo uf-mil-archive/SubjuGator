@@ -14,6 +14,7 @@
   <depend package="geometry_msgs"/>
 
   <depend package="thruster_mapper"/>
+  <depend package="magnetic_dynamic_compensation"/>
 </package>
 
 

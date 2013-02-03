@@ -14,6 +14,7 @@
   <depend package="legacy_ekf"/>
   <depend package="thruster_mapper"/>
   <depend package="thruster_driver"/>
+  <depend package="magnetic_dynamic_compensation"/>
   <depend package="magnetic_hardsoft_compensation"/>
 
 </package>

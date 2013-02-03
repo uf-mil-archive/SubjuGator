@@ -19,12 +19,14 @@ def crc16(data, prev=0, mask=0x1021):
 class Embedded(object):
     def __init__(self, host, port, local_address, remote_address):
         self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.s.bind(('', 50000))
         self.s.connect((host, port))
         self.local_address = local_address
         self.remote_address = remote_address
         self.packet_count = 0
     
-    def receive(self):
+    def recv(self):
         while True:
             f = StringIO.StringIO(self.s.recv(2**16))
             

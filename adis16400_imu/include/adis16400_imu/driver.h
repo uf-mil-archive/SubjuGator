@@ -17,6 +17,8 @@ namespace adis16400_imu {
         private:
             const std::string port;
             std::ifstream is;
+            bool offset_set;
+            double offset;
             
             void open() {
                 while(true) {
@@ -35,7 +37,7 @@ namespace adis16400_imu {
             }
             
         public:
-            Device(const std::string port): port(port) {
+            Device(const std::string port): port(port), offset_set(false) {
                 is.exceptions(std::ifstream::eofbit | std::ifstream::failbit | std::ifstream::badbit);
             }
             
@@ -51,9 +53,22 @@ namespace adis16400_imu {
                     }
                 }
                 
+                // keep track of offset between imu's time and actual time by low pass filtering the difference between them
+                ros::Time now = ros::Time::now();
+                ros::Time stamp; stamp.fromNSec(get64(data + 24));
+                if(!offset_set) {
+                    offset = (stamp - now).toSec();
+                    offset_set = true;
+                } else {
+                    offset = .999*offset + .001*(stamp - now).toSec();
+                }
+                ros::Time corrected_stamp = stamp - ros::Duration(offset);
+                
+                
                 sensor_msgs::Imu result;
                 result.header.frame_id = frame_id;
-                result.header.stamp = ros::Time::now();
+                result.header.stamp = corrected_stamp;
+                
                 
                 result.orientation_covariance[0] = -1; // indicate no orientation data
                 
@@ -75,7 +90,7 @@ namespace adis16400_imu {
                 
                 geometry_msgs::Vector3Stamped mag_result;
                 mag_result.header.frame_id = frame_id;
-                mag_result.header.stamp = result.header.stamp;
+                mag_result.header.stamp = corrected_stamp;
                 
                 static const double MAG_CONVERSION = 0.5e-3 * 0.0001; // convert to gauss and then to tesla
                 mag_result.vector.x = get16(data + 16 + 2*0) * MAG_CONVERSION;

@@ -1,0 +1,70 @@
+<launch>
+
+  <node pkg="nodelet" type="nodelet" name="standalone_nodelet"  args="manager"/>
+
+  <node pkg="sub_launch" type="imu_conn" name="imu_conn" respawn="true"/>
+  <node pkg="nodelet" type="nodelet" name="imu" args="load adis16400_imu/nodelet standalone_nodelet">
+    <param name="port" type="string" value="/tmp/imu"/>
+    <param name="frame_id" type="string" value="/imu"/>
+  </node>
+  <node pkg="nodelet" type="nodelet" name="magnetic_hardsoft_compensation" args="load magnetic_hardsoft_compensation/nodelet standalone_nodelet">
+    <param name="frame_id" type="string" value="/imu"/>
+    <rosparam>
+correction: [-0.4480699169382055, -0.6745011663785379, -0.204967316949773, -0.5497908011884093]
+scale: [0.981110440240271, 0.9992390771261116, 1.0200294087924864]
+shift: [7.224812265160376e-05, -1.4299577176524567e-06, 2.8347929440582296e-05]
+    </rosparam>
+  </node>
+
+  <node pkg="sub_launch" type="depth_conn" name="depth_conn" respawn="true"/>
+  <node pkg="nodelet" type="nodelet" name="depth" args="load depth_driver/nodelet standalone_nodelet">
+    <param name="port" type="string" value="/tmp/depth"/>
+    <param name="frame_id" type="string" value="/map"/>
+  </node>
+
+  <node pkg="sub_launch" type="dvl_conn" name="dvl_conn" respawn="true"/>
+  <node pkg="nodelet" type="nodelet" name="dvl" args="load rdi_explorer_dvl/nodelet standalone_nodelet">
+    <param name="port" type="string" value="/tmp/dvl"/>
+    <param name="frame_id" type="string" value="/dvl"/>
+  </node>
+
+  <node pkg="tf" type="static_transform_publisher" name="dvl_broadcaster"
+    args="0.43115992 0 -0.00165058  0.000000 0.000000 0.382683 -0.923880  base_link dvl 100" />
+  <node pkg="tf" type="static_transform_publisher" name="imu_broadcaster"
+    args="0.43115992 0 -0.00165058  0.012621 -0.999908 -0.004523 -0.002181  base_link imu 100" />
+
+  <node pkg="legacy_ekf" type="legacy_ekf" name="legacy_ekf"><rosparam>
+    fixed_frame: /map
+    body_frame: /base_link
+    referenceNorthVector: [24151.0, -2244.2, 40572.8]
+    latitudeDeg: 29.651388889
+    dvl_sigma: [0.02, 0.02, 0.02]
+    att_sigma: [0.5, 0.5, 0.5]
+  </rosparam></node>
+
+  <node pkg="rise_6dof" type="rise_6dof" name="rise_6dof">
+    <remap from="/current" to="odom"/>
+    <remap from="/desired" to="desired"/>
+    <remap from="/output" to="wrench"/>
+  </node>
+
+  <node pkg="thruster_mapper" type="thruster_mapper" name="thruster_mapper"/>
+
+  <node pkg="thruster_driver" type="thruster_driver" name="thruster_driver_FRV"><rosparam>{address: 192.168.1.30, port: 50000, local_address: 21, remote_address: 30,
+    thruster_id: FRV, frame_id: /base_link, position: [0.297, -0.137, 0.050], direction: [0, 0, -1], rev_force: 17.98, fwd_force: 21.57}</rosparam></node>
+  <node pkg="thruster_driver" type="thruster_driver" name="thruster_driver_FLV"><rosparam>{address: 192.168.1.31, port: 50000, local_address: 21, remote_address: 31,
+    thruster_id: FLV, frame_id: /base_link, position: [0.297, 0.137, 0.050], direction: [0, 0, -1], rev_force: 17.98, fwd_force: 21.57}</rosparam></node>
+  <node pkg="thruster_driver" type="thruster_driver" name="thruster_driver_FS"><rosparam>{address: 192.168.1.32, port: 50000, local_address: 21, remote_address: 32,
+    thruster_id: FS, frame_id: /base_link, position: [0.566, -0.046, 0.049], direction: [0, 1, 0], rev_force: 17.98, fwd_force: 21.57}</rosparam></node>
+  <node pkg="thruster_driver" type="thruster_driver" name="thruster_driver_RLV"><rosparam>{address: 192.168.1.33, port: 50000, local_address: 21, remote_address: 33,
+    thruster_id: RLV, frame_id: /base_link, position: [-0.297, 0.137, 0.050], direction: [0, 0, -1], rev_force: 17.98, fwd_force: 21.57}</rosparam></node>
+  <node pkg="thruster_driver" type="thruster_driver" name="thruster_driver_LFOR"><rosparam>{address: 192.168.1.34, port: 50000, local_address: 21, remote_address: 34,
+    thruster_id: LFOR, frame_id: /base_link, position: [-0.633, 0.115, 0.062], direction: [1, 0, 0], rev_force: 16.43, fwd_force: 31.33}</rosparam></node>
+  <node pkg="thruster_driver" type="thruster_driver" name="thruster_driver_RFOR"><rosparam>{address: 192.168.1.35, port: 50000, local_address: 21, remote_address: 35,
+    thruster_id: RFOR, frame_id: /base_link, position: [-0.633, -0.115, 0.062], direction: [1, 0, 0], rev_force: 16.43, fwd_force: 31.33}</rosparam></node>
+  <node pkg="thruster_driver" type="thruster_driver" name="thruster_driver_RS"><rosparam>{address: 192.168.1.36, port: 50000, local_address: 21, remote_address: 36,
+    thruster_id: RS, frame_id: /base_link, position: [-0.528, 0.046, -0.052], direction: [0, -1, 0], rev_force: 17.98, fwd_force: 21.57}</rosparam></node>
+  <node pkg="thruster_driver" type="thruster_driver" name="thruster_driver_RRV"><rosparam>{address: 192.168.1.37, port: 50000, local_address: 21, remote_address: 37,
+    thruster_id: RRV, frame_id: /base_link, position: [-0.298, -0.137, 0.050], direction: [0, 0, -1], rev_force: 17.98, fwd_force: 21.57}</rosparam></node>
+
+</launch>

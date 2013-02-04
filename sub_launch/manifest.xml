@@ -1,0 +1,21 @@
+<package>
+  <description brief="sub_launch">
+
+     sub_launch
+
+  </description>
+  <author>Forrest Voight</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/sub_launch</url>
+  <depend package="adis16400_imu"/>
+  <depend package="depth_driver"/>
+  <depend package="rdi_explorer_dvl"/>
+  <depend package="legacy_ekf"/>
+  <depend package="thruster_mapper"/>
+  <depend package="thruster_driver"/>
+  <depend package="magnetic_hardsoft_compensation"/>
+
+</package>
+
+

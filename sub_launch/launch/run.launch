@@ -42,6 +42,9 @@ shift: [7.224812265160376e-05, -1.4299577176524567e-06, 2.8347929440582296e-05]
     att_sigma: [0.5, 0.5, 0.5]
   </rosparam></node>
 
+  <node pkg="merge_driver" type="merge_driver" name="merge_driver"><rosparam>{address: 192.168.1.60, port: 50000, local_address: 21, remote_address: 60}</rosparam></node>
+
+
   <node pkg="rise_6dof" type="rise_6dof" name="rise_6dof">
     <remap from="/current" to="odom"/>
     <remap from="/desired" to="desired"/>

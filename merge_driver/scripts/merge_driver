@@ -1,0 +1,48 @@
+#!/usr/bin/env python
+
+from __future__ import division
+
+import struct
+
+import roslib
+roslib.load_manifest('merge_driver')
+import rospy
+from std_msgs.msg import Header
+
+from merge_driver import embedded
+
+
+rospy.init_node('merge_driver')
+
+address = rospy.get_param('~address')
+port = rospy.get_param('~port')
+local_address = rospy.get_param('~local_address')
+remote_address = rospy.get_param('~remote_address')
+
+from kill_handling.broadcaster import KillBroadcaster
+
+kill_br = KillBroadcaster(id=rospy.get_name(), lifetime=rospy.Duration(.3), description='Magnetic kill switch')
+
+conn = embedded.Embedded(address, port, local_address, remote_address)
+
+def heartbeat():
+    conn.send('')
+    conn.send(struct.pack('<BBB', 6, 1, 10)) # StartPublishing(10hz)
+rospy.Timer(rospy.Duration(.1), lambda _: heartbeat())
+
+while not rospy.is_shutdown():
+    data = conn.recv()
+    if len(data) != 12:
+        print 'wrong data length', len(data)
+        continue
+    
+    typecode, tickcount, flags, current16_, voltage16_, current32_, voltage32_ = struct.unpack('<BHBHHHH', data)
+    current16, voltage16, current32, voltage32 = current16_/2**10, voltage16_/2**10, current32_/2**10, voltage32_/2**10
+    if typecode != 6:
+        print 'wrong typecode'
+        continue
+    
+    #print tickcount, flags, current16, voltage16, current32, voltage32
+    
+    killed = flags & (1<<2) != 0
+    kill_br.send(killed)

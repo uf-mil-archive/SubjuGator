@@ -20,19 +20,18 @@ namespace adis16400_imu {
             bool offset_set;
             double offset;
             
-            void open() {
-                while(true) {
-                    try {
-                        is.exceptions(std::ifstream::goodbit);
-                        is.close();
-                        is.clear();
-                        is.exceptions(std::ifstream::eofbit | std::ifstream::failbit | std::ifstream::badbit);
-                        is.open(port.c_str());
-                        return;
-                    } catch(const std::exception &exc) {
-                        ROS_ERROR("error on open(%s): %s; reopening after delay", port.c_str(), exc.what());
-                        boost::this_thread::sleep(boost::posix_time::seconds(1));
-                    }
+            bool open() {
+                try {
+                    is.exceptions(std::ifstream::goodbit);
+                    is.close();
+                    is.clear();
+                    is.exceptions(std::ifstream::eofbit | std::ifstream::failbit | std::ifstream::badbit);
+                    is.open(port.c_str());
+                    return true;
+                } catch(const std::exception &exc) {
+                    ROS_ERROR("error on open(%s): %s; reopening after delay", port.c_str(), exc.what());
+                    boost::this_thread::sleep(boost::posix_time::seconds(1));
+                    return false;
                 }
             }
             
@@ -41,16 +40,14 @@ namespace adis16400_imu {
                 is.exceptions(std::ifstream::eofbit | std::ifstream::failbit | std::ifstream::badbit);
             }
             
-            std::pair<sensor_msgs::Imu, geometry_msgs::Vector3Stamped> read(const std::string frame_id) {
+            bool read(const std::string frame_id, sensor_msgs::Imu &result, geometry_msgs::Vector3Stamped &mag_result) {
                 char data[32];
-                while(true) {
-                    try {
-                        is.read(data, 32);
-                        break;
-                    } catch(const std::exception &exc) {
-                        ROS_ERROR("error on read: %s; reopening", exc.what());
-                        open();
-                    }
+                try {
+                    is.read(data, 32);
+                } catch(const std::exception &exc) {
+                    ROS_ERROR("error on read: %s; reopening", exc.what());
+                    open();
+                    return false;
                 }
                 
                 // keep track of offset between imu's time and actual time by low pass filtering the difference between them
@@ -65,7 +62,6 @@ namespace adis16400_imu {
                 ros::Time corrected_stamp = stamp - ros::Duration(offset);
                 
                 
-                sensor_msgs::Imu result;
                 result.header.frame_id = frame_id;
                 result.header.stamp = corrected_stamp;
                 
@@ -88,7 +84,6 @@ namespace adis16400_imu {
                     pow(9e-3 * 9.80665, 2); // 9 mg rms converted to m/s^2 and then squared
                 
                 
-                geometry_msgs::Vector3Stamped mag_result;
                 mag_result.header.frame_id = frame_id;
                 mag_result.header.stamp = corrected_stamp;
                 
@@ -102,7 +97,7 @@ namespace adis16400_imu {
                 getu16(data + 2) * 2.418e-3; // supply voltage unused
                 get16(data + 22) * 0.14 + 25; // temperature unused
                 
-                return make_pair(result, mag_result);
+                return true;
             }
     };
     

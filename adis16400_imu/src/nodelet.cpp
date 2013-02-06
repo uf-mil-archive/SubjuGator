@@ -35,9 +35,12 @@ namespace adis16400_imu {
         private:
             void polling_thread() {
                 while(running) {
-                    std::pair<sensor_msgs::Imu, geometry_msgs::Vector3Stamped> res = device->read(frame_id);
-                    pub.publish(res.first);
-                    mag_pub.publish(res.second);
+                    sensor_msgs::Imu imu;
+                    geometry_msgs::Vector3Stamped mag;
+                    if(device->read(frame_id, imu, mag)) {
+                        pub.publish(imu);
+                        mag_pub.publish(mag);
+                    }
                 }
             }
             

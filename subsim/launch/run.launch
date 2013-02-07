@@ -2,6 +2,7 @@
 
   <node pkg="nodelet" type="nodelet" name="standalone_nodelet"  args="manager"/>
 
+  <node pkg="subsim" type="imu_conn" name="imu_conn" respawn="true"/>
   <node pkg="nodelet" type="nodelet" name="imu" args="load adis16400_imu/nodelet standalone_nodelet">
     <param name="port" type="string" value="/tmp/imu"/>
     <param name="frame_id" type="string" value="/imu"/>
@@ -15,11 +16,13 @@ shift: [7.224812265160376e-05, -1.4299577176524567e-06, 2.8347929440582296e-05]
     </rosparam>
   </node>
 
+  <node pkg="subsim" type="depth_conn" name="depth_conn" respawn="true"/>
   <node pkg="nodelet" type="nodelet" name="depth" args="load depth_driver/nodelet standalone_nodelet">
     <param name="port" type="string" value="/tmp/depth"/>
     <param name="frame_id" type="string" value="/map"/>
   </node>
 
+  <node pkg="subsim" type="dvl_conn" name="dvl_conn" respawn="true"/>
   <node pkg="nodelet" type="nodelet" name="dvl" args="load rdi_explorer_dvl/nodelet standalone_nodelet">
     <param name="port" type="string" value="/tmp/dvl"/>
     <param name="frame_id" type="string" value="/dvl"/>

@@ -7,7 +7,11 @@
     <param name="port" type="string" value="/tmp/imu"/>
     <param name="frame_id" type="string" value="/imu"/>
   </node>
+  <node pkg="nodelet" type="nodelet" name="magnetic_dynamic_compensation" args="load magnetic_dynamic_compensation/nodelet standalone_nodelet">
+    <remap from="/imu/mag" to="/imu/mag_lessraw"/>
+  </node>
   <node pkg="nodelet" type="nodelet" name="magnetic_hardsoft_compensation" args="load magnetic_hardsoft_compensation/nodelet standalone_nodelet">
+    <remap from="/imu/mag_raw" to="/imu/mag_lessraw"/>
     <param name="frame_id" type="string" value="/imu"/>
     <rosparam>
 correction: [-0.4480699169382055, -0.6745011663785379, -0.204967316949773, -0.5497908011884093]
@@ -48,6 +52,9 @@ shift: [7.224812265160376e-05, -1.4299577176524567e-06, 2.8347929440582296e-05]
     <remap from="/desired" to="desired"/>
     <remap from="/output" to="wrench"/>
   </node>
+  
+  
+  <node pkg="merge_driver" type="merge_driver" name="merge_driver"><rosparam>{address: 127.0.0.1, port: 10060, local_address: 21, remote_address: 60}</rosparam></node>
   
   <node pkg="thruster_mapper" type="thruster_mapper" name="thruster_mapper"/>
 

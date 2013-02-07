@@ -133,8 +133,9 @@ def rotate_to_body(body, inv=False):
     glMultMatrixd(rot)
 
 class Sub(object):
-    def __init__(self, body):
+    def __init__(self, body, is_killed_func):
         self.body = body
+        self.is_killed_func = is_killed_func
         self.vectors = []
     
     def draw(self):
@@ -163,6 +164,13 @@ class Sub(object):
                 glTranslate(+.4, -.2, -.3)
                 glColor3f(0, 0, 0)
                 gluSphere(q, 0.1, 40, 20)
+            with GLMatrix:
+                glTranslate(0, 0, -.5)
+                if self.is_killed_func():
+                    glColor3f(1, 0, 0)
+                else:
+                    glColor3f(0, 1, 0)
+                gluSphere(q, 0.1, 20, 10)
             
             glDisable(GL_DEPTH_TEST)
             glBegin(GL_LINES)

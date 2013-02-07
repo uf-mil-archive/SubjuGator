@@ -44,7 +44,7 @@ reactor.listenTCP(10025, AutoServerFactory(devices.IMUProtocol, imu_listeners))
 for i in xrange(8):
     reactor.listenUDP(10030 + i, devices.ThrusterProtocol(i, thrusters))
 reactor.listenTCP(10050, AutoServerFactory(devices.DVLProtocol, dvl_listeners)) # hydrophone too?
-reactor.listenTCP(10060, AutoServerFactory(devices.MergeProtocol, merge_listeners))
+reactor.listenUDP(10060, devices.MergeProtocol(merge_listeners))
 reactor.listenTCP(10061, AutoServerFactory(devices.ActuatorProtocol))
 reactor.listenTCP(10255, AutoServerFactory(devices.HeartbeatProtocol))
 
@@ -97,6 +97,9 @@ def get_water_vel(pos):
 imu_pos = v(0.43115992, 0.0, -0.00165058)
 #imu_pos = v(1, 0, 0)
 
+killed = False
+locked = False
+
 def world_tick():
     global world_time
     
@@ -111,6 +114,7 @@ def world_tick():
     #print thrusters
     
     sub_model.vectors = []
+    thruster_mag = v(0, 0, 0)
     for i, (reldir, relpos, fwdforce, revforce) in enumerate([
         (v(0, 0, 1), v( 11.7103,  5.3754, -1.9677)*.0254, 21.57, 17.98), # FRV
         (v(0, 0, 1), v( 11.7125, -5.3754, -1.9677)*.0254, 21.57, 17.98), # FLV
@@ -125,6 +129,16 @@ def world_tick():
             continue
         body.addRelForceAtRelPos(reldir*thrusters[i]*(fwdforce if thrusters[i] > 0 else revforce), relpos)
         sub_model.vectors.append((relpos, relpos - .02*reldir*thrusters[i]*(fwdforce if thrusters[i] > 0 else revforce)))
+        
+        # calculate generated field assuming thrusters are magnetic dipoles
+        I = thrusters[i] * 100
+        m = I * reldir.unit()*math.pi*.04**2 # assume thrusters have a 4cm radius
+        r = imu_pos - relpos
+        mu0 = 0.0125663706 # gauss*m/A
+        thruster_mag += mu0/4/math.pi*(
+            3*r*(m*r)/r.mag()**5 -
+            m/r.mag()**3
+        )
     
     keys = pygame.key.get_pressed()
     for keycode, force in [
@@ -149,10 +163,27 @@ def world_tick():
         if keys[keycode]:
             body.addRelTorque(torque*(10 if keys[pygame.K_RSHIFT] else 1)*(.1 if keys[pygame.K_RCTRL] else 1))
     
+    global killed
+    if keys[pygame.K_1]:
+        killed = True
+    if keys[pygame.K_2]:
+        killed = False
+    global locked
+    if keys[pygame.K_3]:
+        locked = True
+    if keys[pygame.K_4]:
+        locked = False
+    
     last_vel = V(body.getRelPointVel(imu_pos))
     last_angvel = V(body.vectorFromWorld(body.getAngularVel()))
     
     contactgroup = ode.JointGroup()
+    
+    if locked:
+        j = ode.FixedJoint(world, contactgroup)
+        j.attach(body, None)
+        j.setFixed()
+    
     near_pairs = []
     space.collide(None, lambda _, geom1, geom2: near_pairs.append((geom1, geom2)))
     for geom1, geom2 in near_pairs:
@@ -186,6 +217,7 @@ def world_tick():
     imu_mag_prescale = imu_to_sub.conj().quat_rot(body.vectorFromWorld(north))
     #print imu_mag_prescale*1e-4
     imu_mag = magCorrection.conj().quat_rot(magCorrection.quat_rot(imu_mag_prescale).scale(magScale)) + magShift
+    imu_mag += imu_to_sub.conj().quat_rot(thruster_mag)
     try:
         send_imu_update(
             flags=0,
@@ -205,7 +237,7 @@ def world_tick():
 i = threed.Interface()
 i.init()
 i.objs.append(threed.MeshDrawer(pool_mesh, (.4, .4, .4)))
-sub_model = threed.Sub(body)
+sub_model = threed.Sub(body, lambda: killed)
 i.objs.append(sub_model)
 i.objs.append(threed.VectorField(get_water_vel))
 def _():
@@ -253,7 +285,7 @@ def merge_task():
     try:
         send_merge_update(
             tickcount=0,
-            flags=0,
+            flags=1<<2 if killed else 0,
             current16=random.gauss(10, 0.1),
             voltage16=random.gauss(16, 0.1),
             current32=random.gauss(10, 0.1),

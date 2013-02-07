@@ -85,7 +85,7 @@ class EmbeddedProtocol(protocol.Protocol):
                 log.err()
                 print
     
-    def sendPacket(self, typecode, contents):
+    def sendPacket(self, typecode, contents, addr=None):
         data_pre = struct.pack('BBHB', self.remote_address, self.local_address, self.packet_count % 2**16, typecode) + contents
         data = data_pre + struct.pack('H', crc16(data_pre))
         
@@ -98,7 +98,10 @@ class EmbeddedProtocol(protocol.Protocol):
             else:
                 res.append(char)
         res.append('\x7e')
-        self.transport.write(''.join(res))
+        if addr:
+            self.transport.write(''.join(res), addr)
+        else:
+            self.transport.write(''.join(res))
         
         self.packet_count += 1
 
@@ -125,17 +128,17 @@ class ThrusterProtocol(EmbeddedProtocol):
         refinput = self.thrusters[self.thruster_id] # ???
         presentoutput = 0
         railvoltage = 0
-        current = 0
+        current = abs(self.thrusters[self.thruster_id])*.1
         data = struct.pack('HHHHHH',
             tickcount,
             flags,
-            (lambda x: 0x8000|-x if not 0 <= x < 0x8000 else x)(perfect_round(refinput * 2**8)),
+            (lambda x: 0x8000|-x if not 0 <= x < 0x8000 else x)(perfect_round(refinput * 100 * 2**8)),
             perfect_round(presentoutput * 2**10),
             perfect_round(railvoltage * 2**10),
             perfect_round(current * 2**12),
         )
         assert len(data) == 12
-        #self.sendPacket(0, data)
+        self.sendPacket(0, data, ('127.0.0.1', 50000))
     
     def packetReceived(self, typecode, data):
         if typecode == 0 and data[0] == '\x03':
@@ -300,7 +303,7 @@ class MergeProtocol(EmbeddedProtocol):
             perfect_round(voltage32 * 2**10),
         )
         assert len(data) == 11
-        self.sendPacket(6, data)
+        self.sendPacket(6, data, ('127.0.0.1', 50000))
     
     def connectionLost(self, reason):
         self.listener_set.remove(self)

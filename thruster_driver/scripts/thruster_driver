@@ -15,6 +15,7 @@ from geometry_msgs.msg import Point, Vector3, Vector3Stamped
 
 from thruster_mapper.msg import ThrusterInfo, ThrusterCommand
 from magnetic_dynamic_compensation.msg import FieldInfo
+from kill_handling.listener import KillListener
 
 from thruster_driver import embedded
 from thruster_driver.srv import DoMagneticCalibration, DoMagneticCalibrationResponse
@@ -35,6 +36,8 @@ fwd_force = rospy.get_param('~fwd_force')
 
 mag_frame_id = rospy.get_param('~mag_frame_id', None)
 mag_coeffs = rospy.get_param('~mag_coeffs', None)
+
+kill_listener = KillListener(killed_callback=lambda: thrustercommand_callback(ThrusterCommand(id=thruster_id, force=0)))
 
 # broadcast info message every second
 info_period = rospy.Duration(1)
@@ -58,6 +61,8 @@ rospy.Timer(info_period, sendinfo_callback)
 conn = embedded.Embedded(address, port, local_address, remote_address)
 def thrustercommand_callback(msg):
     if msg.id != thruster_id:
+        return
+    if kill_listener.get_killed() and msg.force != 0:
         return
     scaled = msg.force / fwd_force if msg.force >= 0 else msg.force / rev_force
     clamped = -1 if scaled < -1 else 1 if scaled > 1 else scaled

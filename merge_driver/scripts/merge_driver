@@ -9,7 +9,7 @@ roslib.load_manifest('merge_driver')
 import rospy
 from std_msgs.msg import Header
 
-from merge_driver import embedded
+from embedded_protocol import embedded
 
 
 rospy.init_node('merge_driver')

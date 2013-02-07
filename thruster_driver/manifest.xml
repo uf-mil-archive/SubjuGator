@@ -16,6 +16,7 @@
   <depend package="thruster_mapper"/>
   <depend package="magnetic_dynamic_compensation"/>
   <depend package="kill_handling"/>
+  <depend package="embedded_protocol"/>
 </package>
 
 

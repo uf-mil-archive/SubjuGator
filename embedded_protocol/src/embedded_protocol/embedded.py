@@ -28,7 +28,13 @@ class Embedded(object):
     
     def recv(self):
         while True:
-            f = StringIO.StringIO(self.s.recv(2**16))
+            try:
+                f = StringIO.StringIO(self.s.recv(2**16))
+            except:
+                import traceback, time
+                traceback.print_exc()
+                time.sleep(1)
+                continue
             
             if f.read(1) != '\x7e':
                 print 'packet did not start with 7E'
@@ -77,6 +83,11 @@ class Embedded(object):
             else:
                 res.append(char)
         res.append('\x7e')
-        self.s.send(''.join(res))
+        try:
+            self.s.send(''.join(res))
+        except:
+            import traceback
+            traceback.print_exc()
+            return
         
         self.packet_count += 1

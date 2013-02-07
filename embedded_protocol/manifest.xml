@@ -1,0 +1,14 @@
+<package>
+  <description brief="embedded_protocol">
+
+     embedded_protocol
+
+  </description>
+  <author>Forrest Voight</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/embedded_protocol</url>
+
+</package>
+
+

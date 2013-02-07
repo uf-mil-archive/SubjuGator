@@ -16,8 +16,8 @@ from geometry_msgs.msg import Point, Vector3, Vector3Stamped
 from thruster_mapper.msg import ThrusterInfo, ThrusterCommand
 from magnetic_dynamic_compensation.msg import FieldInfo
 from kill_handling.listener import KillListener
+from embedded_protocol import embedded
 
-from thruster_driver import embedded
 from thruster_driver.srv import DoMagneticCalibration, DoMagneticCalibrationResponse
 
 

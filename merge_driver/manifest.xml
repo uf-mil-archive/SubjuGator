@@ -13,6 +13,7 @@
   <depend package="std_msgs"/>
 
   <depend package="kill_handling"/>
+  <depend package="embedded_protocol"/>
 </package>
 
 

@@ -17,6 +17,7 @@ namespace depth_driver {
             ~Nodelet() {
                 heartbeat_timer.stop();
                 running = false;
+                device->abort();
                 polling_thread_inst.join();
             }
             
@@ -41,7 +42,8 @@ namespace depth_driver {
             void polling_thread() {
                 while(running) {
                     Float64Stamped msg;
-                    msg.data = device->read();
+                    if(!device->read(msg.data))
+                        continue;
                     msg.header.stamp = ros::Time::now();
                     msg.header.frame_id = frame_id;
                     pub.publish(msg);

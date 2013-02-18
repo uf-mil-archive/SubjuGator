@@ -43,10 +43,12 @@ shift: [2.0012507637215145e-05, -2.482222086798168e-06, 6.39916279271035e-05]
     att_sigma: [0.5, 0.5, 0.5]
   </rosparam></node>
 
+  <node pkg="c3_trajectory_generator" type="c3_trajectory_generator" name="c3_trajectory_generator">
+  </node>
 
   <node pkg="rise_6dof" type="rise_6dof" name="rise_6dof">
     <remap from="/current" to="odom"/>
-    <remap from="/desired" to="desired"/>
+    <remap from="/desired" to="trajectory"/>
     <remap from="/output" to="wrench"/>
     <rosparam file="$(find sub_launch)/launch/rise_6dof.yaml"/>
   </node>

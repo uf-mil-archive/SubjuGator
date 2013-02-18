@@ -9,6 +9,10 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/subsim</url>
 
+  <depend package="sub_launch"/>
+  <depend package="sensor_msgs"/>
+  <depend package="tf"/>
+  <depend package="rospy"/>
 </package>
 
 

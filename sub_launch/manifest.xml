@@ -8,14 +8,19 @@
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/sub_launch</url>
+
   <depend package="adis16400_imu"/>
-  <depend package="depth_driver"/>
-  <depend package="rdi_explorer_dvl"/>
-  <depend package="legacy_ekf"/>
-  <depend package="thruster_mapper"/>
-  <depend package="thruster_driver"/>
   <depend package="magnetic_dynamic_compensation"/>
   <depend package="magnetic_hardsoft_compensation"/>
+  <depend package="depth_driver"/>
+  <depend package="rdi_explorer_dvl"/>
+  <depend package="tf"/>
+  <depend package="legacy_ekf"/>
+  <depend package="rise_6dof"/>
+  <depend package="thruster_mapper"/>
+
+  <depend package="merge_driver"/>
+  <depend package="thruster_driver"/>
 
 </package>
 

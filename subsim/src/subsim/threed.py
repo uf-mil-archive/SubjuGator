@@ -10,12 +10,10 @@ from OpenGL.GLU import *
 import pygame
 
 import roslib
-roslib.load_manifest('sensor_msgs')
-roslib.load_manifest('tf')
+roslib.load_manifest('subsim')
 import rospy
 import tf
 from tf import transformations
-
 from sensor_msgs.msg import Image, CameraInfo
 
 from vector import v, V

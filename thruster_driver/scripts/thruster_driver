@@ -13,7 +13,7 @@ import rospy
 from std_msgs.msg import Header
 from geometry_msgs.msg import Point, Vector3, Vector3Stamped
 
-from thruster_mapper.msg import ThrusterInfo, ThrusterCommand
+from thruster_handling.broadcaster import ThrusterBroadcaster
 from magnetic_dynamic_compensation.msg import FieldInfo
 from kill_handling.listener import KillListener
 from embedded_protocol import embedded
@@ -37,38 +37,32 @@ fwd_force = rospy.get_param('~fwd_force')
 mag_frame_id = rospy.get_param('~mag_frame_id', None)
 mag_coeffs = rospy.get_param('~mag_coeffs', None)
 
-kill_listener = KillListener(killed_callback=lambda: thrustercommand_callback(ThrusterCommand(id=thruster_id, force=0)))
+kill_listener = KillListener(killed_callback=lambda: thrustercommand_callback(0))
 
-# broadcast info message every second
-info_period = rospy.Duration(1)
-thrusterinfo_publisher = rospy.Publisher('thrusters/info', ThrusterInfo)
-def sendinfo_callback(timerevent):
-    thrusterinfo_publisher.publish(ThrusterInfo(
-        header=Header(
-            stamp=rospy.Time.now(),
-            frame_id=frame_id,
-        ),
-        id=thruster_id,
-        lifetime=info_period * 2,
-        position=Point(*position),
-        direction=Vector3(*direction),
-        min_force=-rev_force,
-        max_force=+fwd_force,
-    ))
-rospy.Timer(info_period, sendinfo_callback)
 
 # forward commands to thruster
 conn = embedded.Embedded(address, port, local_address, remote_address)
-def thrustercommand_callback(msg):
-    if msg.id != thruster_id:
+def thrustercommand_callback(force):
+    if kill_listener.get_killed() and force != 0:
         return
-    if kill_listener.get_killed() and msg.force != 0:
-        return
-    scaled = msg.force / fwd_force if msg.force >= 0 else msg.force / rev_force
+    scaled = force / fwd_force if force >= 0 else force / rev_force
     clamped = -1 if scaled < -1 else 1 if scaled > 1 else scaled
     x = int(math.floor(clamped * 100 * 2**8 + .5))
     conn.send(struct.pack('<BBH', 0, 3, 0x8000|x if x >= 0 else -x))
-rospy.Subscriber('thrusters/command', ThrusterCommand, thrustercommand_callback)
+
+info_period = rospy.Duration(1)
+thruster_broadcaster = ThrusterBroadcaster(
+    frame_id=frame_id,
+    id=thruster_id,
+    lifetime=info_period * 2,
+    position=position,
+    direction=direction,
+    min_force=-rev_force,
+    max_force=+fwd_force,
+    command_callback=thrustercommand_callback,
+)
+rospy.Timer(info_period, lambda timerevent: thruster_broadcaster.send())
+
 
 def heartbeat():
     conn.send('')
@@ -92,14 +86,14 @@ def do_magnetic_calibration(req):
     mags = []
     for dir, i in [('fwd', _) for _ in range(N)] + [('rev', _) for _ in reversed(range(N))]:
         force = -rev_force + (fwd_force - -rev_force)*i/(N-1)
-        thrustercommand_callback(ThrusterCommand(id=thruster_id, force=force))
+        thrustercommand_callback(force)
         rospy.sleep(.5)
         
         currents.append(wait_for_current())
         mags.append(wait_for_mag()[0])
         
         print dir, i, force, currents[-1], mags[-1]
-    thrustercommand_callback(ThrusterCommand(id=thruster_id, force=0))
+    thrustercommand_callback(0)
     
     #from matplotlib import pyplot
     #pyplot.plot(currents, mags[:,0])

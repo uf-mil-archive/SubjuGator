@@ -1,0 +1,5 @@
+for A in `rosservice list | grep do_magnetic_calibration` ; do
+   echo Calling $A...
+   rosservice call $A
+   echo     ...done.
+done

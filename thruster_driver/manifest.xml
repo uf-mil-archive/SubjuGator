@@ -13,7 +13,7 @@
   <depend package="std_msgs"/>
   <depend package="geometry_msgs"/>
 
-  <depend package="thruster_mapper"/>
+  <depend package="thruster_handling"/>
   <depend package="magnetic_dynamic_compensation"/>
   <depend package="kill_handling"/>
   <depend package="embedded_protocol"/>

@@ -4,3 +4,4 @@ string id
 
 float64 temperature
 float64 pressure
+bool water

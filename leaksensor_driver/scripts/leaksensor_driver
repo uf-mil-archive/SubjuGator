@@ -5,105 +5,71 @@ from __future__ import division
 import struct
 import time
 
-import serial
-
 import roslib
 roslib.load_manifest('leaksensor_driver')
 import rospy
 from std_msgs.msg import Header
 
 from leaksensor_driver.msg import Report
+from leaksensor_driver import xbee, bmp085
 
 
 rospy.init_node('leaksensor_driver')
 report_publisher = rospy.Publisher('leaksensor', Report)
+addresses = rospy.get_param('~addresses', {})
 
-s = serial.Serial(rospy.get_param('~port'), 9600)
-s.flushInput()
 
-def read_unescaped(length):
-    res = ''
-    while True:
-       c = s.read(1)
-       if c == '\x7d':
-           x = s.read(1)
-           res += chr(ord(x) ^ 0x20)
-       else:
-           res += c
-       if len(res) == length:
-           return res
 
 last = time.time()
 
+
+def got_packet(source, rssi, data):
+    global last
+    
+    if len(data) != 31:
+        print 'invalid length', len(data)
+        return
+    
+    print 'received packet from', source, 'with rssi', rssi
+    magic, UT, UP_, flags = struct.unpack('>HHIB', data[:9])
+    if magic != 0x74bf:
+        print 'invalid magic'
+        return
+    
+    temperature, pressure = bmp085.decode(UT, UP_, data[9:])
+    
+    water = bool(flags & 1)
+    
+    report_publisher.publish(Report(
+        header=Header(
+            stamp=rospy.Time.now(),
+        ),
+        id=addresses.get(source, '<unknown %s>' % (source,)),
+        temperature=temperature,
+        pressure=pressure,
+        water=water,
+    ))
+    
+    print 'temp: %s pres: %s water: %s' % (temperature, pressure, water)
+    now = time.time()
+    print 'time since last: %s' % (now - last)
+    last = now
+    print
+
+xbee = xbee.XBee(rospy.get_param('~port'))
 while True:
-    if s.read(1) != '\x7e':
-        #print 'garbage'
-        continue
-    length, = struct.unpack('>H', read_unescaped(2))
-    if length > 50:
-        print 'length too long', length
-        continue
-    data = read_unescaped(length)
-    checksum_should = 0xFF - sum(map(ord, data)) % 256
-    checksum, = struct.unpack('>B', read_unescaped(1))
-    if checksum != checksum_should:
-        print 'invalid checksum!'
-        continue
+    cmdID, cmdData = xbee.read()
     
-    if data[0] == '\x01': # is a transmit request mirrored from local xbee
-        # rewrite as received from 0xffff
-        data = '\x81' + struct.pack('>HBB', 0xffff, 0, 0) + data[5:]
-    
-    if data[0] == '\x81':
-        source, rssi, options = struct.unpack('>HBB', data[1:5])
-        rf_data = data[5:]
-        print 'received packet from', source, 'with rssi', rssi, 'and options', options
-        magic, UT, UP_, flags = struct.unpack('>HHIB', rf_data[:9])
-        if magic != 0x74bf:
-            print 'invalid magic'
-            continue
-        AC1, AC2, AC3, AC4, AC5, AC6, B1, B2, MB, MC, MD = struct.unpack('>hhhHHHhhhhh', rf_data[9:])
-        oss = 3
-        UP = UP_ >> (8 - oss)
-        
-        X1 = (UT - AC6) * AC5 // 2**15
-        X2 = MC * 2**11 // (X1 + MD)
-        B5 = X1 + X2
-        T = (B5 + 8) // 2**4
-        
-        B6 = B5 - 4000
-        X1 = (B2 * (B6 * B6 // 2**12)) // 2**11
-        X2 = AC2 * B6 // 2**11
-        X3 = X1 + X2
-        B3 = (((AC1*4 + X3) << oss) + 2) // 4
-        X1 = AC3 * B6 // 2**13
-        X2 = (B1 * (B6 * B6 // 2**12)) // 2**16
-        X3 = ((X1 + X2) + 2) // 2**2
-        B4 = AC4 * (X3 + 32768) // 2**15
-        B7 = (UP - B3) * (50000 >> oss)
-        p = B7 * 2 // B4
-        X1 = (p // 2**8) * (p // 2**8)
-        X1 = (X1 * 3038) // 2**16
-        X2 = (-7357 * p) // 2**16
-        p = p + (X1 + X2 + 3791) // 2**4
-        
-        temp = T/10
-        water = bool(flags & 1)
-        saw_other = bool(flags & 2) and bool(flags & 4)
-        
-        report_publisher.publish(Report(
-            header=Header(
-                stamp=rospy.Time.now(),
-            ),
-            id=str(source), # XXX
-            temperature=temp,
-            pressure=p,
-        ))
-        
-        print 'temp: %s pres: %s water: %s saw_other: %s' % (temp, p, water, saw_other)
-        now = time.time()
-        print 'time since last: %s' % (now - last)
-        last = now
-        print
+    if cmdID == 0x01: # is a transmit request mirrored from local xbee
+        got_packet(None, None, data[4:])
+    elif cmdID == 0x81: # 16-bit address 
+        (source, rssi, options), rf_data = struct.unpack('>HBB', cmdData[:4]), cmdData[4:]
+        source = '%04x' % source
+        got_packet(source, rssi, rf_data)
+    elif cmdID == 0x90: # 64-bit address
+        # apparently the documentation is wrong - there's no frame_id here
+        (source, reserved, option), rf_data = struct.unpack('>QHB', cmdData[:11]), cmdData[11:]
+        source = '%016x' % source
+        got_packet(source, None, rf_data)
     else:
-        print 'unknown:', data.encode('hex')
+        print 'unknown:', hex(cmdID), cmdData.encode('hex')

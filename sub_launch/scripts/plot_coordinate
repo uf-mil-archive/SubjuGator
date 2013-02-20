@@ -1,0 +1,8 @@
+#!/bin/sh
+
+if [ "x$1x" == "xx" ] ; then
+    echo "Usage: plot_coordinate (x/y/z)"
+    exit
+fi
+
+rxplot /odom/pose/pose/position/$1,/trajectory/posetwist/pose/position/$1 -p 30 -r 10

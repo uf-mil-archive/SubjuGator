@@ -77,8 +77,8 @@ Vector3d MILQuaternionOps::QuatRotate(const Vector4d& q, const Vector3d vec)
     // Expand the vector into 4x1 quaternion
     Vector4d r(0.0, vec(0), vec(1), vec(2));
 
-    Vector4d intermediate = QuatMultiply(q,r);
-    intermediate = QuatMultiply(intermediate, QuatConjugate(q));
+    Vector4d intermediate = QuatMultiply(qNorm,r);
+    intermediate = QuatMultiply(intermediate, QuatConjugate(qNorm));
 
     Vector3d res(intermediate(1),intermediate(2), intermediate(3));
 

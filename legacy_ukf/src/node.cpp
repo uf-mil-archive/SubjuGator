@@ -162,7 +162,7 @@ struct Node {
 
 
 int main(int argc, char** argv) {
-    ros::init(argc, argv, "legacy_ekf");
+    ros::init(argc, argv, "legacy_ukf");
     
     Node n;
     

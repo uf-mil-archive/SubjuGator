@@ -34,7 +34,7 @@ shift: [2.0012507637215145e-05, -2.482222086798168e-06, 6.39916279271035e-05]
   <node pkg="tf" type="static_transform_publisher" name="imu_broadcaster"
     args="0.43115992 0 -0.00165058  0.012621 -0.999908 -0.004523 -0.002181  base_link imu 100" />
 
-  <node pkg="legacy_ekf" type="legacy_ekf" name="legacy_ekf"><rosparam>
+  <node pkg="legacy_ukf" type="legacy_ukf" name="legacy_ukf"><rosparam>
     fixed_frame: /map
     body_frame: /base_link
     referenceNorthVector: [24151.0, -2244.2, 40572.8]

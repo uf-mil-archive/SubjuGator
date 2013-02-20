@@ -2,7 +2,7 @@
 \mainpage
 \htmlinclude manifest.html
 
-\b legacy_ekf 
+\b legacy_ukf 
 
 Developer notes:
 

@@ -1,13 +1,13 @@
 <package>
-  <description brief="legacy_ekf">
+  <description brief="legacy_ukf">
 
-     legacy_ekf
+     legacy_ukf
 
   </description>
   <author>Forrest Voight</author>
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
-  <url>http://ros.org/wiki/legacy_ekf</url>
+  <url>http://ros.org/wiki/legacy_ukf</url>
 
   <depend package="roscpp"/>
   <depend package="tf"/>

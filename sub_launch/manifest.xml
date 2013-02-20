@@ -15,7 +15,7 @@
   <depend package="depth_driver"/>
   <depend package="rdi_explorer_dvl"/>
   <depend package="tf"/>
-  <depend package="legacy_ekf"/>
+  <depend package="legacy_ukf"/>
   <depend package="c3_trajectory_generator"/>
   <depend package="rise_6dof"/>
   <depend package="thruster_mapper"/>

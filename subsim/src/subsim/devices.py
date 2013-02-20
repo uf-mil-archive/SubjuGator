@@ -177,7 +177,7 @@ class IMUProtocol(protocol.Protocol):
             struct.pack('<HH', flags, perfect_round(supply_voltage/0.00242)),
             struct.pack('<3h', *(perfect_round(x/0.000872664626) for x in ang_rate)),
             struct.pack('<3h', *(perfect_round(x/9.80665/0.00333) for x in acceleration)),
-            struct.pack('<3h', *(perfect_round(x/0.0005) for x in mag_field)),
+            struct.pack('<3h', *(perfect_round(x*1e4/0.0005) for x in mag_field)),
             struct.pack('<hq', perfect_round((temperature - 25)/0.14), perfect_round(timestamp*1e9)),
         ])
         assert len(data) == 32

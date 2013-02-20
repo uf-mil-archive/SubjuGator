@@ -134,7 +134,7 @@ def world_tick():
         I = thrusters[i] * 100
         m = I * reldir.unit()*math.pi*.04**2 # assume thrusters have a 4cm radius
         r = imu_pos - relpos
-        mu0 = 0.0125663706 # gauss*m/A
+        mu0 = 4*math.pi*1e-7
         thruster_mag += mu0/4/math.pi*(
             3*r*(m*r)/r.mag()**5 -
             m/r.mag()**3
@@ -207,15 +207,12 @@ def world_tick():
     imu_acc = imu_to_sub.conj().quat_rot(-a)
     #print imu_acc
     
-    north = v(0.241510, -0.022442, 0.405728)
-    magCorrection = v(0.673081592748511, -0.207153644511562, -0.546990360033963, 0.452603671105992)
-    # ros form
-    # [0.207153644511562, 0.546990360033963, -0.452603671105992, -0.673081592748511]
-    magShift = v(0.722492613515378, -0.014544506498174, 0.283264416021074)
-    magScale = v(0.963005126569852, 0.980211159628685, 1.000855176757894)
+    north = v(0.241510e-4, -0.022442e-4, 0.405728e-4)
+    magCorrection = v(0.8589099276727635, -0.09336437196019529, 0.4874002946967848, -0.1264823423373159)
+    magShift = v(2.0012507637215145e-05, -2.482222086798168e-06, 6.39916279271035e-05)
+    magScale = v(0.9354658561813165, 1.0005314454765337, 1.0684182968341482)
     
     imu_mag_prescale = imu_to_sub.conj().quat_rot(body.vectorFromWorld(north))
-    #print imu_mag_prescale*1e-4
     imu_mag = magCorrection.conj().quat_rot(magCorrection.quat_rot(imu_mag_prescale).scale(magScale)) + magShift
     imu_mag += imu_to_sub.conj().quat_rot(thruster_mag)
     try:

@@ -84,7 +84,7 @@ struct Node {
         // XXX use frame_id
         
         subjugator::IMUInfo imuinfo;
-        imuinfo.timestamp = imu->header.stamp.toNSec();
+        imuinfo.timestamp = imu->header.stamp;
         imuinfo.acceleration[0] = imu->linear_acceleration.x;
         imuinfo.acceleration[1] = imu->linear_acceleration.y;
         imuinfo.acceleration[2] = imu->linear_acceleration.z;
@@ -125,7 +125,7 @@ struct Node {
         
         // Emit the LPOSInfo every iteration
         Odometry msg;
-        msg.header.stamp.fromNSec(info.timestamp);
+        msg.header.stamp = info.timestamp;
         msg.header.frame_id = fixed_frame;
         msg.child_frame_id = body_frame;
         

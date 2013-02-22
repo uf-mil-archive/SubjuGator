@@ -2,8 +2,8 @@
 #define KALMAN_H
 
 #include <boost/shared_ptr.hpp>
-#include <boost/cstdint.hpp>
 #include <Eigen/Dense>
+#include <ros/time.h>
 
 namespace subjugator
 {
@@ -16,12 +16,12 @@ namespace subjugator
         Eigen::Vector3d Acceleration_bias;
         Eigen::Vector3d Gyro_bias;
         Eigen::Vector3d PositionErrorEst;    // This also has depth error superimposed!
-        boost::int64_t tickCount;
+        ros::Time time;
 
         KalmanData();
-        KalmanData(double depthError, Eigen::Vector3d velError, Eigen::Vector4d errorQuat, Eigen::Vector3d a_bias, Eigen::Vector3d w_bias, Eigen::Vector3d pestErr, boost::int64_t tickCount) :
+        KalmanData(double depthError, Eigen::Vector3d velError, Eigen::Vector4d errorQuat, Eigen::Vector3d a_bias, Eigen::Vector3d w_bias, Eigen::Vector3d pestErr, ros::Time time) :
             DepthError(depthError), VelocityError(velError), ErrorQuaternion(errorQuat), Acceleration_bias(a_bias),
-            Gyro_bias(w_bias), PositionErrorEst(pestErr), tickCount(tickCount)
+            Gyro_bias(w_bias), PositionErrorEst(pestErr), time(time)
         {
         }
     };
@@ -50,9 +50,9 @@ namespace subjugator
                      double alpha, double beta, double kappa, double bias_var_f, double bias_var_w,
                      Eigen::Vector3d white_noise_sigma_f, Eigen::Vector3d white_noise_sigma_w, double T_f,
                      double T_w, double depth_sigma, Eigen::Vector3d dvl_sigma, Eigen::Vector3d att_sigma,
-                     boost::uint64_t startTickCount);
+                     ros::Time startTime);
         void Update(const Vector7d& z, const Eigen::Vector3d& f_IMU,
-                     const Eigen::Vector3d& v_INS, const Eigen::Vector4d& q_INS, boost::uint64_t currentTickCount);
+                     const Eigen::Vector3d& v_INS, const Eigen::Vector4d& q_INS, ros::Time currentTime);
         void Reset();
         boost::shared_ptr<KalmanData> GetData()
         {
@@ -61,8 +61,6 @@ namespace subjugator
             return temp;
         }
     private:
-        static const double SECPERNANOSEC = 1e-9;
-
         bool initialized;
 
         RowVector27d ones2LXp1;
@@ -103,7 +101,7 @@ namespace subjugator
 
         double T_f;
         double T_w;
-        boost::int64_t prevTickCount;
+        ros::Time prevTime;
 
         boost::shared_ptr<KalmanData> prevData;
     };

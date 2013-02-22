@@ -13,11 +13,11 @@ KalmanFilter::KalmanFilter(int L, double gravityMag, Vector4d q_hat, Matrix13d P
              double alpha, double beta, double kappa, double bias_var_f, double bias_var_w,
              Vector3d white_noise_sigma_f, Vector3d white_noise_sigma_w, double T_f,
              double T_w, double depth_sigma, Vector3d dvl_sigma, Vector3d att_sigma,
-             boost::uint64_t startTickCount) :
+             ros::Time startTime) :
              L(L), gravityMag(gravityMag), q_hat(q_hat), P_hat(P_hat), alpha(alpha),
              beta(beta), kappa(kappa), bias_var_f(bias_var_f*gravityMag),
              bias_var_w(bias_var_w*boost::math::constants::pi<double>()/(180.0*3600.0)),
-             T_f(T_f), T_w(T_w), prevTickCount(startTickCount)
+             T_f(T_f), T_w(T_w), prevTime(startTime)
 {
     lambda = alpha*alpha*(L+kappa) - L;
 
@@ -62,17 +62,17 @@ KalmanFilter::KalmanFilter(int L, double gravityMag, Vector4d q_hat, Matrix13d P
             Vector4d(1.0,0.0,0.0,0.0),
             x_hat.block<3,1>(7,0),
             x_hat.block<3,1>(10,0),
-            P_est_error, prevTickCount));
+            P_est_error, prevTime));
 
     initialized = true;
 }
 
 void KalmanFilter::Update(const Vector7d& z, const Vector3d& f_IMU,
-             const Vector3d& v_INS, const Vector4d& q_INS, boost::uint64_t currentTickCount)
+             const Vector3d& v_INS, const Vector4d& q_INS, ros::Time currentTime)
 {
     // Update dt
-    double dt = (currentTickCount - prevTickCount)*SECPERNANOSEC;
-    prevTickCount = currentTickCount;
+    double dt = (currentTime - prevTime).toSec();
+    prevTime = currentTime;
 
     //Protect the filter against the debugger and non monotonic time
     if((dt <= 0) || (dt > .150))
@@ -225,7 +225,7 @@ void KalmanFilter::Update(const Vector7d& z, const Vector3d& f_IMU,
             q_hat_tilde_inverse,
             x_hat.block<3,1>(7,0),
             x_hat.block<3,1>(10,0),
-            P_est_error, prevTickCount));
+            P_est_error, prevTime));
 }
 
 void KalmanFilter::Reset()
@@ -238,5 +238,5 @@ void KalmanFilter::Reset()
             Vector4d(1.0,0.0,0.0,0.0),
             x_hat.block<3,1>(7,0),
             x_hat.block<3,1>(10,0),
-            P_est_error, prevTickCount));
+            P_est_error, prevTime));
 }

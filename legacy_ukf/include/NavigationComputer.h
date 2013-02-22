@@ -71,11 +71,11 @@ namespace subjugator {
 
         bool initialized;
 
-        boost::int64_t nextKalmanTime;
+        ros::Time nextKalmanTime;
         int kalmanCount;
 
         void TryInit(const IMUInfo &imuInfo);
-        void updateKalmanTo(boost::int64_t time);
+        void updateKalmanTo(ros::Time time);
         void resetErrors();
     };
 }

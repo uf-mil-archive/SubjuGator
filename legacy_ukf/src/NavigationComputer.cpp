@@ -45,7 +45,7 @@ void NavigationComputer::TryInit(const IMUInfo& imu)
     ins = std::auto_ptr<INS>(
             new INS(
                     conf.latitudeDeg*boost::math::constants::pi<double>()/180.0,
-                    Vector3d::Zero(), // assume the sub is at rest when we start, hence omega is zero
+                    MILQuaternionOps::QuatRotate(q_SUB_IMU, imu.ang_rate),
                     MILQuaternionOps::QuatRotate(q_SUB_IMU, imu.acceleration),    // a_body prev MUST be taken from a valid IMU packet!
                     Vector3d(0, 0, depthRef) + MILQuaternionOps::QuatRotate(attRef, r_ORIGIN_NAV), // initialPosition
                     Vector3d(0, 0, 0), // initialVelocity

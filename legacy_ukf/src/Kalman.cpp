@@ -62,7 +62,7 @@ KalmanFilter::KalmanFilter(int L, double gravityMag, Vector4d q_hat, Matrix13d P
             Vector4d(1.0,0.0,0.0,0.0),
             x_hat.block<3,1>(7,0),
             x_hat.block<3,1>(10,0),
-            P_est_error));
+            P_est_error, prevTickCount));
 
     initialized = true;
 }
@@ -225,7 +225,7 @@ void KalmanFilter::Update(const Vector7d& z, const Vector3d& f_IMU,
             q_hat_tilde_inverse,
             x_hat.block<3,1>(7,0),
             x_hat.block<3,1>(10,0),
-            P_est_error));
+            P_est_error, prevTickCount));
 }
 
 void KalmanFilter::Reset()
@@ -238,5 +238,5 @@ void KalmanFilter::Reset()
             Vector4d(1.0,0.0,0.0,0.0),
             x_hat.block<3,1>(7,0),
             x_hat.block<3,1>(10,0),
-            P_est_error));
+            P_est_error, prevTickCount));
 }

@@ -147,7 +147,7 @@ void NavigationComputer::GetNavInfo(LPOSVSSInfo& info)
 
     // Transform position and velocity to the sub origin. Assuming rigid body motion
     Vector3d r_O_N_NED = MILQuaternionOps::QuatRotate(info.quaternion_NED_B, r_ORIGIN_NAV);
-    info.position_NED = (insdata->Position_NED - kdata->PositionErrorEst) - r_O_N_NED;
+    info.position_NED = (insdata->Position_NED - (kdata->PositionErrorEst + 1e-9*(insdata->time - kdata->tickCount)*kdata->VelocityError)) - r_O_N_NED;
     info.velocity_NED = (insdata->Velocity_NED - kdata->VelocityError) - info.angularRate_BODY.cross(r_O_N_NED);
     info.acceleration_BODY = insdata->Acceleration_BODY - kdata->Acceleration_bias +
             MILQuaternionOps::QuatRotate(MILQuaternionOps::QuatInverse(info.quaternion_NED_B), referenceGravityVector);

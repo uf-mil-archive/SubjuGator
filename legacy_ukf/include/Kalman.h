@@ -16,11 +16,12 @@ namespace subjugator
         Eigen::Vector3d Acceleration_bias;
         Eigen::Vector3d Gyro_bias;
         Eigen::Vector3d PositionErrorEst;    // This also has depth error superimposed!
+        boost::int64_t tickCount;
 
         KalmanData();
-        KalmanData(double depthError, Eigen::Vector3d velError, Eigen::Vector4d errorQuat, Eigen::Vector3d a_bias, Eigen::Vector3d w_bias, Eigen::Vector3d pestErr) :
+        KalmanData(double depthError, Eigen::Vector3d velError, Eigen::Vector4d errorQuat, Eigen::Vector3d a_bias, Eigen::Vector3d w_bias, Eigen::Vector3d pestErr, boost::int64_t tickCount) :
             DepthError(depthError), VelocityError(velError), ErrorQuaternion(errorQuat), Acceleration_bias(a_bias),
-            Gyro_bias(w_bias), PositionErrorEst(pestErr)
+            Gyro_bias(w_bias), PositionErrorEst(pestErr), tickCount(tickCount)
         {
         }
     };

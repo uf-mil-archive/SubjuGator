@@ -47,12 +47,7 @@ void INS::Update(const IMUInfo& imu)
     // Update dt
     double dt = (imu.timestamp - prevTime).toSec();
     prevTime = imu.timestamp;
-
-    //Protect the INS against the debugger and non monotonic time
-    if((dt <= 0) || (dt > .050))
-    {
-        return;
-    }
+    assert(0 <= dt && dt <= 0.150);
 
     if(a_body.norm() > MAX_ACC_MAG)
     {

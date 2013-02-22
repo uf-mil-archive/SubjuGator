@@ -15,18 +15,23 @@ using namespace Eigen;
 NavigationComputer::NavigationComputer(const Config &conf):
     conf(conf),
     white_noise_sigma_f(0.0005,0.0005,0.0005), white_noise_sigma_w(0.05,0.05,0.05),
-    q_SUB_DVL(0.0,0.923879532511287,0.382683432365090,0.0), q_SUB_IMU(0.012621022547474,0.002181321593961,-0.004522523520991,0.999907744947984),
-    initialized(false)
+    q_SUB_DVL(0.0,0.923879532511287,0.382683432365090,0.0), q_SUB_IMU(0.012621022547474,0.002181321593961,-0.004522523520991,0.999907744947984)
 {
     referenceGravityVector = AttitudeHelpers::LocalGravity(conf.latitudeDeg*boost::math::constants::pi<double>()/180.0, 0);
 
     r_ORIGIN_NAV << 0.43115992,0.0,-0.00165058;
+    
+    reset();
+}
 
+void NavigationComputer::reset() {
     depthRefAvailable = false;
     attRefAvailable = false;
     velRefAvailable = false;
     
     attCount = 0;
+    
+    initialized = false;
 }
 
 void NavigationComputer::TryInit(const IMUInfo& imu)
@@ -159,6 +164,9 @@ void NavigationComputer::GetNavInfo(LPOSVSSInfo& info)
 
 void NavigationComputer::UpdateIMU(const IMUInfo& imu)
 {
+    if(initialized && (imu.timestamp < ins->GetData()->time || imu.timestamp > ins->GetData()->time + ros::Duration(0.1))) // reinitialize if time goes backwards or forwards too far
+        reset();
+    
     // The INS has the rotation info already, so just push the packet through
     if(initialized)
         ins->Update(imu);

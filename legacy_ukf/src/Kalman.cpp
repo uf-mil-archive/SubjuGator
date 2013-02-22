@@ -73,10 +73,7 @@ void KalmanFilter::Update(const Vector7d& z, const Vector3d& f_IMU,
     // Update dt
     double dt = (currentTime - prevTime).toSec();
     prevTime = currentTime;
-
-    //Protect the filter against the debugger and non monotonic time
-    if((dt <= 0) || (dt > .150))
-        return;
+    assert(0 <= dt && dt <= 0.150);
 
     // Gyro Error
     double sigma_Q_w = AttitudeHelpers::Markov_wStdDev(dt, T_w, bias_var_w);

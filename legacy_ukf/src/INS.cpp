@@ -21,16 +21,15 @@ using namespace Eigen;
  * @param[in]    q_prev            The initial quaternion
  * @param[in]    w_bias            rad/s
  * @param[in]    a_bias            m/s^2
- * @param[in]    q_SUB_IMU
  * @param[in]    time
  *
  */
 INS::INS(double lat, Vector3d w_dif_prev, Vector3d a_body_prev, Vector3d p_prev,
             Vector3d v_prev, Vector3d g, Vector4d q_prev, Vector3d w_bias, Vector3d a_bias,
-            Vector4d q_SUB_IMU, ros::Time startTime):
+            ros::Time startTime):
             lat(lat), w_dif_prev(w_dif_prev), a_body_prev(a_body_prev), p_prev(p_prev),
             v_prev(v_prev), g(g), q_prev(q_prev), w_bias(w_bias), a_bias(a_bias),
-            q_SUB_IMU(q_SUB_IMU), prevData(new INSData(p_prev, v_prev, q_prev, g, a_body_prev, a_body_prev, w_dif_prev, a_bias, w_bias, startTime)),
+            prevData(new INSData(p_prev, v_prev, q_prev, g, a_body_prev, a_body_prev, w_dif_prev, a_bias, w_bias, startTime)),
             prevTime(startTime)
 {
     w_ie_n(0) = w_ie_e*std::cos(lat);
@@ -38,15 +37,11 @@ INS::INS(double lat, Vector3d w_dif_prev, Vector3d a_body_prev, Vector3d p_prev,
     w_ie_n(2) = -1.0*w_ie_e*std::sin(lat);
 }
 
-void INS::Update(const IMUInfo& imu)
+void INS::Update(ros::Time currentTime, Vector3d w_body, Vector3d a_body)
 {
-    // Validate the contents of the packet
-    Vector3d w_body = MILQuaternionOps::QuatRotate(q_SUB_IMU, imu.ang_rate);
-    Vector3d a_body = MILQuaternionOps::QuatRotate(q_SUB_IMU, imu.acceleration);
-
     // Update dt
-    double dt = (imu.timestamp - prevTime).toSec();
-    prevTime = imu.timestamp;
+    double dt = (currentTime - prevTime).toSec();
+    prevTime = currentTime;
     assert(0 <= dt && dt <= 0.150);
 
     if(a_body.norm() > MAX_ACC_MAG)

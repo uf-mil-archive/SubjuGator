@@ -4,7 +4,6 @@
 #include <Eigen/Dense>
 #include <ros/time.h>
 
-#include "DataObjects/IMUInfo.h"
 #include "Kalman.h"
 
 
@@ -36,9 +35,9 @@ namespace subjugator {
     public:
         INS(double lat, Eigen::Vector3d w_dif_prev, Eigen::Vector3d a_body_prev, Eigen::Vector3d p_prev,
             Eigen::Vector3d v_prev, Eigen::Vector3d g, Eigen::Vector4d q_prev, Eigen::Vector3d w_bias, Eigen::Vector3d a_bias,
-            Eigen::Vector4d q_SUB_IMU, ros::Time time);
+            ros::Time time);
 
-        void Update(const IMUInfo& info);
+        void Update(ros::Time currentTime, Eigen::Vector3d w_body, Eigen::Vector3d a_body);
         void Reset(const KalmanData& kData);
         boost::shared_ptr<INSData> GetData() {
             return boost::shared_ptr<INSData>(prevData);
@@ -60,7 +59,6 @@ namespace subjugator {
 
         Eigen::Vector3d w_bias;
         Eigen::Vector3d a_bias;
-        Eigen::Vector4d q_SUB_IMU;
         boost::shared_ptr<INSData> prevData;
 
         ros::Time prevTime;

@@ -74,7 +74,7 @@ namespace subjugator {
         int kalmanCount;
 
         void reset();
-        void TryInit(const IMUInfo &imuInfo);
+        void TryInit(ros::Time currentTime, Vector3d w_body, Vector3d a_body);
         void updateKalmanTo(ros::Time time);
         void resetErrors();
     };

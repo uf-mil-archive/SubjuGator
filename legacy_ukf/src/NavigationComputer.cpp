@@ -34,7 +34,7 @@ void NavigationComputer::reset() {
     initialized = false;
 }
 
-void NavigationComputer::TryInit(const IMUInfo& imu)
+void NavigationComputer::TryInit(ros::Time currentTime, Vector3d w_body, Vector3d a_body)
 {
     assert(!initialized);
 
@@ -45,16 +45,15 @@ void NavigationComputer::TryInit(const IMUInfo& imu)
     ins = std::auto_ptr<INS>(
             new INS(
                     conf.latitudeDeg*boost::math::constants::pi<double>()/180.0,
-                    MILQuaternionOps::QuatRotate(q_SUB_IMU, imu.ang_rate),
-                    MILQuaternionOps::QuatRotate(q_SUB_IMU, imu.acceleration),    // a_body prev MUST be taken from a valid IMU packet!
+                    w_body,
+                    a_body,    // a_body prev MUST be taken from a valid IMU packet!
                     Vector3d(0, 0, depthRef) + MILQuaternionOps::QuatRotate(attRef, r_ORIGIN_NAV), // initialPosition
                     Vector3d(0, 0, 0), // initialVelocity
                     referenceGravityVector,    // Gravity vector from file or equation
                     attRef,    //
                     Vector3d::Zero(),    // Initial gyro bias, rad/s
                     Vector3d::Zero(),    // Initial accelerometer bias, m/s^2
-                    q_SUB_IMU,
-                    imu.timestamp
+                    currentTime
             ));
 
 
@@ -75,7 +74,7 @@ void NavigationComputer::TryInit(const IMUInfo& imu)
                     alpha, beta, kappa, bias_var_f, bias_var_w,
                     white_noise_sigma_f, white_noise_sigma_w, T_f,
                     T_w, depth_sigma, conf.dvl_sigma, conf.att_sigma,
-                    imu.timestamp
+                    currentTime
             ));
 
     nextKalmanTime = ros::Time(0);
@@ -163,12 +162,17 @@ void NavigationComputer::GetNavInfo(LPOSVSSInfo& info)
 
 void NavigationComputer::UpdateIMU(const IMUInfo& imu)
 {
+    Vector3d w_body = MILQuaternionOps::QuatRotate(q_SUB_IMU, imu.ang_rate);
+    Vector3d a_body = MILQuaternionOps::QuatRotate(q_SUB_IMU, imu.acceleration);
+    Vector3d m_body = MILQuaternionOps::QuatRotate(q_SUB_IMU, imu.mag_field);
+    
     if(initialized && (imu.timestamp < ins->GetData()->time || imu.timestamp > ins->GetData()->time + ros::Duration(0.1))) // reinitialize if time goes backwards or forwards too far
         reset();
     
     // The INS has the rotation info already, so just push the packet through
-    if(initialized)
-        ins->Update(imu);
+    if(initialized) {
+        ins->Update(imu.timestamp, w_body, a_body);
+    }
     
     if(attCount == 0) {
         // Reset the sums
@@ -178,8 +182,8 @@ void NavigationComputer::UpdateIMU(const IMUInfo& imu)
 
     // We just do a very basic average over the last 10 samples (reduces to 20Hz)
     // the magnetometer and accelerometer
-    magSum += MILQuaternionOps::QuatRotate(q_SUB_IMU, imu.mag_field);
-    accSum += MILQuaternionOps::QuatRotate(q_SUB_IMU, imu.acceleration);
+    magSum += m_body;
+    accSum += a_body;
 
     attCount = (attCount + 1) % 10;
     if(attCount == 0) {
@@ -200,7 +204,7 @@ void NavigationComputer::UpdateIMU(const IMUInfo& imu)
             attRefAvailable = true;
 
             if(!initialized)
-                TryInit(imu);
+                TryInit(imu.timestamp, w_body, a_body);
         }
     }
     

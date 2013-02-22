@@ -70,7 +70,6 @@ void NavigationComputer::TryInit(const IMUInfo& imu)
     kFilter = std::auto_ptr<KalmanFilter>(
             new KalmanFilter(
                     13,
-                    referenceGravityVector.norm(),
                     attRef,
                     covariance,
                     alpha, beta, kappa, bias_var_f, bias_var_w,

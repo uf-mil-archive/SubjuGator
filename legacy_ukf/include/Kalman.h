@@ -46,7 +46,7 @@ namespace subjugator
         typedef Eigen::Matrix<double, 7, 27> Matrix7x27d;
         typedef Eigen::Matrix<double, 7, 26> Matrix7x26d;
     public:
-        KalmanFilter(int L, double gravityMag, Eigen::Vector4d q_hat, Matrix13d P_hat,
+        KalmanFilter(int L, Eigen::Vector4d q_hat, Matrix13d P_hat,
                      double alpha, double beta, double kappa, double bias_var_f, double bias_var_w,
                      Eigen::Vector3d white_noise_sigma_f, Eigen::Vector3d white_noise_sigma_w, double T_f,
                      double T_w, double depth_sigma, Eigen::Vector3d dvl_sigma, Eigen::Vector3d att_sigma,
@@ -61,13 +61,14 @@ namespace subjugator
             return temp;
         }
     private:
+        static const double g0 = 9.80665;
+
         bool initialized;
 
         RowVector27d ones2LXp1;
         RowVector26d ones2LX;
 
         int L;
-        double gravityMag;
 
         Vector13d x_hat;
 

@@ -9,13 +9,13 @@ using namespace subjugator;
 using namespace std;
 using namespace Eigen;
 
-KalmanFilter::KalmanFilter(int L, double gravityMag, Vector4d q_hat, Matrix13d P_hat,
+KalmanFilter::KalmanFilter(int L, Vector4d q_hat, Matrix13d P_hat,
              double alpha, double beta, double kappa, double bias_var_f, double bias_var_w,
              Vector3d white_noise_sigma_f, Vector3d white_noise_sigma_w, double T_f,
              double T_w, double depth_sigma, Vector3d dvl_sigma, Vector3d att_sigma,
              ros::Time startTime) :
-             L(L), gravityMag(gravityMag), q_hat(q_hat), P_hat(P_hat), alpha(alpha),
-             beta(beta), kappa(kappa), bias_var_f(bias_var_f*gravityMag),
+             L(L), q_hat(q_hat), P_hat(P_hat), alpha(alpha),
+             beta(beta), kappa(kappa), bias_var_f(bias_var_f*g0),
              bias_var_w(bias_var_w*boost::math::constants::pi<double>()/(180.0*3600.0)),
              T_f(T_f), T_w(T_w), prevTime(startTime)
 {
@@ -30,7 +30,7 @@ KalmanFilter::KalmanFilter(int L, double gravityMag, Vector4d q_hat, Matrix13d P
     W_s[0] = lambda / (L + lambda);
     W_s[1] = 1.0 / (2.0 * (L + lambda));
 
-    white_bias_sigma_f = gravityMag * AttitudeHelpers::DiagMatrixFromVector(white_noise_sigma_f);
+    white_bias_sigma_f = g0 * AttitudeHelpers::DiagMatrixFromVector(white_noise_sigma_f);
     white_bias_sigma_w = boost::math::constants::pi<double>() / (180.0 * 60.0) * AttitudeHelpers::DiagMatrixFromVector(white_noise_sigma_w);
 
     T_f_inv = 1.0 / T_f * Matrix3d::Identity();

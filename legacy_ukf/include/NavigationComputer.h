@@ -64,6 +64,7 @@ namespace subjugator {
         int attCount;
         Vector3d magSum;
         Vector3d accSum;
+        Vector3d Acceleration_BODY_RAW;
 
         std::auto_ptr<KalmanFilter> kFilter;
         std::auto_ptr<INS> ins;

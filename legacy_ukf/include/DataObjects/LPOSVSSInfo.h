@@ -11,7 +11,6 @@ namespace subjugator {
         Eigen::Vector4d quaternion_NED_B;
         Eigen::Vector3d velocity_NED;
         Eigen::Vector3d angularRate_BODY;
-        Eigen::Vector3d acceleration_BODY;
     };
 }
 

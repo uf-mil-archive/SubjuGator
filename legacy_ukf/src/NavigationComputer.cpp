@@ -93,13 +93,13 @@ void NavigationComputer::updateKalmanTo(ros::Time time)
         return;
     }
 
-    boost::shared_ptr<INSData> insdata = ins->GetData();
+    INSData insdata = ins->GetData();
 
     // Constant error kalman errors
     if(attRefAvailable)
     {
         attRefAvailable = false;
-        Vector4d tempQuat = MILQuaternionOps::QuatMultiply(MILQuaternionOps::QuatInverse(attRef), insdata->Quaternion);
+        Vector4d tempQuat = MILQuaternionOps::QuatMultiply(MILQuaternionOps::QuatInverse(attRef), insdata.Orientation_NED_B);
         if (tempQuat(0) < 0)
             tempQuat *= -1;
         z.block<3,1>(4,0) = tempQuat.block<3,1>(1,0);
@@ -107,15 +107,15 @@ void NavigationComputer::updateKalmanTo(ros::Time time)
     if(depthRefAvailable)
     {
         depthRefAvailable = false;
-        z(0) = insdata->Position_NED(2) - depthRef;
+        z(0) = insdata.Position_NED(2) - depthRef;
     }
     if(velRefAvailable)
     {
         //velRefAvailable = false;
-        z.block<3,1>(1,0) = insdata->Velocity_NED - velRef;
+        z.block<3,1>(1,0) = insdata.Velocity_NED - velRef;
     }
 
-    kFilter->Update(z, -1*insdata->Acceleration_BODY_RAW, insdata->Velocity_NED, insdata->Quaternion, time);
+    kFilter->Update(z, -1*Acceleration_BODY_RAW, insdata.Velocity_NED, insdata.Orientation_NED_B, time);
 
     if(++kalmanCount >= 100)    // 2s reset time
     {
@@ -140,22 +140,20 @@ void NavigationComputer::GetNavInfo(LPOSVSSInfo& info)
 
     // Subtract errors to build best current estimate
     boost::shared_ptr<KalmanData> kdata = kFilter->GetData();
-    boost::shared_ptr<INSData> insdata = ins->GetData();
+    INSData insdata = ins->GetData();
 
-    info.timestamp = insdata->time;
+    info.timestamp = insdata.time;
 
     // Do angular values first
-    info.quaternion_NED_B = MILQuaternionOps::QuatMultiply(insdata->Quaternion, kdata->ErrorQuaternion);
-    info.angularRate_BODY = insdata->AngularRate_BODY - kdata->Gyro_bias;
+    info.quaternion_NED_B = MILQuaternionOps::QuatMultiply(insdata.Orientation_NED_B, kdata->ErrorQuaternion);
+    info.angularRate_BODY = insdata.AngularRate_BODY - kdata->Gyro_bias;
 
     // Transform position and velocity to the sub origin. Assuming rigid body motion
     Vector3d r_O_N_NED = MILQuaternionOps::QuatRotate(info.quaternion_NED_B, r_ORIGIN_NAV);
-    info.position_NED = (insdata->Position_NED - (kdata->PositionErrorEst + (insdata->time - kdata->time).toSec() * kdata->VelocityError)) - r_O_N_NED;
-    info.velocity_NED = (insdata->Velocity_NED - kdata->VelocityError) - info.angularRate_BODY.cross(r_O_N_NED);
-    info.acceleration_BODY = insdata->Acceleration_BODY - kdata->Acceleration_bias +
-            MILQuaternionOps::QuatRotate(MILQuaternionOps::QuatInverse(info.quaternion_NED_B), referenceGravityVector);
+    info.position_NED = (insdata.Position_NED - (kdata->PositionErrorEst + (insdata.time - kdata->time).toSec() * kdata->VelocityError)) - r_O_N_NED;
+    info.velocity_NED = (insdata.Velocity_NED - kdata->VelocityError) - info.angularRate_BODY.cross(r_O_N_NED);
 
-    //cout << "INS V\n" << insdata->Velocity_NED << endl;
+    //cout << "INS V\n" << insdata.Velocity_NED << endl;
     //cout<<"RPY:" << endl;
     //cout << MILQuaternionOps::Quat2Euler(info.quaternion_NED_B)*180.0/boost::math::constants::pi<double>() << endl;
 }
@@ -166,7 +164,9 @@ void NavigationComputer::UpdateIMU(const IMUInfo& imu)
     Vector3d a_body = MILQuaternionOps::QuatRotate(q_SUB_IMU, imu.acceleration);
     Vector3d m_body = MILQuaternionOps::QuatRotate(q_SUB_IMU, imu.mag_field);
     
-    if(initialized && (imu.timestamp < ins->GetData()->time || imu.timestamp > ins->GetData()->time + ros::Duration(0.1))) // reinitialize if time goes backwards or forwards too far
+    Acceleration_BODY_RAW = a_body;
+    
+    if(initialized && (imu.timestamp < ins->GetData().time || imu.timestamp > ins->GetData().time + ros::Duration(0.1))) // reinitialize if time goes backwards or forwards too far
         reset();
     
     // The INS has the rotation info already, so just push the packet through
@@ -233,10 +233,10 @@ void NavigationComputer::UpdateDVL(const DVLVelocity& dvl)
 
     if(!initialized)
         return;
-    boost::shared_ptr<INSData> insdata = ins->GetData();
+    INSData insdata = ins->GetData();
     boost::shared_ptr<KalmanData> kdata = kFilter->GetData();
 
     // Rotate dvl data from SUB to NED
-    velRef = MILQuaternionOps::QuatRotate(MILQuaternionOps::QuatMultiply(insdata->Quaternion, kdata->ErrorQuaternion), dvl_vel);
+    velRef = MILQuaternionOps::QuatRotate(MILQuaternionOps::QuatMultiply(insdata.Orientation_NED_B, kdata->ErrorQuaternion), dvl_vel);
     velRefAvailable = true;
 }

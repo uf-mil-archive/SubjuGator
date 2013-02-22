@@ -201,14 +201,14 @@ void NavigationComputer::UpdateIMU(const IMUInfo& imu)
         updateKalmanTo(imu.timestamp);
 }
 
-void NavigationComputer::UpdateDepth(const DepthInfo& depth)
+void NavigationComputer::UpdateDepth(double depth)
 {
     // The depth inside the packet is given in NED
     
-    if(std::abs(depth.depth) > MAX_DEPTH)
+    if(std::abs(depth) > MAX_DEPTH)
         return;
 
-    depthRef = depth.depth;
+    depthRef = depth;
     depthRefAvailable = true;
 }
 

@@ -7,7 +7,6 @@
 
 #include "DataObjects/DVLVelocity.h"
 #include "DataObjects/IMUInfo.h"
-#include "DataObjects/DepthInfo.h"
 #include "DataObjects/LPOSVSSInfo.h"
 #include "INS.h"
 #include "Kalman.h"
@@ -26,7 +25,7 @@ namespace subjugator {
         NavigationComputer(const Config &config);
         
         void UpdateIMU(const IMUInfo& imu);
-        void UpdateDepth(const DepthInfo& dobj);
+        void UpdateDepth(double depth);
         void UpdateDVL(const DVLVelocity& dvl);
         
         bool getInitialized() { return initialized; }

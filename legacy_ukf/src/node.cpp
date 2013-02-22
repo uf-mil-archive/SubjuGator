@@ -101,10 +101,7 @@ struct Node {
     }
     
     void depth_callback(const Float64StampedConstPtr& depth) {
-        subjugator::DepthInfo depthinfo;
-        depthinfo.depth = depth->data;
-        
-        navComputer->UpdateDepth(depthinfo);
+        navComputer->UpdateDepth(depth->data);
     }
     
     void dvl_callback(const Vector3StampedConstPtr& dvl) {

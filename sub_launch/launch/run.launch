@@ -32,7 +32,7 @@
   </node>
 
   <node pkg="thruster_driver" type="thruster_driver" name="thruster_driver_FS"><rosparam>{address: 192.168.1.32, port: 50000, local_address: 21, remote_address: 32,
-    thruster_id: FS, frame_id: /base_link, position: [0.566, -0.046, 0.049], direction: [0, 1, 0], rev_force: 17.98, fwd_force: 21.57}</rosparam>
+    thruster_id: FS, frame_id: /base_link, position: [0.566, -0.046, -0.049], direction: [0, 1, 0], rev_force: 17.98, fwd_force: 21.57}</rosparam>
     <rosparam file="$(find sub_launch)/launch/thruster_driver_FS.yaml"/>
   </node>
   <node pkg="sub_launch" type="param_saver" name="thruster_driver_FS_saver">

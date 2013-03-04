@@ -23,6 +23,7 @@
   <depend package="merge_driver"/>
   <depend package="thruster_driver"/>
 
+  <depend package="uf_common"/>
 </package>
 
 

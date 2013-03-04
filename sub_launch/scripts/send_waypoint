@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 
 import argparse
+import math
 
 import roslib; roslib.load_manifest('sub_launch')
 import rospy
 import actionlib
 from std_msgs.msg import Header
 from geometry_msgs.msg import Pose, Quaternion, Point
+from tf import transformations
 
 from c3_trajectory_generator.msg import MoveToAction, MoveToGoal
 
@@ -14,6 +16,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('x', metavar='X', type=float)
 parser.add_argument('y', metavar='Y', type=float)
 parser.add_argument('z', metavar='Z', type=float)
+parser.add_argument('Y', metavar='YAW', type=float, nargs='?', default=0)
 args = parser.parse_args()
 
 rospy.init_node('send_waypoint')
@@ -32,7 +35,7 @@ print client.send_goal(MoveToGoal(
             y=args.y,
             z=args.z,
         ),
-        orientation=Quaternion(0, 0, 0, 1),
+        orientation=Quaternion(*transformations.quaternion_about_axis(math.radians(args.Y), [0, 0, 1])),
     ),
 ))
 print 'Press enter to cancel...'

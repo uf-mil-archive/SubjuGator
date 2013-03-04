@@ -10,6 +10,7 @@ import actionlib
 from actionlib_msgs.msg import GoalStatus
 from std_msgs.msg import Header
 from geometry_msgs.msg import Pose, Quaternion, Point
+from nav_msgs.msg import Odometry
 from tf import transformations
 
 from c3_trajectory_generator.msg import MoveToAction, MoveToGoal
@@ -25,6 +26,8 @@ client.wait_for_server()
 
 EAST, NORTH, WEST, SOUTH = [transformations.quaternion_about_axis(math.pi/2*i, [0, 0, 1]) for i in xrange(4)]
 
+xyz_array = lambda o: numpy.array([o.x, o.y, o.z])
+
 def go(position, orientation):
     res = client.send_goal_and_wait(MoveToGoal(
         header=Header(
@@ -38,6 +41,18 @@ def go(position, orientation):
     if res != GoalStatus.SUCCEEDED:
         raise ValueError('result = %i' % res)
 
+def get_current():
+    res = [None]
+    def cb(msg):
+        res[0] = msg
+    sub = rospy.Subscriber('/odom', Odometry, cb)
+    while res[0] is None:
+        rospy.sleep(.01)
+    sub.unregister()
+    return res[0]
+current = get_current()
+
+
 def go_rel_enu(relpos, facing):
     global pos
     print 'Turning...'
@@ -46,7 +61,9 @@ def go_rel_enu(relpos, facing):
     pos += relpos
     go(pos, facing)
     print '...done.'
-pos = numpy.array([0, 0, -2])
+pos = xyz_array(current.pose.pose.position)
+
+pos[2] = -.5
 
 print 'Sending goal...'
 

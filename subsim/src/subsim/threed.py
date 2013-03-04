@@ -15,6 +15,8 @@ import rospy
 import tf
 from tf import transformations
 from sensor_msgs.msg import Image, CameraInfo
+from nav_msgs.msg import Odometry
+from geometry_msgs.msg import Point
 
 from vector import v, V
 
@@ -246,6 +248,7 @@ class Interface(object):
         rospy.init_node('sim')
         self.image_pub = rospy.Publisher('/sim_camera/image_rect_color', Image)
         self.info_pub = rospy.Publisher('/sim_camera/camera_info', CameraInfo)
+        self.odom_pub = rospy.Publisher('/sim_odom', Odometry)
         self.tf_br = tf.TransformBroadcaster()
         
         self.sub_view = False
@@ -373,6 +376,11 @@ class Interface(object):
                              t,
                              "/sim_camera",
                              "/base_link")
+            msg = Odometry()
+            msg.header.stamp = t
+            msg.header.frame_id = '/simmap'
+            msg.pose.pose.position = Point(*obj.body.getPosition())
+            self.odom_pub.publish(msg)
         
         
         msg = Image()

@@ -1,15 +1,13 @@
 <launch>
 
-  <node pkg="nodelet" type="nodelet" name="standalone_nodelet" args="manager"/>
-
-  <node pkg="nodelet" type="nodelet" name="imu" args="load adis16400_imu/nodelet standalone_nodelet">
+  <node pkg="nodelet" type="nodelet" name="imu" args="standalone adis16400_imu/nodelet">
     <param name="port" type="string" value="/tmp/imu"/>
     <param name="frame_id" type="string" value="/imu"/>
   </node>
-  <node pkg="nodelet" type="nodelet" name="magnetic_dynamic_compensation" args="load magnetic_dynamic_compensation/nodelet standalone_nodelet">
+  <node pkg="nodelet" type="nodelet" name="magnetic_dynamic_compensation" args="standalone magnetic_dynamic_compensation/nodelet">
     <remap from="/imu/mag" to="/imu/mag_lessraw"/>
   </node>
-  <node pkg="nodelet" type="nodelet" name="magnetic_hardsoft_compensation" args="load magnetic_hardsoft_compensation/nodelet standalone_nodelet">
+  <node pkg="nodelet" type="nodelet" name="magnetic_hardsoft_compensation" args="standalone magnetic_hardsoft_compensation/nodelet">
     <remap from="/imu/mag_raw" to="/imu/mag_lessraw"/>
     <param name="frame_id" type="string" value="/imu"/>
     <rosparam>
@@ -19,12 +17,12 @@ shift: [1.972505436535728e-05, -2.630949101201508e-06, 6.149054775740445e-05]
     </rosparam>
   </node>
 
-  <node pkg="nodelet" type="nodelet" name="depth" args="load depth_driver/nodelet standalone_nodelet">
+  <node pkg="nodelet" type="nodelet" name="depth" args="standalone depth_driver/nodelet">
     <param name="port" type="string" value="/tmp/depth"/>
     <param name="frame_id" type="string" value="/map"/>
   </node>
 
-  <node pkg="nodelet" type="nodelet" name="dvl" args="load rdi_explorer_dvl/nodelet standalone_nodelet">
+  <node pkg="nodelet" type="nodelet" name="dvl" args="standalone rdi_explorer_dvl/nodelet">
     <param name="port" type="string" value="/tmp/dvl"/>
     <param name="frame_id" type="string" value="/dvl"/>
   </node>

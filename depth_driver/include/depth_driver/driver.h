@@ -7,8 +7,6 @@
 #include <boost/asio/serial_port.hpp>
 #include <boost/crc.hpp>
 
-#include "depth_driver/Float64Stamped.h"
-
 
 namespace depth_driver {
     static uint16_t getu16le(uint8_t* i) { return *i + *(i+1) * 256; }

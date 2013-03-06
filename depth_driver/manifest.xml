@@ -11,6 +11,8 @@
   <depend package="roscpp"/>
   <depend package="nodelet"/>
 
+  <depend package="uf_common"/>
+
   <export>
     <nodelet plugin="${prefix}/nodelet.xml"/>
   </export>

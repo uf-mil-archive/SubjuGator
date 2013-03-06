@@ -5,7 +5,8 @@
 #include <pluginlib/class_list_macros.h>
 #include <ros/ros.h>
 
-#include "depth_driver/Float64Stamped.h"
+#include "uf_common/Float64Stamped.h"
+
 #include "depth_driver/driver.h"
 
 
@@ -26,7 +27,7 @@ namespace depth_driver {
                 int baudrate = 115200; getPrivateNodeHandle().getParam("baudrate", baudrate);
                 frame_id = "/map"; getPrivateNodeHandle().getParam("frame_id", frame_id);
                 
-                pub = getNodeHandle().advertise<Float64Stamped>("depth", 10);
+                pub = getNodeHandle().advertise<uf_common::Float64Stamped>("depth", 10);
                 
                 device = boost::make_shared<Device>(port, baudrate);
                 heartbeat_timer = getNodeHandle().createTimer(ros::Duration(0.5), boost::bind(&Nodelet::heartbeat_callback, this, _1));
@@ -41,7 +42,7 @@ namespace depth_driver {
             
             void polling_thread() {
                 while(running) {
-                    Float64Stamped msg;
+                    uf_common::Float64Stamped msg;
                     if(!device->read(msg.data))
                         continue;
                     msg.header.stamp = ros::Time::now();

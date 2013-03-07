@@ -8,73 +8,40 @@ import traceback
 
 import ode
 import pygame
+from OpenGL.GL import *
+from OpenGL.GLU import *
 from twisted.internet import protocol, reactor, task
 
 import roslib
 roslib.load_manifest('subsim')
 
-from subsim import devices, threed, vector
+from sim import threed, vector, util
+from sim.vector import v, V
 
-v, V = vector.v, vector.V
-
-inf = 1e1000
-assert math.isinf(inf)
+from subsim import devices
 
 
-class AutoServerFactory(protocol.ServerFactory):
-    def __init__(self, protocol, *args, **kwargs):
-        self.protocol = protocol
-        self.protocol_args = args
-        self.protocol_kwargs = kwargs
-    
-    def buildProtocol(self, addr):
-        p = self.protocol(*self.protocol_args, **self.protocol_kwargs)
-        p.factory = self
-        return p
-
-
-depth_listeners = set()
 imu_listeners = set()
-dvl_listeners = set()
-merge_listeners = set()
 thrusters = [0]*8
-
-reactor.listenTCP(10004, AutoServerFactory(devices.DepthProtocol, depth_listeners))
-reactor.listenTCP(10025, AutoServerFactory(devices.IMUProtocol, imu_listeners))
-for i in xrange(8):
-    reactor.listenUDP(10030 + i, devices.ThrusterProtocol(i, thrusters))
-reactor.listenTCP(10050, AutoServerFactory(devices.DVLProtocol, dvl_listeners)) # hydrophone too?
-reactor.listenUDP(10060, devices.MergeProtocol(merge_listeners))
-reactor.listenTCP(10061, AutoServerFactory(devices.ActuatorProtocol))
-reactor.listenTCP(10255, AutoServerFactory(devices.HeartbeatProtocol))
 
 def send_imu_update(**update):
     for imu_listener in imu_listeners:
         imu_listener.sendUpdate(**update)
-def send_depth_update(**update):
-    for depth_listener in depth_listeners:
-        depth_listener.sendUpdate(**update)
-def send_dvl_update(**update):
-    for dvl_listener in dvl_listeners:
-        dvl_listener.sendHighResVel(**update)
-def send_merge_update(**update):
-    for merge_listener in merge_listeners:
-        merge_listener.sendUpdate(**update)
 
 
 clip = lambda x, (low, high): min(max(x, low), high)
 
-def buoyancy_force(depth, r):
+def buoyancy_force(depth, r):    
+    inf = 1e1000
+    assert math.isinf(inf)
     sphere_antiderivative = lambda h: -h**3*math.pi/3 + h*math.pi*r**2
     sphere_true_antiderivative = lambda h: sphere_antiderivative(clip(h, (-r, r)))
     vol_submerged = sphere_true_antiderivative(depth) - sphere_true_antiderivative(-inf)
     return 1000 * 9.81 * vol_submerged
 
-def lerp((low, high), x):
-    return low + (high - low) * x
-
 world, world_time = ode.World(), reactor.seconds()
 world.setGravity((0, 0, 9.81))
+
 body = ode.Body(world)
 M = ode.Mass()
 M.setBoxTotal(47, 1.27, .46, .46)
@@ -91,11 +58,9 @@ pool_mesh = threed.mesh_from_obj(open(roslib.packages.resource_file('subsim', 's
 pool_geom = ode.GeomTriMesh(pool_mesh.ode_trimeshdata, space)
 
 def get_water_vel(pos):
-    return v(0,0,0)
     return (pos % v(0, 0, 1))*math.e**(-pos.mag()/3)
 
 imu_pos = v(0.43115992, 0.0, -0.00165058)
-#imu_pos = v(1, 0, 0)
 
 killed = False
 locked = False
@@ -231,65 +196,103 @@ def world_tick():
     reactor.callLater(max(0, world_time + dt - reactor.seconds()), world_tick)
 
 
-i = threed.Interface()
-i.init()
-i.objs.append(threed.MeshDrawer(pool_mesh, (.4, .4, .4)))
-sub_model = threed.Sub(body, lambda: killed)
-i.objs.append(sub_model)
-i.objs.append(threed.VectorField(get_water_vel))
-def _():
-    try:
-        i.step()
-    except SystemExit:
-        reactor.stop()
-task.LoopingCall(_).start(1/24)
-
-world_tick()
-
-def dvl_task():
+reactor.listenTCP(10004, util.AutoServerFactory(devices.DepthProtocol, lambda: body.getRelPointPos(imu_pos)[2]))
+reactor.listenTCP(10025, util.AutoServerFactory(devices.IMUProtocol, imu_listeners))
+for i in xrange(8):
+    reactor.listenUDP(10030 + i, devices.ThrusterProtocol(i, thrusters))
+def get_dvl_vel():
     dvl_to_sub = v(0.0, 0.923879532511287, 0.382683432365090, 0.0)
     #dvl_to_sub = vector.axisangle_to_quat(v(1,0,0),math.pi)
     dvl_pos = imu_pos # v(1, 0, 0)
-    dvl_vel = dvl_to_sub.conj().quat_rot(body.vectorFromWorld(body.getRelPointVel(dvl_pos)))
-    #print 'DVL', dvl_vel
-    try:
-        send_dvl_update(
-            bottom_vel=list(dvl_vel) + [0.1], # XXX fourth is error(?)
-            bottom_dist=[0, 0, 0, 0],
-            water_vel=[0, 0, 0, 0],
-            water_dist=[0, 0, 0, 0],
-            speed_of_sound=100,
-        )
-    except:
-        traceback.print_exc()
-task.LoopingCall(dvl_task).start(1/5)
+    return dvl_to_sub.conj().quat_rot(body.vectorFromWorld(body.getRelPointVel(dvl_pos)))
+reactor.listenTCP(10050, util.AutoServerFactory(devices.DVLProtocol, get_dvl_vel))
+reactor.listenUDP(10060, devices.MergeProtocol(lambda: killed))
+reactor.listenTCP(10061, util.AutoServerFactory(devices.ActuatorProtocol))
+reactor.listenTCP(10255, util.AutoServerFactory(devices.HeartbeatProtocol))
 
-def depth_task():
-    try:
-        send_depth_update(
-            tickcount=0,
-            flags=0,
-            depth=max(0, body.getRelPointPos(imu_pos)[2]),
-            thermister_temp=random.gauss(25, .1),
-            humidity=random.gauss(10, .3),
-            humidity_sensor_temp=random.gauss(25, .3),
-        )
-    except:
-        traceback.print_exc()
-task.LoopingCall(depth_task).start(1/5)
 
-def merge_task():
+
+class Sub(object):
+    is_base_link = True
+    
+    def __init__(self, body, is_killed_func):
+        self.body = body
+        self.is_killed_func = is_killed_func
+        self.vectors = []
+    
+    def draw(self):
+        glBegin(GL_LINES)
+        glColor3f(1, 1, 1)
+        glVertex3f(*self.body.getPosition())
+        glVertex3f(*self.body.getPosition() + 20*v(0.241510, -0.022442, 0.405728))
+        glEnd()
+        with threed.GLMatrix:
+            threed.rotate_to_body(self.body)
+            
+            q = gluNewQuadric()
+            with threed.GLMatrix:
+                glTranslate(+.2, 0, 0)
+                glColor3f(0, 1, 0)
+                gluSphere(q, 0.5, 40, 20)
+            with threed.GLMatrix:
+                glTranslate(-.2, 0, 0)
+                glColor3f(1, 0, 0)
+                gluSphere(q, 0.5, 40, 20)
+            with threed.GLMatrix:
+                glTranslate(+.4, +.2, -.3)
+                glColor3f(0, 0, 0)
+                gluSphere(q, 0.1, 40, 20)
+            with threed.GLMatrix:
+                glTranslate(+.4, -.2, -.3)
+                glColor3f(0, 0, 0)
+                gluSphere(q, 0.1, 40, 20)
+            with threed.GLMatrix:
+                glTranslate(0, 0, -.5)
+                if self.is_killed_func():
+                    glColor3f(1, 0, 0)
+                else:
+                    glColor3f(0, 1, 0)
+                gluSphere(q, 0.1, 20, 10)
+            
+            glDisable(GL_DEPTH_TEST)
+            glBegin(GL_LINES)
+            for start, end in self.vectors:
+                glColor3f(0, 0, 0)
+                glVertex3f(*start)
+                glColor3f(1, 1, 1)
+                glVertex3f(*end)
+            glEnd()
+            glEnable(GL_DEPTH_TEST)
+
+class Buoys(object):
+    def __init__(self, pos):
+        self.buoys = [(pos + [random.gauss(0, 1) for i in xrange(3)], color) for color in [(1, 0, 0), (0, 1, 0), (1, 1, 0)]]
+    
+    def draw(self):
+        q = gluNewQuadric()
+        for pos, color in self.buoys:
+            with threed.GLMatrix:
+                glTranslate(*pos)
+                glColor3f(*color)
+                gluSphere(q, .2, 30, 15)
+
+i = threed.Interface()
+i.init()
+i.objs.append(threed.MeshDrawer(pool_mesh, (.4, .4, .4)))
+sub_model = Sub(body, lambda: killed)
+i.objs.append(sub_model)
+i.objs.append(threed.VectorField(get_water_vel))
+i.objs.append(Buoys(v(10, 3, 4)))
+def _():
     try:
-        send_merge_update(
-            tickcount=0,
-            flags=1<<2 if killed else 0,
-            current16=random.gauss(10, 0.1),
-            voltage16=random.gauss(16, 0.1),
-            current32=random.gauss(10, 0.1),
-            voltage32=random.gauss(32, 0.1),
-        )
+        i.step()
     except:
         traceback.print_exc()
-task.LoopingCall(merge_task).start(1/5)
+        reactor.stop()
+reactor.callWhenRunning(task.LoopingCall(_).start, 1/24)
+
+
+
+reactor.callWhenRunning(world_tick)
 
 reactor.run()

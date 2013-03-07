@@ -8,7 +8,7 @@ import struct
 from twisted.internet import protocol, task
 from twisted.python import log
 
-import datachunker
+from sim import datachunker
 
 perfect_round = lambda x: (-1 if x < 0 else 1)*int(abs(x) + random.random())
 
@@ -156,6 +156,8 @@ class ThrusterProtocol(EmbeddedProtocol):
     def connectionLost(self, reason):
         self.update_task.stop()
         print 'thruster', self.thruster_id, 'connection lost', reason
+    
+    def doStop(self): pass
 
 class IMUProtocol(protocol.Protocol):
     def __init__(self, listener_set):
@@ -191,13 +193,14 @@ class DepthProtocol(EmbeddedProtocol):
     local_address = 21
     remote_address = 40
     
-    def __init__(self, listener_set):
-        self.listener_set = listener_set
+    def __init__(self, get_depth_func):
+        self.get_depth_func = get_depth_func
     
     def connectionMade(self):
         EmbeddedProtocol.connectionMade(self)
         print 'depth connection made'
-        self.listener_set.add(self)
+        self.loop = task.LoopingCall(self.tick)
+        self.loop.start(1/5)
     
     def packetReceived(self, typecode, data):
         if typecode == 100:
@@ -214,8 +217,18 @@ class DepthProtocol(EmbeddedProtocol):
         self.sendPacket(4, data)
         #print repr(data)
     
+    def tick(self):
+        self.sendUpdate(
+            tickcount=0,
+            flags=0,
+            depth=max(0, self.get_depth_func()),
+            thermister_temp=random.gauss(25, .1),
+            humidity=random.gauss(10, .3),
+            humidity_sensor_temp=random.gauss(25, .3),
+        )
+    
     def connectionLost(self, reason):
-        self.listener_set.remove(self)
+        self.loop.stop()
 
 class ActuatorProtocol(protocol.Protocol):
     def __init__(self):
@@ -240,13 +253,14 @@ class ActuatorProtocol(protocol.Protocol):
         print 'actuator connection lost'
 
 class DVLProtocol(protocol.Protocol):
-    def __init__(self, listener_set):
-        self.listener_set = listener_set
+    def __init__(self, get_vel_func):
+        self.get_vel_func = get_vel_func
     
     def connectionMade(self):
         print 'dvl connection made'
-        self.listener_set.add(self)
         self.transport.write('Teledyne RD Instruments (c) 2007')
+        self.loop = task.LoopingCall(self.tick)
+        self.loop.start(1/5)
     
     def dataReceived(self, data):
         print 'dvl', repr(data)
@@ -273,8 +287,17 @@ class DVLProtocol(protocol.Protocol):
         self.transport.write(data_with_checksum)
         #print data_with_checksum.encode('hex')
     
+    def tick(self):
+        self.sendHighResVel(
+            bottom_vel=list(self.get_vel_func()) + [0.1], # XXX fourth is error(?)
+            bottom_dist=[0, 0, 0, 0],
+            water_vel=[0, 0, 0, 0],
+            water_dist=[0, 0, 0, 0],
+            speed_of_sound=100,
+        )
+    
     def connectionLost(self, reason):
-        self.listener_set.remove(self)
+        self.loop.stop()
         print 'dvl connection lost'
 
 class HydrophoneProtocol(protocol.Protocol):
@@ -284,13 +307,14 @@ class MergeProtocol(EmbeddedProtocol):
     local_address = 21
     remote_address = 60
     
-    def __init__(self, listener_set):
-        self.listener_set = listener_set
+    def __init__(self, is_killed_func):
+        self.is_killed_func = is_killed_func
     
     def connectionMade(self):
         EmbeddedProtocol.connectionMade(self)
         print 'merge connection made'
-        self.listener_set.add(self)
+        self.loop = task.LoopingCall(self.tick)
+        self.loop.start(1/5)
     
     def packetReceived(self, typecode, data):
         print "merge", typecode, data.encode('hex')
@@ -305,9 +329,21 @@ class MergeProtocol(EmbeddedProtocol):
         assert len(data) == 11
         self.sendPacket(6, data, ('127.0.0.1', 50000))
     
+    def tick(self):
+        self.sendUpdate(
+            tickcount=0,
+            flags=1<<2 if self.is_killed_func() else 0,
+            current16=random.gauss(10, 0.1),
+            voltage16=random.gauss(16, 0.1),
+            current32=random.gauss(10, 0.1),
+            voltage32=random.gauss(32, 0.1),
+        )
+    
     def connectionLost(self, reason):
-        self.listener_set.remove(self)
+        self.loop.stop()
         print 'merge connection lost'
+    
+    def doStop(self): pass
 
 
 class HeartbeatProtocol(EmbeddedProtocol):

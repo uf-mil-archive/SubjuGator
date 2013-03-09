@@ -5,4 +5,4 @@ if [ "x$1x" == "xx" ] ; then
     exit
 fi
 
-rxplot /odom/pose/pose/position/$1,/trajectory/posetwist/pose/position/$1 -p 30 -r 10
+rxplot /odom/pose/pose/position/$1,/trajectory/posetwist/pose/position/$1 -p 30 -b 30 -r 10

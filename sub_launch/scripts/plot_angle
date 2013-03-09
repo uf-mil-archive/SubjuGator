@@ -1,0 +1,8 @@
+#!/bin/sh
+
+if [ "x$1x" == "xx" ] ; then
+    echo "Usage: plot_angle (roll/pitch/yaw)"
+    exit
+fi
+
+rxplot /odom_$1/data,/traj_$1/data -p 30 -b 30 -r 10

@@ -71,4 +71,6 @@ shift: [1.972505436535728e-05, -2.630949101201508e-06, 6.149054775740445e-05]
 
   <node pkg="thruster_mapper" type="thruster_mapper" name="thruster_mapper"/>
 
+  <node pkg="sub_launch" type="odom_to_euler" name="odom_to_euler"/>
+
 </launch>

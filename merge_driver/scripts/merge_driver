@@ -7,7 +7,7 @@ import struct
 import roslib
 roslib.load_manifest('merge_driver')
 import rospy
-from std_msgs.msg import Header
+from std_msgs.msg import Header, Float64
 
 from embedded_protocol import embedded
 
@@ -22,6 +22,10 @@ remote_address = rospy.get_param('~remote_address')
 from kill_handling.broadcaster import KillBroadcaster
 
 kill_br = KillBroadcaster(id=rospy.get_name(), lifetime=rospy.Duration(.3), description='Magnetic kill switch')
+current16_pub = rospy.Publisher('/current16', Float64)
+voltage16_pub = rospy.Publisher('/voltage16', Float64)
+current32_pub = rospy.Publisher('/current32', Float64)
+voltage32_pub = rospy.Publisher('/voltage32', Float64)
 
 conn = embedded.Embedded(address, port, local_address, remote_address)
 
@@ -46,3 +50,8 @@ while not rospy.is_shutdown():
     
     killed = flags & (1<<2) != 0
     kill_br.send(killed)
+    
+    current16_pub.publish(Float64(current16))
+    voltage16_pub.publish(Float64(voltage16))
+    current32_pub.publish(Float64(current32))
+    voltage32_pub.publish(Float64(voltage32))

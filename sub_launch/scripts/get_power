@@ -1,0 +1,6 @@
+#!/bin/sh
+
+for A in voltage16 current16 voltage32 current32 ; do
+	echo $A
+	rostopic echo /$A -n1
+done

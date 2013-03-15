@@ -274,7 +274,7 @@ class Buoys(object):
             with threed.GLMatrix:
                 glTranslate(*pos)
                 glColor3f(*color)
-                gluSphere(q, .2, 30, 15)
+                gluSphere(q, 0.095, 30, 15)
 
 i = threed.Interface()
 i.init()
@@ -283,6 +283,10 @@ sub_model = Sub(body, lambda: killed)
 i.objs.append(sub_model)
 i.objs.append(threed.VectorField(get_water_vel))
 i.objs.append(Buoys(v(10, 3, 4)))
+
+shooter_mesh = threed.mesh_from_obj(open(roslib.packages.resource_file('subsim', 'scene', 'shooter.obj'))).rotate(v(0, 1, 1, 0)).translate((10, -3, 4))
+i.objs.append(threed.MeshDrawer(shooter_mesh, (1, 0, 0)))
+
 def _():
     try:
         i.step()

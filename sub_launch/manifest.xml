@@ -19,6 +19,7 @@
   <depend package="c3_trajectory_generator"/>
   <depend package="rise_6dof"/>
   <depend package="thruster_mapper"/>
+  <depend package="object_finder"/>
 
   <depend package="merge_driver"/>
   <depend package="thruster_driver"/>

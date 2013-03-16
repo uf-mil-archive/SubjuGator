@@ -5,7 +5,7 @@ roslib.load_manifest('depth_driver')
 import rospy
 from std_msgs.msg import Header
 
-from depth_driver.msg import Float64Stamped
+from uf_common.msg import Float64Stamped
 
 rospy.init_node('fake_depth')
 

@@ -1,0 +1,11 @@
+<launch>
+
+  <node pkg="leaksensor_driver" type="leaksensor_driver" name="leaksensor_driver">
+    <param name="port" value="/dev/sensors/ftdi_A901JZ8V"/>
+    <rosparam param="addresses">
+      0013a20040a45fcc: main
+      0013a20040a45fc3: navbox
+    </rosparam>
+  </node>
+
+</launch>

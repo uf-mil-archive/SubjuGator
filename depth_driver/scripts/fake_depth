@@ -11,7 +11,7 @@ rospy.init_node('fake_depth')
 
 pub = rospy.Publisher('/depth', Float64Stamped)
 
-while True:
+while not rospy.is_shutdown():
     pub.publish(Float64Stamped(
         header=Header(
             stamp=rospy.Time.now(),

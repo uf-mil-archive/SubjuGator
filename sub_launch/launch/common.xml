@@ -53,6 +53,12 @@ shift: [1.972505436535728e-05, -2.630949101201508e-06, 6.149054775740445e-05]
   <node pkg="c3_trajectory_generator" type="c3_trajectory_generator" name="c3_trajectory_generator"><rosparam>
     fixed_frame: /map
     body_frame: /base_link
+    vmin_b: [-0.2,  -0.5,  -0.4,   -0.75, -0.5, -1]
+    vmax_b: [ 0.75,  0.5,   0.4,    0.75,  0.5,  1]
+    amin_b: [-0.1,  -0.05, -0.1,   -1.5,  -0.2, -0.15]
+    amax_b: [ 0.18,  0.05,  0.125,  1.5,   0.2,  0.15]
+    arevoffset_b: [0.05, 0, 0]
+    umax_b: [ 0.25,  0.25,  0.25,   0.1,   0.1,  0.1]
   </rosparam></node>
 
   <node pkg="rise_6dof" type="rise_6dof" name="rise_6dof">

@@ -56,14 +56,22 @@ def go(position, orientation):
 
 go(pos, orientation)
 
+went = False
+
 def got_feedback(fb):
+    global orientation, went, pos
+    #if went: return
     print fb
-    global orientation
+    if fb.P_within_10cm > .3 or went:
+        pos = xyz_array(fb.pose.position)
+        go(pos, orientation)
+        went = True
+        return
     orientation = orientation_helpers.lookat(xyz_array(fb.pose.position) - pos)
     print xyz_array(fb.pose.position) - pos
     go(pos, orientation)
 
-guess_pos = pos + transformations.quaternion_matrix(orientation)[:3, :3].dot([3, 0, 0])
+guess_pos = pos + transformations.quaternion_matrix(orientation)[:3, :3].dot([4, 0, 0])
 
 goal = FindSphereGoal()
 goal.header.frame_id = current.header.frame_id

@@ -11,7 +11,7 @@ from kill_handling.broadcaster import KillBroadcaster
 
 rospy.init_node('kill')
 
-kill_br = KillBroadcaster(id=rospy.get_name(), lifetime=rospy.Duration(.3), description='Command-line kill')
+kill_br = KillBroadcaster(id=rospy.get_name(), lifetime=rospy.Duration(5), description='Command-line kill')
 
 while not rospy.is_shutdown():
     kill_br.send(True)

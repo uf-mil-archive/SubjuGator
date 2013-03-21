@@ -43,7 +43,7 @@ def go(position, orientation):
 
 current = rospy.wait_for_message('/odom', Odometry)
 pos = xyz_array(current.pose.pose.position)
-pos[2] = -.5
+pos[2] = -.75
 
 def go_rel_enu(relpos, facing):
     global pos
@@ -56,14 +56,14 @@ def go_rel_enu(relpos, facing):
 
 print 'Sending goal...'
 
-while True:
+for i in xrange(4):
     if args.square:
         go_rel_enu([5, 0, 0], EAST)
         go_rel_enu([0, 5, 0], NORTH)
         go_rel_enu([-5, 0, 0], WEST)
         go_rel_enu([0, -5, 0], SOUTH)
     else:
-        go_rel_enu([5, 0, 0], EAST)
-        go_rel_enu([0, 1, 0], NORTH)
-        go_rel_enu([-5, 0, 0], WEST)
-        go_rel_enu([0, 1, 0], NORTH)
+        go_rel_enu([-10, 0, 0], WEST)
+        go_rel_enu([0, 2, 0], NORTH)
+        go_rel_enu([10, 0, 0], EAST)
+        go_rel_enu([0, 2, 0], NORTH)

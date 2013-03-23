@@ -1,0 +1,12 @@
+# Blender v2.62 (sub 0) OBJ File: 'path.blend'
+# www.blender.org
+mtllib path.mtl
+o solid_1_Plane
+v 0.609600 0.076200 0.000000
+v 0.609600 -0.076200 0.000000
+v -0.609600 -0.076200 0.000000
+v -0.609600 0.076200 0.000000
+usemtl 
+s off
+f 1 4 3
+f 1 3 2

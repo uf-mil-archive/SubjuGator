@@ -1,0 +1,14 @@
+<package>
+  <description brief="auvsi_robosub">
+
+     auvsi_robosub
+
+  </description>
+  <author>Forrest Voight</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/auvsi_robosub</url>
+
+</package>
+
+

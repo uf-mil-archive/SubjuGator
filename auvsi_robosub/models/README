@@ -1,0 +1,13 @@
+== Special object names ==
+
+solid_* - regions that have solid colors
+marker_* - special points on the object
+    (the average is taken of all the points that compose the marker)
+
+
+== Exporting to OBJ in blender ==
+
+* Select "Triangulate Faces"
+* Set "Forward:" to "Y forward"
+** Doing this should set "Up:" to "Z up"
+** This makes the coordinates in the OBJ file match the ones seen in Blender

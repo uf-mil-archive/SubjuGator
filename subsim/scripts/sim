@@ -46,8 +46,8 @@ body = ode.Body(world)
 M = ode.Mass()
 M.setBoxTotal(47, 1.27, .46, .46)
 body.setMass(M)
-body.setPosition((3, 3, -3))
-body.setQuaternion(vector.axisangle_to_quat(v(0, 0, 1), math.pi/2))
+body.setPosition((35, 10, 4))
+body.setQuaternion(vector.axisangle_to_quat(v(0, 0, 1), math.pi/2+math.pi))
 
 space = ode.HashSpace()
 
@@ -70,7 +70,8 @@ def world_tick():
     
     water_vel = get_water_vel(V(body.getPosition()))
     
-    body.addForceAtRelPos((0, 0, -buoyancy_force(body.getPosition()[2], 0.22728849402137372)), (0, 0, -.1))
+    #body.addForceAtRelPos((0, 0, -buoyancy_force(body.getPosition()[2], 0.22728849402137372)), (0, 0, -.1))
+    body.addForceAtRelPos((0, 0, -47*9.81), (0, 0, -.1))
     body.addForce(-(40 if body.getPosition()[2] >= 0 else 10) * (V(body.getLinearVel())-water_vel))
     #body.addForce([random.gauss(0, 1) for i in xrange(3)])
     #body.addTorque([random.gauss(0, 10) for i in xrange(3)])
@@ -266,7 +267,7 @@ class Sub(object):
 
 class Buoys(object):
     def __init__(self, pos):
-        self.buoys = [(pos + [random.gauss(0, 1) for i in xrange(3)], color) for color in [(1, 0, 0), (0, 1, 0), (1, 1, 0)]]
+        self.buoys = [(pos + [j-1,0,0] + [random.gauss(0, .3) for i in xrange(3)], color) for j, color in enumerate([(1, 0, 0), (0, 1, 0), (1, 1, 0)])]
     
     def draw(self):
         q = gluNewQuadric()
@@ -277,15 +278,18 @@ class Buoys(object):
                 gluSphere(q, 0.095, 30, 15)
 
 i = threed.Interface()
-i.init()
+i.init(V(body.getPosition()) + (-2,0,-2))
 i.objs.append(threed.MeshDrawer(pool_mesh, (.4, .4, .4)))
 sub_model = Sub(body, lambda: killed)
 i.objs.append(sub_model)
 i.objs.append(threed.VectorField(get_water_vel))
-i.objs.append(Buoys(v(10, 3, 4)))
+i.objs.append(Buoys(v(35, 5, 4)))
 
-shooter_mesh = threed.mesh_from_obj(open(roslib.packages.resource_file('subsim', 'scene', 'shooter.obj'))).rotate(v(0, 1, 1, 0)).translate((10, -3, 4))
+shooter_mesh = threed.mesh_from_obj(open(roslib.packages.resource_file('auvsi_robosub', 'models', 'shooter.obj'))).rotate(v(0, 1, 1, 0)).translate((35, -3, 5))
 i.objs.append(threed.MeshDrawer(shooter_mesh, (1, 0, 0)))
+
+path_mesh = threed.mesh_from_obj(open(roslib.packages.resource_file('auvsi_robosub', 'models', 'path.obj'))).rotate(v(0, 1, 1, 0)).translate((35, 1, 7))
+i.objs.append(threed.MeshDrawer(path_mesh, (1, .5, 0)))
 
 def _():
     try:

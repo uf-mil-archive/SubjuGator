@@ -10,7 +10,7 @@ from std_msgs.msg import Header
 from geometry_msgs.msg import Pose, Quaternion, Point
 from tf import transformations
 
-from c3_trajectory_generator.msg import MoveToAction, MoveToGoal
+from uf_common.msg import MoveToAction, MoveToGoal, PoseTwist
 
 parser = argparse.ArgumentParser()
 parser.add_argument('x', metavar='X', type=float)
@@ -30,13 +30,15 @@ print client.send_goal(MoveToGoal(
     header=Header(
         frame_id='/map',
     ),
-    pose=Pose(
-        position=Point(
-            x=args.x,
-            y=args.y,
-            z=args.z,
+    posetwist=PoseTwist(
+        pose=Pose(
+            position=Point(
+                x=args.x,
+                y=args.y,
+                z=args.z,
+            ),
+            orientation=Quaternion(*transformations.quaternion_from_euler(0, math.radians(args.P), math.radians(args.Y))),
         ),
-        orientation=Quaternion(*transformations.quaternion_from_euler(0, math.radians(args.P), math.radians(args.Y))),
     ),
 ))
 print 'Press enter to cancel...'

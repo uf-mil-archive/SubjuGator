@@ -14,7 +14,7 @@ from nav_msgs.msg import Odometry
 from tf import transformations
 
 from uf_common.orientation_helpers import xyz_array
-from c3_trajectory_generator.msg import MoveToAction, MoveToGoal
+from uf_common.msg import MoveToAction, MoveToGoal, PoseTwist
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--square', action='store_true')
@@ -32,9 +32,11 @@ def go(position, orientation):
         header=Header(
             frame_id='/map',
         ),
-        pose=Pose(
-            position=Point(*position),
-            orientation=Quaternion(*orientation),
+        posetwist=PoseTwist(
+            pose=Pose(
+                position=Point(*position),
+                orientation=Quaternion(*orientation),
+            ),
         ),
     ))
     if res != GoalStatus.SUCCEEDED:

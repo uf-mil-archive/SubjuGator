@@ -12,9 +12,8 @@ from nav_msgs.msg import Odometry
 from tf import transformations
 
 from uf_common import orientation_helpers
+from uf_common.msg import MoveToAction, MoveToGoal, PoseTwist
 from uf_common.orientation_helpers import xyz_array, xyzw_array
-
-from c3_trajectory_generator.msg import MoveToAction, MoveToGoal
 from object_finder.msg import FindSphereAction, FindSphereGoal
 
 '''
@@ -47,9 +46,11 @@ def go(position, orientation):
         header=Header(
             frame_id=current.header.frame_id,
         ),
-        pose=Pose(
-            position=Point(*position),
-            orientation=Quaternion(*orientation),
+        posetwist=PoseTwist(
+            pose=Pose(
+                position=Point(*position),
+                orientation=Quaternion(*orientation),
+            ),
         ),
     ))
 

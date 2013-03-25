@@ -1,56 +1,37 @@
 #!/usr/bin/env python
 
-import math
+"does a barrel roll"
+
 import random
 
-import roslib; roslib.load_manifest('sub_launch')
+import roslib
+roslib.load_manifest('sub_launch')
 import rospy
 import actionlib
-from std_msgs.msg import Header
-from geometry_msgs.msg import Pose, Quaternion, Point, Vector3, Twist
-from nav_msgs.msg import Odometry
-from tf import transformations
 
-from uf_common.msg import PoseTwistStamped, MoveToAction, MoveToGoal, PoseTwist
-from uf_common.orientation_helpers import xyz_array, xyzw_array
+from uf_common.orientation_helpers import PoseEditor
+from uf_common.msg import MoveToAction
 
 rospy.init_node('barrel_roll')
 
 client = actionlib.SimpleActionClient('moveto', MoveToAction)
-print 'Waiting for server...'
 client.wait_for_server()
+go = client.send_goal_and_wait
 
 print 'Waiting for current position...'
-orig = rospy.wait_for_message('/trajectory', PoseTwistStamped)
+p = PoseEditor.from_Odometry_topic()
+
+go(p)
 
 print 'Sending goal...'
-client.send_goal(MoveToGoal(
-    header=Header(
-        frame_id=orig.header.frame_id,
-    ),
-    posetwist=PoseTwist(
-        pose=orig.posetwist.pose,
-        twist=Twist(
-            linear=Vector3(0, 0, 0),
-            angular=Vector3(1000 if random.randrange(2) else -1000, 0, 0),
-        ),
-    ),
-))
+client.send_goal(p.as_PoseTwistStamped(
+    angular=[1000 if random.randrange(2) else -1000, 0, 0]))
 
 print 'Waiting until rolled 90 degrees to send final pose...'
-orig_up = transformations.quaternion_matrix(xyzw_array(orig.posetwist.pose.orientation))[:3, :3].dot([0, 0, 1])
 while True:
-    traj = rospy.wait_for_message('/trajectory', PoseTwistStamped)
-    current_up = transformations.quaternion_matrix(xyzw_array(traj.posetwist.pose.orientation))[:3, :3].dot([0, 0, 1])
-    if current_up.dot(orig_up) < 0:
+    p_now = PoseEditor.from_PoseTwistStamped_topic('/trajectory')
+    if p_now.body_up_vector.dot(p.body_up_vector) < 0:
         break
 
 print 'Sending final pose...'
-client.send_goal_and_wait(MoveToGoal(
-    header=Header(
-        frame_id=orig.header.frame_id,
-    ),
-    posetwist=PoseTwist(
-        pose=orig.posetwist.pose,
-    ),
-))
+go(p)

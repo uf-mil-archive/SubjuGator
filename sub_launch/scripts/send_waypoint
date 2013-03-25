@@ -1,47 +1,49 @@
 #!/usr/bin/env python
 
-import argparse
-import math
+import os
+import signal
+import sys
+import time
 
 import roslib; roslib.load_manifest('sub_launch')
 import rospy
 import actionlib
-from std_msgs.msg import Header
-from geometry_msgs.msg import Pose, Quaternion, Point
-from tf import transformations
 
-from uf_common.msg import MoveToAction, MoveToGoal, PoseTwist
+from uf_common import orientation_helpers
+from uf_common.msg import MoveToAction
 
-parser = argparse.ArgumentParser()
-parser.add_argument('x', metavar='X', type=float)
-parser.add_argument('y', metavar='Y', type=float)
-parser.add_argument('z', metavar='Z', type=float)
-parser.add_argument('Y', metavar='YAW', type=float, nargs='?', default=0)
-parser.add_argument('P', metavar='PITCH', type=float, nargs='?', default=0)
-args = parser.parse_args()
+if len(sys.argv) < 2:
+    print 'Examples:'
+    print 'send_waypoint depth 2'
+    print 'send_waypoint forward 5'
+    print 'send_waypoint set_orientation NORTH'
+    print 'send_waypoint yaw_left_deg 30'
+    sys.exit()
 
 rospy.init_node('send_waypoint')
-client = actionlib.SimpleActionClient('moveto', MoveToAction)
+
 print 'Waiting for server...'
+client = actionlib.SimpleActionClient('moveto', MoveToAction)
 client.wait_for_server()
+go = client.send_goal_and_wait
+
+print 'Waiting for current position...'
+p = orientation_helpers.PoseEditor.from_Odometry_topic()
+
+args = [eval(x, orientation_helpers.__dict__) for x in sys.argv[2:]] # lets you do "set_orientation NORTH"
+if len(args) >= 2:
+    args = [args]
+p = getattr(p, sys.argv[1])(*args)
 
 print 'Sending goal...'
-print client.send_goal(MoveToGoal(
-    header=Header(
-        frame_id='/map',
-    ),
-    posetwist=PoseTwist(
-        pose=Pose(
-            position=Point(
-                x=args.x,
-                y=args.y,
-                z=args.z,
-            ),
-            orientation=Quaternion(*transformations.quaternion_from_euler(0, math.radians(args.P), math.radians(args.Y))),
-        ),
-    ),
-))
-print 'Press enter to cancel...'
+def done(goal_status, result):
+    print 'Reached goal, killing self.'
+    os.kill(os.getpid(), signal.SIGKILL) # gah, i hate threads. this is the only way i could get this to terminate
+client.send_goal(p, done_cb=done)
+
+print 'Press Enter to cancel...'
 raw_input()
+
+print 'Cancelling...'
 client.cancel_goal()
-print 'Done.'
+print 'Cancelled, exiting.'

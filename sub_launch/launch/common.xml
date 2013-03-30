@@ -67,13 +67,13 @@ shift: [1.972505436535728e-05, -2.630949101201508e-06, 6.149054775740445e-05]
     <remap from="/output" to="wrench"/>
     <rosparam file="$(find sub_launch)/launch/rise_6dof.yaml"/>
   </node>
-  <node pkg="sub_launch" type="param_saver" name="rise_6dof_saver">
+  <group ns="param_saver/rise_6dof">
     <param name="filename" value="$(find sub_launch)/launch/rise_6dof.yaml"/>
     <rosparam>
       file_basepath: /rise_6dof
       param_paths: [k, ks, alpha, beta, use_rise]
     </rosparam>
-  </node>
+  </group>
 
   <node pkg="thruster_mapper" type="thruster_mapper" name="thruster_mapper"/>
 
@@ -83,4 +83,6 @@ shift: [1.972505436535728e-05, -2.630949101201508e-06, 6.149054775740445e-05]
     <remap from="topic" to="dvl/range"/>
     <param name="cond" value="data &lt; 1"/>
   </node>
+  
+  <node pkg="uf_common" type="param_saver" name="param_saver"/>
 </launch>

@@ -11,97 +11,97 @@
     thruster_id: FRV, frame_id: /base_link, position: [0.297, -0.137, 0.050], direction: [0, 0, -1], rev_force: 17.98, fwd_force: 21.57}</rosparam>
     <rosparam file="$(find sub_launch)/launch/thruster_driver_FRV.yaml"/>
   </node>
-  <node pkg="sub_launch" type="param_saver" name="thruster_driver_FRV_saver">
+  <group ns="param_saver/thruster_driver_FRV">
     <param name="filename" value="$(find sub_launch)/launch/thruster_driver_FRV.yaml"/>
     <rosparam>
       file_basepath: /thruster_driver_FRV
       param_paths: [mag_coeffs, mag_frame_id]
     </rosparam>
-  </node>
+  </group>
 
   <node pkg="thruster_driver" type="thruster_driver" name="thruster_driver_FLV"><rosparam>{address: 192.168.1.31, port: 50000, local_address: 21, remote_address: 31,
     thruster_id: FLV, frame_id: /base_link, position: [0.297, 0.137, 0.050], direction: [0, 0, -1], rev_force: 17.98, fwd_force: 21.57}</rosparam>
     <rosparam file="$(find sub_launch)/launch/thruster_driver_FLV.yaml"/>
   </node>
-  <node pkg="sub_launch" type="param_saver" name="thruster_driver_FLV_saver">
+  <group ns="param_saver/thruster_driver_FLV">
     <param name="filename" value="$(find sub_launch)/launch/thruster_driver_FLV.yaml"/>
     <rosparam>
       file_basepath: /thruster_driver_FLV
       param_paths: [mag_coeffs, mag_frame_id]
     </rosparam>
-  </node>
+  </group>
 
   <node pkg="thruster_driver" type="thruster_driver" name="thruster_driver_FS"><rosparam>{address: 192.168.1.32, port: 50000, local_address: 21, remote_address: 32,
     thruster_id: FS, frame_id: /base_link, position: [0.566, -0.046, -0.049], direction: [0, 1, 0], rev_force: 17.98, fwd_force: 21.57}</rosparam>
     <rosparam file="$(find sub_launch)/launch/thruster_driver_FS.yaml"/>
   </node>
-  <node pkg="sub_launch" type="param_saver" name="thruster_driver_FS_saver">
+  <group ns="param_saver/thruster_driver_FS">
     <param name="filename" value="$(find sub_launch)/launch/thruster_driver_FS.yaml"/>
     <rosparam>
       file_basepath: /thruster_driver_FS
       param_paths: [mag_coeffs, mag_frame_id]
     </rosparam>
-  </node>
+  </group>
 
   <node pkg="thruster_driver" type="thruster_driver" name="thruster_driver_RLV"><rosparam>{address: 192.168.1.33, port: 50000, local_address: 21, remote_address: 33,
     thruster_id: RLV, frame_id: /base_link, position: [-0.297, 0.137, 0.050], direction: [0, 0, -1], rev_force: 17.98, fwd_force: 21.57}</rosparam>
     <rosparam file="$(find sub_launch)/launch/thruster_driver_RLV.yaml"/>
   </node>
-  <node pkg="sub_launch" type="param_saver" name="thruster_driver_RLV_saver">
+  <group ns="param_saver/thruster_driver_RLV">
     <param name="filename" value="$(find sub_launch)/launch/thruster_driver_RLV.yaml"/>
     <rosparam>
       file_basepath: /thruster_driver_RLV
       param_paths: [mag_coeffs, mag_frame_id]
     </rosparam>
-  </node>
+  </group>
 
   <node pkg="thruster_driver" type="thruster_driver" name="thruster_driver_LFOR"><rosparam>{address: 192.168.1.34, port: 50000, local_address: 21, remote_address: 34,
     thruster_id: LFOR, frame_id: /base_link, position: [-0.633, 0.115, 0.062], direction: [1, 0, 0], rev_force: 16.43, fwd_force: 31.33}</rosparam>
     <rosparam file="$(find sub_launch)/launch/thruster_driver_LFOR.yaml"/>
   </node>
-  <node pkg="sub_launch" type="param_saver" name="thruster_driver_LFOR_saver">
+  <group ns="param_saver/thruster_driver_LFOR">
     <param name="filename" value="$(find sub_launch)/launch/thruster_driver_LFOR.yaml"/>
     <rosparam>
       file_basepath: /thruster_driver_LFOR
       param_paths: [mag_coeffs, mag_frame_id]
     </rosparam>
-  </node>
+  </group>
 
   <node pkg="thruster_driver" type="thruster_driver" name="thruster_driver_RFOR"><rosparam>{address: 192.168.1.35, port: 50000, local_address: 21, remote_address: 35,
     thruster_id: RFOR, frame_id: /base_link, position: [-0.633, -0.115, 0.062], direction: [1, 0, 0], rev_force: 16.43, fwd_force: 31.33}</rosparam>
     <rosparam file="$(find sub_launch)/launch/thruster_driver_RFOR.yaml"/>
   </node>
-  <node pkg="sub_launch" type="param_saver" name="thruster_driver_RFOR_saver">
+  <group ns="param_saver/thruster_driver_RFOR">
     <param name="filename" value="$(find sub_launch)/launch/thruster_driver_RFOR.yaml"/>
     <rosparam>
       file_basepath: /thruster_driver_RFOR
       param_paths: [mag_coeffs, mag_frame_id]
     </rosparam>
-  </node>
+  </group>
 
   <node pkg="thruster_driver" type="thruster_driver" name="thruster_driver_RS"><rosparam>{address: 192.168.1.36, port: 50000, local_address: 21, remote_address: 36,
     thruster_id: RS, frame_id: /base_link, position: [-0.528, 0.046, -0.052], direction: [0, -1, 0], rev_force: 17.98, fwd_force: 21.57}</rosparam>
     <rosparam file="$(find sub_launch)/launch/thruster_driver_RS.yaml"/>
   </node>
-  <node pkg="sub_launch" type="param_saver" name="thruster_driver_RS_saver">
+  <group ns="param_saver/thruster_driver_RS">
     <param name="filename" value="$(find sub_launch)/launch/thruster_driver_RS.yaml"/>
     <rosparam>
       file_basepath: /thruster_driver_RS
       param_paths: [mag_coeffs, mag_frame_id]
     </rosparam>
-  </node>
+  </group>
 
   <node pkg="thruster_driver" type="thruster_driver" name="thruster_driver_RRV"><rosparam>{address: 192.168.1.37, port: 50000, local_address: 21, remote_address: 37,
     thruster_id: RRV, frame_id: /base_link, position: [-0.298, -0.137, 0.050], direction: [0, 0, -1], rev_force: 17.98, fwd_force: 21.57}</rosparam>
     <rosparam file="$(find sub_launch)/launch/thruster_driver_RRV.yaml"/>
   </node>
-  <node pkg="sub_launch" type="param_saver" name="thruster_driver_RRV_saver">
+  <group ns="param_saver/thruster_driver_RRV">
     <param name="filename" value="$(find sub_launch)/launch/thruster_driver_RRV.yaml"/>
     <rosparam>
       file_basepath: /thruster_driver_RRV
       param_paths: [mag_coeffs, mag_frame_id]
     </rosparam>
-  </node>
+  </group>
 
   <include file="$(find sub_launch)/launch/leaksensor.launch"/>
 

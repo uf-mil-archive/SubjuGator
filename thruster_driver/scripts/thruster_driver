@@ -95,21 +95,27 @@ def do_magnetic_calibration(req):
         print dir, i, force, currents[-1], mags[-1]
     thrustercommand_callback(0)
     
+    currents = numpy.array(currents)
+    mags = numpy.array(mags)
+    
     #from matplotlib import pyplot
     #pyplot.plot(currents, mags[:,0])
     #pyplot.show()
-    
     
     global mag_frame_id
     mag_frame_id = wait_for_mag()[1]
     rospy.set_param('~mag_frame_id', mag_frame_id)
     
-    fit = numpy.polyfit(numpy.array(currents), numpy.array(mags), 1)
-    print fit
+    ORDER = 1
+    posfit = numpy.polyfit(*zip(*[pair for pair in zip(currents, mags) if pair[0] > 0]) + [ORDER])
+    negfit = numpy.polyfit(*zip(*[pair for pair in zip(currents, mags) if pair[0] < 0]) + [ORDER])
+    mid = (posfit[-1] + negfit[-1])/2
+    posfit[-1] -= mid
+    negfit[-1] -= mid
     
     global mag_coeffs
-    mag_coeffs = fit[0, :]
-    rospy.set_param('~mag_coeffs', map(float, mag_coeffs))
+    mag_coeffs = [[map(float, row) for row in negfit], [map(float, row) for row in posfit]]
+    rospy.set_param('~mag_coeffs', mag_coeffs)
     
     mag_sub.unregister()
     
@@ -143,6 +149,10 @@ while not rospy.is_shutdown():
     _current_holder[0] = signed_current
     
     if mag_frame_id is not None and mag_coeffs is not None:
+        magnetic_field = numpy.zeros(3) if signed_current == 0 else \
+            numpy.polyval(mag_coeffs[0], signed_current) if signed_current < 0 else \
+            numpy.polyval(mag_coeffs[1], signed_current)
+        
         mag_pub.publish(FieldInfo(
             header=Header(
                 stamp=now,
@@ -150,5 +160,5 @@ while not rospy.is_shutdown():
             ),
             id=rospy.get_name(),
             lifetime=rospy.Duration(1), # XXX
-            magnetic_field=Vector3(*numpy.array(mag_coeffs)*signed_current),
+            magnetic_field=Vector3(*magnetic_field),
         ))

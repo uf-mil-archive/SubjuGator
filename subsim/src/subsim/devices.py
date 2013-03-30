@@ -253,8 +253,9 @@ class ActuatorProtocol(protocol.Protocol):
         print 'actuator connection lost'
 
 class DVLProtocol(protocol.Protocol):
-    def __init__(self, get_vel_func):
+    def __init__(self, get_vel_func, get_range_func):
         self.get_vel_func = get_vel_func
+        self.get_range_func = get_range_func
     
     def connectionMade(self):
         print 'dvl connection made'
@@ -265,14 +266,14 @@ class DVLProtocol(protocol.Protocol):
     def dataReceived(self, data):
         print 'dvl', repr(data)
     
-    def sendHighResVel(self, bottom_vel, bottom_dist, water_vel, water_dist, speed_of_sound):
+    def sendHighResVel(self, bottom_vel, bottom_dist, water_vel, water_dist, speed_of_sound, height):
         if not all(len(x) == 4 for x in [bottom_vel, bottom_dist, water_vel, water_dist]):
             raise TypeError('first four arguments must each have a length of four')
         self.sendUpdate(['\x80\x00' + '\x01'*58] + [''.join([
             '\x03\x58',
             struct.pack('16i', *(perfect_round(x*1e5) for x in itertools.chain(bottom_vel, bottom_dist, water_vel, water_dist))),
             struct.pack('i', perfect_round(speed_of_sound*1e6)),
-        ])] + ['\x00\x06' + '\x00'*79] + ['\x04\x58' + '\x00'*37])
+        ])] + ['\x00\x06' + '\x00'*79] + ['\x04\x58' + '\x00'*8 + struct.pack('i', height/.1e-3) + '\x00'*25])
     
     def sendUpdate(self, msgs):
         header_length = 1 + 1 + 2 + 1 + 1 + 2 * len(msgs)
@@ -294,6 +295,7 @@ class DVLProtocol(protocol.Protocol):
             water_vel=[0, 0, 0, 0],
             water_dist=[0, 0, 0, 0],
             speed_of_sound=100,
+            height=self.get_range_func(),
         )
     
     def connectionLost(self, reason):

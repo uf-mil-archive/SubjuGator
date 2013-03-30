@@ -31,13 +31,13 @@ def send_imu_update(**update):
 
 clip = lambda x, (low, high): min(max(x, low), high)
 
-def buoyancy_force(depth, r):    
+def buoyancy_force(depth, r, max_force):
     inf = 1e1000
     assert math.isinf(inf)
     sphere_antiderivative = lambda h: -h**3*math.pi/3 + h*math.pi*r**2
     sphere_true_antiderivative = lambda h: sphere_antiderivative(clip(h, (-r, r)))
     vol_submerged = sphere_true_antiderivative(depth) - sphere_true_antiderivative(-inf)
-    return 1000 * 9.81 * vol_submerged
+    return vol_submerged/(4/3*math.pi*r**3) * max_force
 
 world, world_time = ode.World(), reactor.seconds()
 world.setGravity((0, 0, 9.81))
@@ -54,7 +54,7 @@ space = ode.HashSpace()
 body_geom = ode.GeomBox(space, (1.27, .46, .46))
 body_geom.setBody(body)
 
-pool_mesh = threed.mesh_from_obj(open(roslib.packages.resource_file('subsim', 'scene', 'pool6_Scene.obj')))
+pool_mesh = threed.mesh_from_obj(open(roslib.packages.resource_file('subsim', 'scene', 'pool6.obj')))
 pool_geom = ode.GeomTriMesh(pool_mesh.ode_trimeshdata, space)
 
 def get_water_vel(pos):
@@ -70,8 +70,7 @@ def world_tick():
     
     water_vel = get_water_vel(V(body.getPosition()))
     
-    #body.addForceAtRelPos((0, 0, -buoyancy_force(body.getPosition()[2], 0.22728849402137372)), (0, 0, -.1))
-    body.addForceAtRelPos((0, 0, -47*9.81), (0, 0, -.01))
+    body.addForceAtRelPos((0, 0, -buoyancy_force(body.getPosition()[2], 0.2, 47*9.81+2)), (0, 0, -.01))
     body.addForce(-(40 if body.getPosition()[2] >= 0 else 10) * (V(body.getLinearVel())-water_vel))
     #body.addForce([random.gauss(0, 1) for i in xrange(3)])
     #body.addTorque([random.gauss(0, 10) for i in xrange(3)])
@@ -206,7 +205,18 @@ def get_dvl_vel():
     #dvl_to_sub = vector.axisangle_to_quat(v(1,0,0),math.pi)
     dvl_pos = imu_pos # v(1, 0, 0)
     return dvl_to_sub.conj().quat_rot(body.vectorFromWorld(body.getRelPointVel(dvl_pos)))
-reactor.listenTCP(10050, util.AutoServerFactory(devices.DVLProtocol, get_dvl_vel))
+def get_dvl_range():
+    g = ode.GeomRay(None, 1e3)
+    g.set(body.getRelPointPos(imu_pos), body.vectorToWorld(v(0, 0, 1)))
+    print 1
+    for contact in ode.collide(g, space):
+        pos, normal, depth, geom1, geom2 = contact.getContactGeomParams()
+        assert geom1 is g, geom1
+        if geom2 is body_geom:
+            continue
+        return (V(pos) - V(body.getRelPointPos(imu_pos))).mag()
+    return 0
+reactor.listenTCP(10050, util.AutoServerFactory(devices.DVLProtocol, get_dvl_vel, get_dvl_range))
 reactor.listenUDP(10060, devices.MergeProtocol(lambda: killed))
 reactor.listenTCP(10061, util.AutoServerFactory(devices.ActuatorProtocol))
 reactor.listenTCP(10255, util.AutoServerFactory(devices.HeartbeatProtocol))

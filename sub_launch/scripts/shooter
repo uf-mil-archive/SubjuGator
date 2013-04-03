@@ -19,7 +19,7 @@ from uf_common.orientation_helpers import xyz_array, xyzw_array
 from object_finder.msg import FindAction, FindGoal
 
 
-rospy.init_node('bump_buoy')
+rospy.init_node('shooter')
 
 
 visionclient = actionlib.SimpleActionClient('find', FindAction)
@@ -30,6 +30,7 @@ visionclient.wait_for_server()
 client = actionlib.SimpleActionClient('moveto', MoveToAction)
 print 'Waiting for server...'
 client.wait_for_server()
+print 'ok'
 
 current = orientation_helpers.PoseEditor.from_Odometry_topic()
 client.send_goal(current)
@@ -38,37 +39,34 @@ went = False
 ignore = False
 
 def got_feedback(fb):
+    global current, went, ignore
+    obj_pose = orientation_helpers.PoseEditor.from_Pose(goal.header.frame_id, fb.pose)
     if ignore: return
     print fb
-    global current, went, ignore
-    if fb.P_within_10cm > .3 or went:
+    if fb.P_within_10cm > .2 or went:
         # approach mode
-        buoy_pos = xyz_array(fb.pose.position)
         
-        current = current.set_position(buoy_pos)
+        current = current.set_position(obj_pose.position + obj_pose.forward_vector*2)
+        #current = current.look_at(obj_pose.position)
         client.send_goal(current)
         went = True
-        
-        odom = orientation_helpers.PoseEditor.from_Odometry_topic()
-        if numpy.linalg.norm(odom.position - buoy_pos) < 1:
-            # don't make corrections when near buoy
-            ignore = True
-            rospy.signal_shutdown('reached buoy')
     else:
         # search mode
-        current = current.look_at(xyz_array(fb.pose.position))
+        current = current.look_at(obj_pose.position)
         client.send_goal(current)
 
-guess_pos = current.position + current.forward_vector * 4
+guess_pos = current.position + current.forward_vector * 5
 
 goal = FindGoal()
 goal.header.frame_id = current.header.frame_id
-goal.type = goal.TYPE_SPHERE
-goal.sphere_radius = 0.095
+goal.type = goal.TYPE_OBJECT
+goal.object_filename = roslib.packages.resource_file('auvsi_robosub', 'models', 'shooter.obj')
 goal.prior_distribution.pose.position = Point(*guess_pos)
-goal.prior_distribution.covariance[0+6*0] = 2
-goal.prior_distribution.covariance[1+6*1] = 2
-goal.prior_distribution.covariance[2+6*2] = 2
+goal.prior_distribution.pose.orientation.w = 1
+goal.prior_distribution.covariance[0+6*0] = 1
+goal.prior_distribution.covariance[1+6*1] = 1
+goal.prior_distribution.covariance[2+6*2] = 1
+goal.prior_distribution.covariance[5+6*5] = 100
 visionclient.send_goal(goal, feedback_cb=got_feedback)
 
 rospy.spin()

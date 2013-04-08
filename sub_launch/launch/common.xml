@@ -81,7 +81,7 @@ shift: [1.8488423009010523e-05, -3.769499543225259e-06, 6.186624026775028e-05]
 
   <node pkg="kill_handling" type="kill_on_cond" name="height_over_bottom_kill">
     <remap from="topic" to="dvl/range"/>
-    <param name="cond" value="data &lt; 1"/>
+    <param name="cond" value="data &lt; .5"/>
   </node>
   
   <node pkg="uf_common" type="param_saver" name="param_saver"/>

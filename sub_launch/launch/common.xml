@@ -85,6 +85,4 @@ shift: [1.8488423009010523e-05, -3.769499543225259e-06, 6.186624026775028e-05]
   </node>
   
   <node pkg="uf_common" type="param_saver" name="param_saver"/>
-
-  <node pkg="object_finder" type="object_finder" name="object_finder"/>
 </launch>

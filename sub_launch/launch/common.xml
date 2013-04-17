@@ -87,5 +87,17 @@ shift: [1.8488423009048237e-05, -3.7694995432335065e-06, 6.186624026780041e-05]
     <param name="cond" value="data &lt; .5"/>
   </node>
   
+  
+  <node pkg="object_finder" type="object_finder" name="object_finder">
+    <remap from="find" to="find_forward"/>
+    <remap from="camera/camera_info" to="forward_camera/camera_info"/>
+    <remap from="camera/image_rect_color" to="forward_camera/image_rect_color"/>
+  </node>
+  <node pkg="object_finder" type="object_finder" name="object_finder2">
+    <remap from="find" to="find_down"/>
+    <remap from="camera/camera_info" to="down_camera/camera_info"/>
+    <remap from="camera/image_rect_color" to="down_camera/image_rect_color"/>
+  </node>
+  
   <node pkg="uf_common" type="param_saver" name="param_saver"/>
 </launch>

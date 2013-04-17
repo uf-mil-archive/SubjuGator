@@ -12,9 +12,6 @@
     args="0.566 0 0.049  0.5 -0.5 0.5 -0.5  base_link forward_camera 100" />
   <node ns="forward_camera" pkg="image_proc" type="image_proc"
           name="image_proc" />
-  <node pkg="object_finder" type="object_finder" name="object_finder">
-    <remap from="camera" to="forward_camera"/>
-  </node>
 
   <node pkg="camera1394" type="camera1394_node" name="down_camera_driver">
     <param name="guid" value="00b09d01009ce76f"/>
@@ -28,9 +25,5 @@
     args="0.297 0 -0.102  0.707107 -0.707107 0 0  base_link down_camera 100" />
   <node ns="down_camera" pkg="image_proc" type="image_proc"
           name="image_proc" />
-  <node pkg="object_finder" type="object_finder" name="object_finder2">
-    <remap from="find" to="find_down"/>
-    <remap from="camera" to="down_camera"/>
-  </node>
 
 </launch>

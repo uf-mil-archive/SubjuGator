@@ -14,12 +14,16 @@ from twisted.internet import protocol, reactor, task
 
 import roslib
 roslib.load_manifest('subsim')
+import rospy
+from nav_msgs.msg import Odometry
+from geometry_msgs.msg import Point, Vector3, Quaternion
 
 from sim import threed, vector, util
 from sim.vector import v, V
 
 from subsim import devices
 
+rospy.init_node('subsim')
 
 imu_listeners = set()
 thrusters = [0]*8
@@ -46,8 +50,8 @@ body = ode.Body(world)
 M = ode.Mass()
 M.setBoxTotal(47, 1.27, .46, .46)
 body.setMass(M)
-body.setPosition((35, 10, 4))
-body.setQuaternion(vector.axisangle_to_quat(v(0, 0, 1), math.pi/2+math.pi))
+body.setPosition((6, 6, 2))
+body.setQuaternion(vector.axisangle_to_quat(v(0, 0, 1), math.pi/2+math.pi-math.pi/4))
 
 space = ode.HashSpace()
 
@@ -58,12 +62,16 @@ pool_mesh = threed.mesh_from_obj(open(roslib.packages.resource_file('subsim', 's
 pool_geom = ode.GeomTriMesh(pool_mesh.ode_trimeshdata, space)
 
 def get_water_vel(pos):
-    return (pos % v(0, 0, 1))*math.e**(-pos.mag()/3)
+    return v(0, 0, 0)
+    #return (pos % v(0, 0, 1))*math.e**(-pos.mag()/3)
 
 imu_pos = v(0.43115992, 0.0, -0.00165058)
 
 killed = False
 locked = False
+
+
+odom_pub = rospy.Publisher('/sim_odom', Odometry)
 
 def world_tick():
     global world_time
@@ -193,6 +201,21 @@ def world_tick():
     except:
         traceback.print_exc()
     
+    
+    ENU_from_NED = lambda (e, n, u): (n, e, -u)
+    msg = Odometry()
+    msg.header.stamp = rospy.Time(world_time)
+    msg.header.frame_id = '/simmap'
+    msg.child_frame_id = '/base_link'
+    msg.pose.pose.position = Point(*ENU_from_NED(body.getPosition()))
+    ENU_from_NED_q = v(0, 1, 1, 0).unit()
+    FRD_from_FLU_q = v(0, 1, 0, 0).unit()
+    q = ENU_from_NED_q % V(body.getQuaternion()) % FRD_from_FLU_q
+    msg.pose.pose.orientation = Quaternion(q[1], q[2], q[3], q[0])
+    msg.twist.twist.linear = Vector3(*q.conj().quat_rot(ENU_from_NED(body.getLinearVel())))
+    msg.twist.twist.angular = Vector3(*q.conj().quat_rot(ENU_from_NED(body.getAngularVel())))
+    odom_pub.publish(msg)
+    
     reactor.callLater(max(0, world_time + dt - reactor.seconds()), world_tick)
 
 
@@ -277,7 +300,7 @@ class Sub(object):
 
 class Buoys(object):
     def __init__(self, pos):
-        self.buoys = [(pos + [j-1,0,0] + [random.gauss(0, .3) for i in xrange(3)], color) for j, color in enumerate([(1, 0, 0), (0, 1, 0), (1, 1, 0)])]
+        self.buoys = [(pos + [j-1,1-j,0] + [random.gauss(0, .3) for i in xrange(3)], color) for j, color in enumerate([(1, 0, 0), (0, 1, 0), (1, 1, 0)])]
     
     def draw(self):
         q = gluNewQuadric()
@@ -285,32 +308,47 @@ class Buoys(object):
             with threed.GLMatrix:
                 glTranslate(*pos)
                 glColor3f(*color)
-                gluSphere(q, 0.095, 30, 15)
+                gluSphere(q, 4*.0254, 30, 15)
+
+w = threed.World()
+w.objs.append(threed.MeshDrawer(pool_mesh, (.4, .4, .4)))
+sub_model = Sub(body, lambda: killed)
+w.objs.append(sub_model)
+#i.objs.append(threed.VectorField(get_water_vel))
+w.objs.append(Buoys(v(3, 3, 2)))
+
+shooter_mesh = threed.mesh_from_obj(open(roslib.packages.resource_file('auvsi_robosub', 'models', '2012_uf_mock/shooter.obj'))).rotate(v(0, 1, 1, 0)).translate((0, -3, 2))
+w.objs.append(threed.MeshDrawer(shooter_mesh, (1, 0, 0)))
+
+path_mesh = threed.mesh_from_obj(open(roslib.packages.resource_file('auvsi_robosub', 'models', '2012_uf_mock/path.obj'))).rotate(v(0, 1, 1, 0)).translate((0, 0, 3.9))
+w.objs.append(threed.MeshDrawer(path_mesh, (1, .5, 0)))
+
 
 i = threed.Interface()
-i.init(V(body.getPosition()) + (-2,0,-2))
-i.objs.append(threed.MeshDrawer(pool_mesh, (.4, .4, .4)))
-sub_model = Sub(body, lambda: killed)
-i.objs.append(sub_model)
-i.objs.append(threed.VectorField(get_water_vel))
-i.objs.append(Buoys(v(35, 5, 4)))
+i.init(w, V(body.getPosition()) + (-2,0,-2))
 
-shooter_mesh = threed.mesh_from_obj(open(roslib.packages.resource_file('auvsi_robosub', 'models', 'shooter.obj'))).rotate(v(0, 1, 1, 0)).translate((35, -3, 5))
-i.objs.append(threed.MeshDrawer(shooter_mesh, (1, 0, 0)))
+def set_forward_view():
+    glTranslate(-.4, -.2, +.3)
+    threed.rotate_to_body(body, inv=True)
+c1 = threed.Camera(w, 'forward_camera', set_forward_view, body)
 
-path_mesh = threed.mesh_from_obj(open(roslib.packages.resource_file('auvsi_robosub', 'models', 'path.obj'))).rotate(v(0, 1, 1, 0)).translate((35, 1, 7))
-i.objs.append(threed.MeshDrawer(path_mesh, (1, .5, 0)))
+def set_down_view():
+    glRotate(90, 0, 1, 0)
+    threed.rotate_to_body(body, inv=True)
+c2 = threed.Camera(w, 'down_camera', set_down_view, body)
 
 def _():
     try:
         i.step()
+        c1.step()
+        c2.step()
     except:
         traceback.print_exc()
         reactor.stop()
 reactor.callWhenRunning(task.LoopingCall(_).start, 1/24)
 
 
-
 reactor.callWhenRunning(world_tick)
 
+reactor.callWhenRunning(lambda: rospy.core.add_client_shutdown_hook(lambda reason=None: reactor.callFromThread(reactor.stop)))
 reactor.run()

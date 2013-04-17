@@ -2,6 +2,7 @@
 
 import argparse
 import math
+import time
 
 import numpy
 
@@ -22,7 +23,7 @@ from object_finder.msg import FindAction, FindGoal
 rospy.init_node('shooter')
 
 
-visionclient = actionlib.SimpleActionClient('find', FindAction)
+visionclient = actionlib.SimpleActionClient('find_forward', FindAction)
 print 'Waiting for server...'
 visionclient.wait_for_server()
 
@@ -32,40 +33,43 @@ print 'Waiting for server...'
 client.wait_for_server()
 print 'ok'
 
-current = orientation_helpers.PoseEditor.from_Odometry_topic()
-client.send_goal(current)
+current = orientation_helpers.PoseEditor.from_Odometry_topic().depth(2)
+client.send_goal_and_wait(current)
 
 went = False
 ignore = False
 
+wait_until = time.time() + 20
+
 def got_feedback(fb):
+    print wait_until - time.time()
     global current, went, ignore
     obj_pose = orientation_helpers.PoseEditor.from_Pose(goal.header.frame_id, fb.pose)
     if ignore: return
     print fb
-    if fb.P_within_10cm > .2 or went:
+    if (fb.P_within_10cm > .05 or went) and time.time() > wait_until:
         # approach mode
         
-        current = current.set_position(obj_pose.position + obj_pose.forward_vector*2)
-        #current = current.look_at(obj_pose.position)
+        marker_pose = obj_pose.relative(xyz_array(fb.markers[0].position))
+        
+        current = current.set_position(marker_pose.relative([2, 0, 0]).position)
+        current = current.look_at_without_pitching(marker_pose.position)
         client.send_goal(current)
         went = True
     else:
         # search mode
-        current = current.look_at(obj_pose.position)
+        current = current.look_at_without_pitching(obj_pose.position)
         client.send_goal(current)
-
-guess_pos = current.position + current.forward_vector * 5
 
 goal = FindGoal()
 goal.header.frame_id = current.header.frame_id
 goal.type = goal.TYPE_OBJECT
-goal.object_filename = roslib.packages.resource_file('auvsi_robosub', 'models', 'shooter.obj')
-goal.prior_distribution.pose.position = Point(*guess_pos)
+goal.object_filename = roslib.packages.resource_file('auvsi_robosub', 'models', '2012_uf_mock/shooter.obj')
+goal.prior_distribution.pose.position = Point(*current.position + current.forward_vector * 3)
 goal.prior_distribution.pose.orientation.w = 1
-goal.prior_distribution.covariance[0+6*0] = 1
-goal.prior_distribution.covariance[1+6*1] = 1
-goal.prior_distribution.covariance[2+6*2] = 1
+goal.prior_distribution.covariance[0+6*0] = 3
+goal.prior_distribution.covariance[1+6*1] = 3
+goal.prior_distribution.covariance[2+6*2] = 3
 goal.prior_distribution.covariance[5+6*5] = 100
 visionclient.send_goal(goal, feedback_cb=got_feedback)
 

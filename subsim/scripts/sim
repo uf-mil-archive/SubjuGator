@@ -44,13 +44,13 @@ def buoyancy_force(depth, r, max_force):
     return vol_submerged/(4/3*math.pi*r**3) * max_force
 
 world, world_time = ode.World(), reactor.seconds()
-world.setGravity((0, 0, 9.81))
+world.setGravity((0, 0, -9.81))
 
 body = ode.Body(world)
 M = ode.Mass()
 M.setBoxTotal(47, 1.27, .46, .46)
 body.setMass(M)
-body.setPosition((6, 6, 2))
+body.setPosition((6, 6, -2))
 body.setQuaternion(vector.axisangle_to_quat(v(0, 0, 1), math.pi/2+math.pi-math.pi/4))
 
 space = ode.HashSpace()
@@ -65,7 +65,7 @@ def get_water_vel(pos):
     return v(0, 0, 0)
     #return (pos % v(0, 0, 1))*math.e**(-pos.mag()/3)
 
-imu_pos = v(0.43115992, 0.0, -0.00165058)
+imu_pos = v(0.43115992, 0.0, 0.00165058)
 
 killed = False
 locked = False
@@ -78,27 +78,27 @@ def world_tick():
     
     water_vel = get_water_vel(V(body.getPosition()))
     
-    body.addForceAtRelPos((0, 0, -buoyancy_force(body.getPosition()[2], 0.2, 47*9.81+2)), (0, 0, -.01))
-    body.addForce(-(40 if body.getPosition()[2] >= 0 else 10) * (V(body.getLinearVel())-water_vel))
+    body.addForceAtRelPos((0, 0, buoyancy_force(-body.getPosition()[2], 0.2, 47*9.81+2)), (0, 0, .01))
+    body.addForce(-(40 if body.getPosition()[2] <= 0 else 10) * (V(body.getLinearVel())-water_vel))
     #body.addForce([random.gauss(0, 1) for i in xrange(3)])
     #body.addTorque([random.gauss(0, 10) for i in xrange(3)])
-    body.addTorque(-(10 if body.getPosition()[2] >= 0 else 5) * V(body.getAngularVel()))
+    body.addTorque(-(10 if body.getPosition()[2] <= 0 else 5) * V(body.getAngularVel()))
     
     #print thrusters
     
     sub_model.vectors = []
     thruster_mag = v(0, 0, 0)
     for i, (reldir, relpos, fwdforce, revforce) in enumerate([
-        (v(0, 0, 1), v( 11.7103,  5.3754, -1.9677)*.0254, 21.57, 17.98), # FRV
-        (v(0, 0, 1), v( 11.7125, -5.3754, -1.9677)*.0254, 21.57, 17.98), # FLV
-        (v(0,-1, 0), v( 22.3004,  1.8020,  1.9190)*.0254, 21.57, 17.98), # FS
-        (v(0, 0, 1), v(-11.7125, -5.3754, -1.9677)*.0254, 21.57, 17.98), # RLV
-        (v(1, 0, 0), v(-24.9072, -4.5375, -2.4285)*.0254, 31.33, 16.43), # LFOR
-        (v(1, 0, 0), v(-24.9072,  4.5375, -2.4285)*.0254, 31.33, 16.43), # RFOR
-        (v(0, 1, 0), v(-20.8004, -1.8020,  2.0440)*.0254, 21.57, 17.98), # RS
-        (v(0, 0, 1), v(-11.7147,  5.3754, -1.9677)*.0254, 21.57, 17.98), # RRV
+        (v(0, 0,-1), v( 11.7103, -5.3754,  1.9677)*.0254, 21.57, 17.98), # FRV
+        (v(0, 0,-1), v( 11.7125,  5.3754,  1.9677)*.0254, 21.57, 17.98), # FLV
+        (v(0, 1, 0), v( 22.3004, -1.8020, -1.9190)*.0254, 21.57, 17.98), # FS
+        (v(0, 0,-1), v(-11.7125,  5.3754,  1.9677)*.0254, 21.57, 17.98), # RLV
+        (v(1, 0, 0), v(-24.9072,  4.5375,  2.4285)*.0254, 31.33, 16.43), # LFOR
+        (v(1, 0, 0), v(-24.9072, -4.5375,  2.4285)*.0254, 31.33, 16.43), # RFOR
+        (v(0,-1, 0), v(-20.8004,  1.8020, -2.0440)*.0254, 21.57, 17.98), # RS
+        (v(0, 0,-1), v(-11.7147, -5.3754,  1.9677)*.0254, 21.57, 17.98), # RRV
     ]):
-        if body.getRelPointPos(relpos)[2] < 0: # skip thrusters that are out of the water
+        if body.getRelPointPos(relpos)[2] > 0: # skip thrusters that are out of the water
             continue
         body.addRelForceAtRelPos(reldir*thrusters[i]*(fwdforce if thrusters[i] > 0 else revforce), relpos)
         sub_model.vectors.append((relpos, relpos - .02*reldir*thrusters[i]*(fwdforce if thrusters[i] > 0 else revforce)))
@@ -117,21 +117,20 @@ def world_tick():
     for keycode, force in [
         (pygame.K_k, v(-50, 0, 0)),
         (pygame.K_i, v(+50, 0, 0)),
-        (pygame.K_j, v(0, -50, 0)),
-        (pygame.K_l, v(0, +50, 0)),
-        (pygame.K_o, v(0, 0, -50)),
-        (pygame.K_m, v(0, 0, +50)),
+        (pygame.K_j, v(0, +50, 0)),
+        (pygame.K_l, v(0, -50, 0)),
+        (pygame.K_o, v(0, 0, +50)),
+        (pygame.K_m, v(0, 0, -50)),
     ]:
         if keys[keycode]:
             body.addRelForce(force*(10 if keys[pygame.K_RSHIFT] else 1)*(.1 if keys[pygame.K_RCTRL] else 1))
     for keycode, torque in [
-        (pygame.K_COMMA, v(-20,
-         0, 0)),
+        (pygame.K_COMMA, v(-20, 0, 0)),
         (pygame.K_u, v(+20, 0, 0)),
-        (pygame.K_h, v(0, -20, 0)),
-        (pygame.K_SEMICOLON, v(0, +20, 0)),
-        (pygame.K_0, v(0, 0, -20)),
-        (pygame.K_n, v(0, 0, +20)),
+        (pygame.K_h, v(0, +20, 0)),
+        (pygame.K_SEMICOLON, v(0, -20, 0)),
+        (pygame.K_0, v(0, 0, +20)),
+        (pygame.K_n, v(0, 0, -20)),
     ]:
         if keys[keycode]:
             body.addRelTorque(torque*(10 if keys[pygame.K_RSHIFT] else 1)*(.1 if keys[pygame.K_RCTRL] else 1))
@@ -174,13 +173,13 @@ def world_tick():
     
     a = (V(body.vectorFromWorld(body.getRelPointVel(imu_pos) - last_vel)))/dt - V(body.vectorFromWorld(world.getGravity()))
     
-    imu_to_sub = v(0.012621022547474, 0.002181321593961, -0.004522523520991, 0.999907744947984)
+    imu_to_sub = v(0,1,0,0)%v(0.012621022547474, 0.002181321593961, -0.004522523520991, 0.999907744947984)
     #imu_to_sub = vector.axisangle_to_quat(v(1,0,0),math.pi)
     imu_gyro = imu_to_sub.conj().quat_rot((last_angvel + body.vectorFromWorld(body.getAngularVel()))/2)
     imu_acc = imu_to_sub.conj().quat_rot(-a)
     #print imu_acc
     
-    north = v(0.241510e-4, -0.022442e-4, 0.405728e-4)
+    north = v(-0.022442e-4, 0.241510e-4, -0.405728e-4)
     magCorrection = v(0.7409404225119256, 0.16518505729708194, 0.41635135769064785, -0.5003725952555389)
     magShift = v(1.972505436535728e-05, -2.630949101201508e-06, 6.149054775740445e-05)
     magScale = v(0.9824591199601406, 0.991700915163004, 1.0263720042299143)
@@ -202,35 +201,32 @@ def world_tick():
         traceback.print_exc()
     
     
-    ENU_from_NED = lambda (e, n, u): (n, e, -u)
     msg = Odometry()
     msg.header.stamp = rospy.Time(world_time)
     msg.header.frame_id = '/simmap'
     msg.child_frame_id = '/base_link'
-    msg.pose.pose.position = Point(*ENU_from_NED(body.getPosition()))
-    ENU_from_NED_q = v(0, 1, 1, 0).unit()
-    FRD_from_FLU_q = v(0, 1, 0, 0).unit()
-    q = ENU_from_NED_q % V(body.getQuaternion()) % FRD_from_FLU_q
+    msg.pose.pose.position = Point(*body.getPosition())
+    q = V(body.getQuaternion())
     msg.pose.pose.orientation = Quaternion(q[1], q[2], q[3], q[0])
-    msg.twist.twist.linear = Vector3(*q.conj().quat_rot(ENU_from_NED(body.getLinearVel())))
-    msg.twist.twist.angular = Vector3(*q.conj().quat_rot(ENU_from_NED(body.getAngularVel())))
+    msg.twist.twist.linear = Vector3(*q.conj().quat_rot(body.getLinearVel()))
+    msg.twist.twist.angular = Vector3(*q.conj().quat_rot(body.getAngularVel()))
     odom_pub.publish(msg)
     
     reactor.callLater(max(0, world_time + dt - reactor.seconds()), world_tick)
 
 
-reactor.listenTCP(10004, util.AutoServerFactory(devices.DepthProtocol, lambda: body.getRelPointPos(imu_pos)[2]))
+reactor.listenTCP(10004, util.AutoServerFactory(devices.DepthProtocol, lambda: -body.getRelPointPos(imu_pos)[2]))
 reactor.listenTCP(10025, util.AutoServerFactory(devices.IMUProtocol, imu_listeners))
 for i in xrange(8):
     reactor.listenUDP(10030 + i, devices.ThrusterProtocol(i, thrusters))
 def get_dvl_vel():
-    dvl_to_sub = v(0.0, 0.923879532511287, 0.382683432365090, 0.0)
+    dvl_to_sub = v(0,1,0,0)%v(0.0, 0.923879532511287, 0.382683432365090, 0.0)
     #dvl_to_sub = vector.axisangle_to_quat(v(1,0,0),math.pi)
     dvl_pos = imu_pos # v(1, 0, 0)
     return dvl_to_sub.conj().quat_rot(body.vectorFromWorld(body.getRelPointVel(dvl_pos)))
 def get_dvl_range():
     g = ode.GeomRay(None, 1e3)
-    g.set(body.getRelPointPos(imu_pos), body.vectorToWorld(v(0, 0, 1)))
+    g.set(body.getRelPointPos(imu_pos), body.vectorToWorld(v(0, 0, -1)))
     print 1
     for contact in ode.collide(g, space):
         pos, normal, depth, geom1, geom2 = contact.getContactGeomParams()
@@ -255,11 +251,6 @@ class Sub(object):
         self.vectors = []
     
     def draw(self):
-        glBegin(GL_LINES)
-        glColor3f(1, 1, 1)
-        glVertex3f(*self.body.getPosition())
-        glVertex3f(*self.body.getPosition() + 20*v(0.241510, -0.022442, 0.405728))
-        glEnd()
         with threed.GLMatrix:
             threed.rotate_to_body(self.body)
             
@@ -273,15 +264,15 @@ class Sub(object):
                 glColor3f(1, 0, 0)
                 gluSphere(q, 0.5, 40, 20)
             with threed.GLMatrix:
-                glTranslate(+.4, +.2, -.3)
+                glTranslate(+.4, +.2, .3)
                 glColor3f(0, 0, 0)
                 gluSphere(q, 0.1, 40, 20)
             with threed.GLMatrix:
-                glTranslate(+.4, -.2, -.3)
+                glTranslate(+.4, -.2, .3)
                 glColor3f(0, 0, 0)
                 gluSphere(q, 0.1, 40, 20)
             with threed.GLMatrix:
-                glTranslate(0, 0, -.5)
+                glTranslate(0, 0, .5)
                 if self.is_killed_func():
                     glColor3f(1, 0, 0)
                 else:
@@ -300,7 +291,7 @@ class Sub(object):
 
 class Buoys(object):
     def __init__(self, pos):
-        self.buoys = [(pos + [j-1,1-j,0] + [random.gauss(0, .3) for i in xrange(3)], color) for j, color in enumerate([(1, 0, 0), (0, 1, 0), (1, 1, 0)])]
+        self.buoys = [(pos + [1-j,j-1,0] + [random.gauss(0, .3) for i in xrange(3)], color) for j, color in enumerate([(1, 0, 0), (0, 1, 0), (1, 1, 0)])]
     
     def draw(self):
         q = gluNewQuadric()
@@ -315,25 +306,25 @@ w.objs.append(threed.MeshDrawer(pool_mesh, (.4, .4, .4)))
 sub_model = Sub(body, lambda: killed)
 w.objs.append(sub_model)
 #i.objs.append(threed.VectorField(get_water_vel))
-w.objs.append(Buoys(v(3, 3, 2)))
+w.objs.append(Buoys(v(3, 3, -2)))
 
-shooter_mesh = threed.mesh_from_obj(open(roslib.packages.resource_file('auvsi_robosub', 'models', '2012_uf_mock/shooter.obj'))).rotate(v(0, 1, 1, 0)).translate((0, -3, 2))
+shooter_mesh = threed.mesh_from_obj(open(roslib.packages.resource_file('auvsi_robosub', 'models', '2012_uf_mock/shooter.obj'))).translate((-3, 0, -2))
 w.objs.append(threed.MeshDrawer(shooter_mesh, (1, 0, 0)))
 
-path_mesh = threed.mesh_from_obj(open(roslib.packages.resource_file('auvsi_robosub', 'models', '2012_uf_mock/path.obj'))).rotate(v(0, 1, 1, 0)).translate((0, 0, 3.9))
+path_mesh = threed.mesh_from_obj(open(roslib.packages.resource_file('auvsi_robosub', 'models', '2012_uf_mock/path.obj'))).translate((0, 0, -3.9))
 w.objs.append(threed.MeshDrawer(path_mesh, (1, .5, 0)))
 
 
 i = threed.Interface()
-i.init(w, V(body.getPosition()) + (-2,0,-2))
+i.init(w, V(body.getPosition()) + (0,-2,2+random.gauss(0, 1)))
 
 def set_forward_view():
-    glTranslate(-.4, -.2, +.3)
+    glTranslate(-.4, .2, -.3)
     threed.rotate_to_body(body, inv=True)
 c1 = threed.Camera(w, 'forward_camera', set_forward_view, body)
 
 def set_down_view():
-    glRotate(90, 0, 1, 0)
+    glRotate(90, 0, -1, 0)
     threed.rotate_to_body(body, inv=True)
 c2 = threed.Camera(w, 'down_camera', set_down_view, body)
 

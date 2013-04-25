@@ -30,9 +30,10 @@ visionclient.wait_for_server()
 client = actionlib.SimpleActionClient('moveto', MoveToAction)
 print 'Waiting for server...'
 client.wait_for_server()
+print 'ok'
 
 current = orientation_helpers.PoseEditor.from_Odometry_topic().depth(2)
-client.send_goal_and_wait(current)
+#client.send_goal_and_wait(current)
 
 went = False
 ignore = False
@@ -71,6 +72,8 @@ goal.prior_distribution.pose.orientation.w = 1
 goal.prior_distribution.covariance[0+6*0] = 1
 goal.prior_distribution.covariance[1+6*1] = 1
 goal.prior_distribution.covariance[2+6*2] = 1
+goal.min_dist = 2.6
+goal.max_dist = 6
 visionclient.send_goal(goal, feedback_cb=got_feedback)
 
 rospy.spin()

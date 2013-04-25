@@ -36,8 +36,6 @@ print 'ok'
 current = orientation_helpers.PoseEditor.from_Odometry_topic().depth(1)
 client.send_goal(current)
 
-wait_until = time.time() + 10
-
 went = False
 ignore = False
 
@@ -46,8 +44,10 @@ def got_feedback(fb):
     obj_pose = orientation_helpers.PoseEditor.from_Pose(goal.header.frame_id, fb.pose)
     if ignore: return
     print fb
-    if (fb.P_within_10cm > .05 or went) and time.time() > wait_until:
+    if (fb.P_within_10cm > .75 or went):
         # approach mode
+        if not went:
+            went = time.time()
         
         current = current.set_position(obj_pose.position).depth(1)
         current = current.set_orientation(obj_pose.orientation)
@@ -55,7 +55,7 @@ def got_feedback(fb):
         #current = current.set_position(obj_pose.position + obj_pose.forward_vector*2)
         #current = current.look_at(obj_pose.position)
         client.send_goal(current)
-        if time.time() > wait_until + 10:
+        if time.time() > went + 10:
             client.send_goal_and_wait(current)
             visionclient.cancel_goal()
             #client.send_goal_and_wait(current.forward(3))
@@ -78,6 +78,8 @@ goal.prior_distribution.covariance[0+6*0] = 1
 goal.prior_distribution.covariance[1+6*1] = 1
 goal.prior_distribution.covariance[2+6*2] = 1
 goal.prior_distribution.covariance[5+6*5] = 100
+goal.min_dist = 3
+goal.max_dist = 5
 visionclient.send_goal(goal, feedback_cb=got_feedback)
 
 rospy.spin()

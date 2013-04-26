@@ -20,11 +20,17 @@
   <depend package="rise_6dof"/>
   <depend package="thruster_mapper"/>
   <depend package="object_finder"/>
+  <depend package="odometry_utils"/>
+  <depend package="imagenex_852"/>
+  <depend package="uf_common"/>
 
   <depend package="merge_driver"/>
   <depend package="thruster_driver"/>
+  <depend package="leaksensor_driver"/>
 
-  <depend package="uf_common"/>
+  <depend package="camera1394"/>
+  <depend package="image_proc"/>
+  <depend package="pgr_camera"/>
 </package>
 
 

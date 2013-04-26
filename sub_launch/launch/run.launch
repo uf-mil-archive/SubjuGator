@@ -105,7 +105,7 @@
 
   <include file="$(find sub_launch)/launch/leaksensor.launch"/>
 
-  <!-- <include file="$(find sub_launch)/launch/cameras.launch"/> -->
+  <include file="$(find sub_launch)/launch/cameras_pgr.launch"/>
 
   <node pkg="imagenex_852" type="imagenex_852" name="sonar_driver">
     <param name="port_filename" value="/dev/sensors/ftdi_A901KFRE"/>

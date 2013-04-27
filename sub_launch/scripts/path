@@ -45,7 +45,7 @@ def got_feedback(fb):
     global current, went, ignore
     obj_pose = orientation_helpers.PoseEditor.from_Pose(goal.header.frame_id, fb.pose)
     # choose 180 deg rotation that minimizes difference from sub's original orientation
-    obj_pose = min([obj_pose, obj_pose.turn_right_deg(180)],
+    obj_pose = max([obj_pose, obj_pose.turn_right_deg(180)],
         key=lambda p: p.orientation.dot(orig_orientation)**2)
     
     if ignore: return

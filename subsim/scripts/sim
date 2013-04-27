@@ -35,16 +35,20 @@ def send_imu_update(**update):
 
 clip = lambda x, (low, high): min(max(x, low), high)
 
-def buoyancy_force(depth, r, max_force):
+def real_buoyancy_force(depth, r):
     inf = 1e1000
     assert math.isinf(inf)
     sphere_antiderivative = lambda h: -h**3*math.pi/3 + h*math.pi*r**2
     sphere_true_antiderivative = lambda h: sphere_antiderivative(clip(h, (-r, r)))
     vol_submerged = sphere_true_antiderivative(depth) - sphere_true_antiderivative(-inf)
-    return vol_submerged/(4/3*math.pi*r**3) * max_force
+    return -1000 * G * vol_submerged
+def buoyancy_force(depth, r, max_force):
+    return real_buoyancy_force(depth, r)/(1000 * 9.8 * 4/3*math.pi*r**3) * max_force
+    
 
 world, world_time = ode.World(), reactor.seconds()
-world.setGravity((0, 0, -9.81))
+G = v(0, 0, -9.81)
+world.setGravity(G)
 
 body = ode.Body(world)
 M = ode.Mass()
@@ -55,8 +59,17 @@ body.setQuaternion(vector.axisangle_to_quat(v(0, 0, 1), math.pi/2+math.pi-math.p
 
 space = ode.HashSpace()
 
-body_geom = ode.GeomBox(space, (1.27, .46, .46))
-body_geom.setBody(body)
+body_geoms = []
+body_geoms.append(ode.GeomSphere(None, .5))
+body_geoms[-1].setPosition((.2, 0, 0))
+body_geoms.append(ode.GeomTransform(space))
+body_geoms[-1].setGeom(body_geoms[-2])
+body_geoms[-1].setBody(body)
+body_geoms.append(ode.GeomSphere(None, .5))
+body_geoms[-1].setPosition((-.2, 0, 0))
+body_geoms.append(ode.GeomTransform(space))
+body_geoms[-1].setGeom(body_geoms[-2])
+body_geoms[-1].setBody(body)
 
 pool_mesh = threed.mesh_from_obj(open(roslib.packages.resource_file('subsim', 'scene', 'pool6.obj')))
 pool_geom = ode.GeomTriMesh(pool_mesh.ode_trimeshdata, space)
@@ -76,13 +89,17 @@ odom_pub = rospy.Publisher('/sim_odom', Odometry)
 def world_tick():
     global world_time
     
+    dt = 1/30
+    
     water_vel = get_water_vel(V(body.getPosition()))
     
-    body.addForceAtRelPos((0, 0, buoyancy_force(-body.getPosition()[2], 0.2, 47*9.81+2)), (0, 0, .01))
+    body.addForceAtRelPos(buoyancy_force(-body.getPosition()[2], 0.2, 47*9.81+2), (0, 0, .01))
     body.addForce(-(40 if body.getPosition()[2] <= 0 else 10) * (V(body.getLinearVel())-water_vel))
     #body.addForce([random.gauss(0, 1) for i in xrange(3)])
     #body.addTorque([random.gauss(0, 10) for i in xrange(3)])
     body.addTorque(-(10 if body.getPosition()[2] <= 0 else 5) * V(body.getAngularVel()))
+    
+    w.step(dt)
     
     #print thrusters
     
@@ -165,7 +182,6 @@ def world_tick():
             j = ode.ContactJoint(world, contactgroup, contact)
             j.attach(geom1.getBody(), geom2.getBody())
     
-    dt = 1/30
     world.step(dt)
     world_time += dt
     
@@ -231,7 +247,7 @@ def get_dvl_range():
     for contact in ode.collide(g, space):
         pos, normal, depth, geom1, geom2 = contact.getContactGeomParams()
         assert geom1 is g, geom1
-        if geom2 is body_geom:
+        if geom2 in body_geoms:
             continue
         return (V(pos) - V(body.getRelPointPos(imu_pos))).mag()
     return 0
@@ -289,24 +305,55 @@ class Sub(object):
             glEnd()
             glEnable(GL_DEPTH_TEST)
 
-class Buoys(object):
-    def __init__(self, pos):
-        self.buoys = [(pos + [1-j,j-1,0] + [random.gauss(0, .3) for i in xrange(3)], color) for j, color in enumerate([(1, 0, 0), (0, 1, 0), (1, 1, 0)])]
+class Buoy(object):
+    def __init__(self, pos, color, radius=4*.0254, mass=2):
+        self.body = ode.Body(world)
+        self.body.setPosition(pos)
+        m = ode.Mass()
+        m.setSphere(mass/(4/3*math.pi*radius**3), radius) # setSphereTotal is broken
+        self.body.setMass(m)
+        
+        self.geom = ode.GeomSphere(space, radius)
+        self.geom.setBody(self.body)
+        
+        self.color = color
+        self.radius = radius
+        
+        self.anchor_point = v(pos[0], pos[1], -4)
+        self.joint = ode.BallJoint(world)
+        self.joint.attach(self.body, None)
+        self.joint.setAnchor(self.anchor_point)
+    
+    def step(self, dt):
+        self.body.addForce(real_buoyancy_force(-self.pos[2], self.radius))
+        self.body.addForce(-2*V(self.body.getLinearVel()))
+    
+    @property
+    def pos(self):
+        return self.body.getPosition()
     
     def draw(self):
         q = gluNewQuadric()
-        for pos, color in self.buoys:
-            with threed.GLMatrix:
-                glTranslate(*pos)
-                glColor3f(*color)
-                gluSphere(q, 4*.0254, 30, 15)
+        with threed.GLMatrix:
+            glTranslate(*self.pos)
+            glColor3f(*self.color)
+            gluSphere(q, self.radius, 30, 15)
+        glColor3f(0, 0, 0)
+        glBegin(GL_LINES)
+        glVertex3f(*self.pos)
+        glVertex3f(*self.anchor_point)
+        glEnd()
+
+def Buoys(center):
+    for j, color in enumerate([(1, 0, 0), (0, 1, 0), (1, 1, 0)]):
+        w.objs.append(Buoy(center + [1-j,j-1,0] + [random.gauss(0, .3) for i in xrange(3)], color))
 
 w = threed.World()
 w.objs.append(threed.MeshDrawer(pool_mesh, (.4, .4, .4)))
 sub_model = Sub(body, lambda: killed)
 w.objs.append(sub_model)
 #i.objs.append(threed.VectorField(get_water_vel))
-w.objs.append(Buoys(v(3, 3, -2)))
+Buoys(v(3, 3, -2))
 
 shooter_mesh = threed.mesh_from_obj(open(roslib.packages.resource_file('auvsi_robosub', 'models', '2012_uf_mock/shooter.obj'))).translate((-3, 0, -2))
 w.objs.append(threed.MeshDrawer(shooter_mesh, (1, 0, 0)))

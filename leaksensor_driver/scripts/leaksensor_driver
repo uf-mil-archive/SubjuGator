@@ -40,17 +40,20 @@ def got_packet(source, rssi, data):
     
     water = bool(flags & 1)
     
+    name = addresses.get(source, '<unknown %s>' % (source,))
     report_publisher.publish(Report(
         header=Header(
             stamp=rospy.Time.now(),
         ),
-        id=addresses.get(source, '<unknown %s>' % (source,)),
+        id=name,
         temperature=temperature,
         pressure=pressure,
         water=water,
     ))
     
     print 'temp: %s pres: %s water: %s' % (temperature, pressure, water)
+    if water:
+        rospy.logerr('water detected at %s leaksensor!' % (name,))
     now = time.time()
     print 'time since last: %s' % (now - last)
     last = now

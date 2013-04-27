@@ -33,8 +33,10 @@ print 'Waiting for server...'
 client.wait_for_server()
 print 'ok'
 
-current = orientation_helpers.PoseEditor.from_Odometry_topic().depth(1)
+current = orientation_helpers.PoseEditor.from_Odometry_topic().zero_roll_and_pitch().depth(1)
 client.send_goal(current)
+
+orig_orientation = current.orientation
 
 went = False
 ignore = False
@@ -42,6 +44,10 @@ ignore = False
 def got_feedback(fb):
     global current, went, ignore
     obj_pose = orientation_helpers.PoseEditor.from_Pose(goal.header.frame_id, fb.pose)
+    # choose 180 deg rotation that minimizes difference from sub's original orientation
+    obj_pose = min([obj_pose, obj_pose.turn_right_deg(180)],
+        key=lambda p: p.orientation.dot(orig_orientation)**2)
+    
     if ignore: return
     print fb
     if (fb.P_within_10cm > .75 or went):
@@ -80,6 +86,7 @@ goal.prior_distribution.covariance[2+6*2] = 1
 goal.prior_distribution.covariance[5+6*5] = 100
 goal.min_dist = 3
 goal.max_dist = 5
+goal.is_180z_symmetric = True
 visionclient.send_goal(goal, feedback_cb=got_feedback)
 
 rospy.spin()

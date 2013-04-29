@@ -28,7 +28,7 @@ client.wait_for_server()
 go = client.send_goal_and_wait
 
 print 'Waiting for current position...'
-p = orientation_helpers.PoseEditor.from_Odometry_topic()
+p = orientation_helpers.PoseEditor.from_PoseTwistStamped_topic('/trajectory')
 
 args = [eval(x, orientation_helpers.__dict__) for x in sys.argv[2:]] # lets you do "set_orientation NORTH"
 if len(args) >= 2:

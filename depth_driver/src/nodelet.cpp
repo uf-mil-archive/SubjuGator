@@ -23,9 +23,11 @@ namespace depth_driver {
             }
             
             virtual void onInit() {
-                std::string port = "/dev/ttyS1"; getPrivateNodeHandle().getParam("port", port);
+                std::string port; ROS_ASSERT_MSG(getPrivateNodeHandle().getParam("port", port),
+                    "\"port\" param missing");
                 int baudrate = 115200; getPrivateNodeHandle().getParam("baudrate", baudrate);
-                frame_id = "/map"; getPrivateNodeHandle().getParam("frame_id", frame_id);
+                ROS_ASSERT_MSG(getPrivateNodeHandle().getParam("frame_id", frame_id),
+                    "\"frame_id\" param missing");
                 
                 pub = getNodeHandle().advertise<uf_common::Float64Stamped>("depth", 10);
                 

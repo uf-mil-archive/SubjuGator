@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import os
-import signal
 import sys
 import time
 
@@ -20,7 +19,7 @@ if len(sys.argv) < 2:
     print 'send_waypoint yaw_left_deg 30'
     sys.exit()
 
-rospy.init_node('send_waypoint')
+rospy.init_node('send_waypoint', disable_signals=True)
 
 print 'Waiting for server...'
 client = actionlib.SimpleActionClient('moveto', MoveToAction)
@@ -37,13 +36,17 @@ p = getattr(p, sys.argv[1])(*args)
 
 print 'Sending goal...'
 def done(goal_status, result):
-    print 'Reached goal, killing self.'
-    os.kill(os.getpid(), signal.SIGKILL) # gah, i hate threads. this is the only way i could get this to terminate
+    print 'Reached goal.'
+    os._exit(0)
 client.send_goal(p, done_cb=done)
 
-print 'Press Enter to cancel...'
-raw_input()
-
-print 'Cancelling...'
-client.cancel_goal()
-print 'Cancelled, exiting.'
+print 'Press Ctrl-C to cancel...'
+try:
+    while not rospy.is_shutdown():
+        time.sleep(.1)
+except KeyboardInterrupt:
+    print 'Cancelling...'
+    client.cancel_goal()
+    print 'Cancelled, exiting.'
+    rospy.signal_shutdown('cancelled goal')
+    sys.exit(1)

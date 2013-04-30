@@ -39,7 +39,7 @@ client.send_goal_and_wait(current)
 went = False
 ignore = False
 
-wait_until = time.time() + 20
+wait_until = time.time() #+ 20
 
 def got_feedback(fb):
     print wait_until - time.time()
@@ -47,14 +47,24 @@ def got_feedback(fb):
     obj_pose = orientation_helpers.PoseEditor.from_Pose(goal.header.frame_id, fb.pose)
     if ignore: return
     print fb
-    if (fb.P_within_10cm > .05 or went) and time.time() > wait_until:
+    if (fb.P_within_10cm > .95 or went) and time.time() > wait_until:
         # approach mode
         
-        marker_pose = obj_pose.relative(xyz_array(fb.markers[0].position))
+        marker_pose = obj_pose.relative(xyz_array(fb.markers[1].position))
         
-        current = current.set_position(marker_pose.relative([2, 0, 0]).position)
-        current = current.look_at_without_pitching(marker_pose.position)
-        client.send_goal(current)
+        torpedo_pos = numpy.array([.8, .06, -.35]) # .16 for [2] before
+        current = current.set_position(marker_pose.position).relative(-torpedo_pos)
+        client.send_goal(current.as_MoveToGoal(speed=.2))
+
+        
+        odom = orientation_helpers.PoseEditor.from_Odometry_topic()
+        print numpy.linalg.norm(odom.position - marker_pose.position)
+        if numpy.linalg.norm(odom.position - marker_pose.position) < 3:
+            # don't make corrections when near buoy
+            ignore = True
+            visionclient.cancel_goal()
+            client.send_goal_and_wait(current.as_MoveToGoal(speed=.5))
+            rospy.signal_shutdown('reached buoy')
         went = True
     else:
         # search mode
@@ -71,9 +81,10 @@ goal.prior_distribution.pose.orientation.w = 1
 goal.prior_distribution.covariance[0+6*0] = 3
 goal.prior_distribution.covariance[1+6*1] = 3
 goal.prior_distribution.covariance[2+6*2] = 1
-goal.prior_distribution.covariance[5+6*5] = 100*0
+goal.prior_distribution.covariance[5+6*5] = 100*1
 goal.min_dist = 1
-goal.max_dist = 6
+goal.max_dist = 5
+goal.allow_pitching = True
 visionclient.send_goal(goal, feedback_cb=got_feedback)
 
 rospy.spin()

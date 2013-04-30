@@ -53,7 +53,7 @@ def got_feedback(fb):
         # approach mode
         buoy_pos = xyz_array(fb.pose.position)
         
-        current = current.set_position(buoy_pos).relative(-bump_pos)
+        current = current.set_position(buoy_pos).relative(-bump_pos*.7)
         client.send_goal(current.as_MoveToGoal(speed=.25))
         went = True
         

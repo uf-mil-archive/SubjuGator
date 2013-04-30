@@ -2,7 +2,7 @@
 
   <node pkg="pgr_camera" type="pgr_camera_node" name="forward_camera_driver">
     <param name="serial_number" value="10282860"/>
-    <param name="frame_id" value="forward_camera"/>
+    <param name="frame_id" value="/forward_camera"/>
     <remap from="camera" to="forward_camera"/>
   </node>
   <node pkg="tf" type="static_transform_publisher" name="forward_camera_tf"
@@ -12,7 +12,7 @@
 
   <node pkg="pgr_camera" type="pgr_camera_node" name="down_camera_driver">
     <param name="serial_number" value="10282863"/>
-    <param name="frame_id" value="down_camera"/>
+    <param name="frame_id" value="/down_camera"/>
     <remap from="camera" to="down_camera"/>
   </node>
   <node pkg="tf" type="static_transform_publisher" name="down_camera_tf"

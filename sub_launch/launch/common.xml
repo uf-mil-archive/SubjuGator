@@ -12,10 +12,10 @@
     <param name="frame_id" type="string" value="/imu"/>
     <rosparam>
 scale:
-- [1.0090313699649107, -0.0021376258402837195, -0.01989669824260581]
-- [-0.002137625840283714, 0.9953775712057529, 0.009338261373718465]
-- [-0.019896698242605794, 0.009338261373718449, 0.9961354796161445]
-shift: [1.8488423009048237e-05, -3.7694995432335065e-06, 6.186624026780041e-05]
+- [1.0221636908104357, 0.0007715206045191479, -0.019181332949324687]
+- [0.000771520604519128, 0.982450139720275, -0.006052397357236245]
+- [-0.019181332949324666, -0.006052397357236086, 0.9961905572822582]
+shift: [1.902755821257582e-05, -4.588271048558335e-06, 5.889690197554606e-05]
     </rosparam>
   </node>
   <node pkg="tf" type="static_transform_publisher" name="imu_broadcaster"
@@ -88,12 +88,12 @@ shift: [1.8488423009048237e-05, -3.7694995432335065e-06, 6.186624026780041e-05]
   </node>
   
   
-  <node pkg="object_finder" type="object_finder" name="object_finder">
+  <node pkg="object_finder" type="object_finder" name="object_finder" respawn="true">
     <remap from="find" to="find_forward"/>
     <remap from="camera/camera_info" to="forward_camera/camera_info"/>
     <remap from="camera/image_rect_color" to="forward_camera/image_rect_color"/>
   </node>
-  <node pkg="object_finder" type="object_finder" name="object_finder2">
+  <node pkg="object_finder" type="object_finder" name="object_finder2" respawn="true">
     <remap from="find" to="find_down"/>
     <remap from="camera/camera_info" to="down_camera/camera_info"/>
     <remap from="camera/image_rect_color" to="down_camera/image_rect_color"/>

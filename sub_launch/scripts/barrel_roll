@@ -24,7 +24,7 @@ p = PoseEditor.from_Odometry_topic()
 go(p)
 
 print 'Sending goal...'
-client.send_goal(p.as_PoseTwistStamped(
+client.send_goal(p.as_MoveToGoal(
     angular=[1000 if random.randrange(2) else -1000, 0, 0]))
 
 print 'Waiting until rolled 90 degrees to send final pose...'

@@ -1,0 +1,6 @@
+# put
+#     source `rospack find sub_launch`/scripts/bashrc
+# in your .bashrc
+
+alias k="rosrun kill_handling kill"
+alias w="rosrun sub_launch send_waypoint"

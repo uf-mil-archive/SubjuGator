@@ -151,7 +151,7 @@ class ThrusterProtocol(EmbeddedProtocol):
             #print self.thruster_id, data.encode('hex')
             self.thrusters[self.thruster_id] = x
         else:
-            print 'thruster', self.thruster_id, typecode, data.encode('hex')
+            pass#print 'thruster', self.thruster_id, typecode, data.encode('hex')
     
     def connectionLost(self, reason):
         self.update_task.stop()
@@ -168,7 +168,7 @@ class IMUProtocol(protocol.Protocol):
         self.listener_set.add(self)
     
     def dataReceived(self, data):
-        print 'imu', data.encode('hex')
+        pass#print 'imu', data.encode('hex')
     
     def sendUpdate(self, flags, supply_voltage, ang_rate, acceleration, mag_field, temperature, timestamp):
         #print "M", mag_field
@@ -206,7 +206,7 @@ class DepthProtocol(EmbeddedProtocol):
         if typecode == 100:
             assert not data, data.encode('hex')
         else:
-            print 'depth', typecode, data.encode('hex')
+            pass#print 'depth', typecode, data.encode('hex')
     
     def sendUpdate(self, tickcount, flags, depth, thermister_temp, humidity, humidity_sensor_temp):
         depth = depth/1.45 + 10.62
@@ -264,7 +264,7 @@ class DVLProtocol(protocol.Protocol):
         self.loop.start(1/5)
     
     def dataReceived(self, data):
-        print 'dvl', repr(data)
+        pass#print 'dvl', repr(data)
     
     def sendHighResVel(self, bottom_vel, bottom_dist, water_vel, water_dist, speed_of_sound, height):
         if not all(len(x) == 4 for x in [bottom_vel, bottom_dist, water_vel, water_dist]):
@@ -321,7 +321,7 @@ class MergeProtocol(EmbeddedProtocol):
         self.loop.start(1/5)
     
     def packetReceived(self, typecode, data):
-        print "merge", typecode, data.encode('hex')
+        pass#print "merge", typecode, data.encode('hex')
     
     def sendUpdate(self, tickcount, flags, current16, voltage16, current32, voltage32):
         data = struct.pack('<HBHHHH', tickcount, flags,

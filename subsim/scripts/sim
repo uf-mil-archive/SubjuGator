@@ -361,6 +361,9 @@ w.objs.append(threed.MeshDrawer(shooter_mesh, (1, 0, 0)))
 path_mesh = threed.mesh_from_obj(open(roslib.packages.resource_file('auvsi_robosub', 'models', '2012_uf_mock/path.obj'))).translate((0, 0, -3.9))
 w.objs.append(threed.MeshDrawer(path_mesh, (1, .5, 0)))
 
+path_mesh = threed.mesh_from_obj(open(roslib.packages.resource_file('auvsi_robosub', 'models', '2012_uf_mock/path.obj'))).rotate(vector.axisangle_to_quat(v(0, 0, 1), -.8)).translate((0, .6, -3.9))
+w.objs.append(threed.MeshDrawer(path_mesh, (1, .5, 0)))
+
 
 i = threed.Interface()
 i.init(w, V(body.getPosition()) + (0,-2,2+random.gauss(0, 1)))

@@ -20,9 +20,9 @@ client.wait_for_server()
 go = client.send_goal_and_wait
 
 print 'Waiting for current position...'
-p = orientation_helpers.PoseEditor.from_Odometry_topic()
+p = orientation_helpers.PoseEditor.from_PoseTwistStamped_topic('/trajectory')
 
-p = p.depth(.75).zero_roll_and_pitch(); go(p)
+p = p.depth(.75); go(p)
 
 print 'Starting...'
 if args.square:

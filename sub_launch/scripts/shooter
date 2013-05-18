@@ -33,7 +33,7 @@ print 'Waiting for server...'
 client.wait_for_server()
 print 'ok'
 
-current = orientation_helpers.PoseEditor.from_Odometry_topic().depth(2)
+current = orientation_helpers.PoseEditor.from_PoseTwistStamped_topic('/trajectory').depth(2)
 client.send_goal_and_wait(current)
 
 went = False
@@ -57,7 +57,7 @@ def got_feedback(fb):
         client.send_goal(current.as_MoveToGoal(speed=.2))
 
         
-        odom = orientation_helpers.PoseEditor.from_Odometry_topic()
+        odom = orientation_helpers.PoseEditor.from_PoseTwistStamped_topic('/trajectory')
         print numpy.linalg.norm(odom.position - marker_pose.position)
         if numpy.linalg.norm(odom.position - marker_pose.position) < 3:
             # don't make corrections when near buoy

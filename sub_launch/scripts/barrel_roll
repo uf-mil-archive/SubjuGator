@@ -19,7 +19,7 @@ client.wait_for_server()
 go = client.send_goal_and_wait
 
 print 'Waiting for current position...'
-p = PoseEditor.from_Odometry_topic()
+p = PoseEditor.from_PoseTwistStamped_topic('/trajectory')
 
 go(p)
 

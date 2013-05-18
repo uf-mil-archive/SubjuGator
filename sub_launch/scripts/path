@@ -33,7 +33,7 @@ print 'Waiting for server...'
 client.wait_for_server()
 print 'ok'
 
-current = orientation_helpers.PoseEditor.from_Odometry_topic().zero_roll_and_pitch().depth(1)
+current = orientation_helpers.PoseEditor.from_PoseTwistStamped_topic('/trajectory').depth(1)
 client.send_goal(current)
 
 orig_orientation = current.orientation

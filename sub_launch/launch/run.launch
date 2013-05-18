@@ -113,7 +113,7 @@
   </node>
   <!-- sonar is roughly at 22" 3" 3" -->
   <node pkg="tf" type="static_transform_publisher" name="sonar_tf"
-    args="0.559 0.076 0.076  0 0 -.7071 .7071  base_link sonar 100" />
+    args="0.559 0.076 0.076  0 0 0 1  base_link sonar 100" />
 
   <node pkg="rosbag" type="record" name="swim_recorder" args="-a -x '.*camera.*' -o /tmp/swim" respawn="true"/>
 

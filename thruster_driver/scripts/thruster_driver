@@ -106,12 +106,11 @@ def do_magnetic_calibration(req):
     mag_frame_id = wait_for_mag()[1]
     rospy.set_param('~mag_frame_id', mag_frame_id)
     
-    ORDER = 1
+    ORDER = 3
     posfit = numpy.polyfit(*zip(*[pair for pair in zip(currents, mags) if pair[0] > 0]) + [ORDER])
     negfit = numpy.polyfit(*zip(*[pair for pair in zip(currents, mags) if pair[0] < 0]) + [ORDER])
-    mid = (posfit[-1] + negfit[-1])/2
-    posfit[-1] -= mid
-    negfit[-1] -= mid
+    posfit[-1] = 0
+    negfit[-1] = 0
     
     global mag_coeffs
     mag_coeffs = [[map(float, row) for row in negfit], [map(float, row) for row in posfit]]

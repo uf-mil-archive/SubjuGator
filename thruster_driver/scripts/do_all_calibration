@@ -1,5 +1,6 @@
+#!/bin/bash
 for A in `rosservice list | grep do_magnetic_calibration` ; do
    echo Calling $A...
-   rosservice call $A
+   rosservice call $A || exit
    echo     ...done.
 done

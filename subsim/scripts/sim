@@ -121,7 +121,7 @@ def world_tick():
         sub_model.vectors.append((relpos, relpos - .02*reldir*thrusters[i]*(fwdforce if thrusters[i] > 0 else revforce)))
         
         # calculate generated field assuming thrusters are magnetic dipoles
-        I = thrusters[i] * 100
+        I = thrusters[i] * 1000
         m = I * reldir.unit()*math.pi*.04**2 # assume thrusters have a 4cm radius
         r = imu_pos - relpos
         mu0 = 4*math.pi*1e-7

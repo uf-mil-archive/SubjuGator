@@ -292,7 +292,7 @@ class DVLProtocol(protocol.Protocol):
         beams = [(-.5, 0, -.866), (.5, 0, -.866), (0, .5, -.866), (0, -.5, -.866)]
         vel = self.get_vel_func()
         self.sendHighResVel(
-            bottom_vel=[vel*beam for beam in beams],
+            bottom_vel=[-vel*beam for beam in beams],
             bottom_dist=[0, 0, 0, 0],
             water_vel=[0, 0, 0, 0],
             water_dist=[0, 0, 0, 0],

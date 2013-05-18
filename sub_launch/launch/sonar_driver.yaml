@@ -1,0 +1,10 @@
+data_points: 500
+frequency_kHz: 675
+pulse_length_usec: 255
+range_meters: 10
+reverse: false
+sector_width_degrees: 360
+start_gain_dB: 0
+step_size_degrees: 3
+switch_delay_msec: 0
+train_angle_degrees: 0

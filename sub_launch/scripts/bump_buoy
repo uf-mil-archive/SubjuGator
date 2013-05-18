@@ -17,7 +17,7 @@ from tf import transformations
 from uf_common import orientation_helpers
 from uf_common.msg import MoveToAction, MoveToGoal, PoseTwist
 from uf_common.orientation_helpers import xyz_array, xyzw_array
-from object_finder.msg import FindAction, FindGoal
+from object_finder.msg import FindAction, FindGoal, TargetDesc
 
 
 rospy.init_node('bump_buoy')
@@ -45,11 +45,12 @@ print bump_pos
 went = False
 ignore = False
 
-def got_feedback(fb):
+def got_feedback(fb2):
+    fb = fb2.targetreses[0]
     if ignore: return
-    print fb
+    print fb2
     global current, went, ignore
-    if fb.P_within_10cm > .9 or went:
+    if fb2.P_within_10cm > .9 or went:
         # approach mode
         buoy_pos = xyz_array(fb.pose.position)
         
@@ -72,17 +73,20 @@ def got_feedback(fb):
 
 guess_pos = current.position + current.forward_vector * 4
 
+target = TargetDesc()
+target.type = TargetDesc.TYPE_SPHERE
+target.sphere_radius = 4*.0254 # 4 in
+target.prior_distribution.pose.position = Point(*guess_pos)
+target.prior_distribution.pose.orientation.w = 1
+target.prior_distribution.covariance[0+6*0] = 1
+target.prior_distribution.covariance[1+6*1] = 1
+target.prior_distribution.covariance[2+6*2] = 1
+target.min_dist = 2.6
+target.max_dist = 6
+
 goal = FindGoal()
 goal.header.frame_id = current.header.frame_id
-goal.type = goal.TYPE_SPHERE
-goal.sphere_radius = 4*.0254 # 4 in
-goal.prior_distribution.pose.position = Point(*guess_pos)
-goal.prior_distribution.pose.orientation.w = 1
-goal.prior_distribution.covariance[0+6*0] = 1
-goal.prior_distribution.covariance[1+6*1] = 1
-goal.prior_distribution.covariance[2+6*2] = 1
-goal.min_dist = 2.6
-goal.max_dist = 6
+goal.targetdescs = [target]
 visionclient.send_goal(goal, feedback_cb=got_feedback)
 
 client.send_goal(current.forward(10).as_MoveToGoal(speed=.1))

@@ -17,7 +17,7 @@ from tf import transformations
 from uf_common import orientation_helpers
 from uf_common.msg import MoveToAction, MoveToGoal, PoseTwist
 from uf_common.orientation_helpers import xyz_array, xyzw_array
-from object_finder.msg import FindAction, FindGoal
+from object_finder.msg import FindAction, FindGoal, TargetDesc
 
 
 rospy.init_node('shooter')
@@ -41,13 +41,14 @@ ignore = False
 
 wait_until = time.time() #+ 20
 
-def got_feedback(fb):
+def got_feedback(fb2):
+    fb = fb2.targetreses[0]
     print wait_until - time.time()
     global current, went, ignore
     obj_pose = orientation_helpers.PoseEditor.from_Pose(goal.header.frame_id, fb.pose)
     if ignore: return
-    print fb
-    if (fb.P_within_10cm > .95 or went) and time.time() > wait_until:
+    print fb2
+    if (fb2.P_within_10cm > .95 or went) and time.time() > wait_until:
         # approach mode
         
         marker_pose = obj_pose.relative(xyz_array(fb.markers[1].position))
@@ -72,19 +73,22 @@ def got_feedback(fb):
         #current = current.look_at_without_pitching(obj_pose.position)
         #client.send_goal(current)
 
+target = TargetDesc()
+target.type = TargetDesc.TYPE_OBJECT
+target.object_filename = roslib.packages.resource_file('auvsi_robosub', 'models', '2012_uf_mock/shooter.obj')
+target.prior_distribution.pose.position = Point(*current.position + current.forward_vector * 4)
+target.prior_distribution.pose.orientation.w = 1
+target.prior_distribution.covariance[0+6*0] = 3
+target.prior_distribution.covariance[1+6*1] = 3
+target.prior_distribution.covariance[2+6*2] = 1
+target.prior_distribution.covariance[5+6*5] = 100*1
+target.min_dist = 1
+target.max_dist = 5
+target.allow_pitching = True
+
 goal = FindGoal()
 goal.header.frame_id = current.header.frame_id
-goal.type = goal.TYPE_OBJECT
-goal.object_filename = roslib.packages.resource_file('auvsi_robosub', 'models', '2012_uf_mock/shooter.obj')
-goal.prior_distribution.pose.position = Point(*current.position + current.forward_vector * 4)
-goal.prior_distribution.pose.orientation.w = 1
-goal.prior_distribution.covariance[0+6*0] = 3
-goal.prior_distribution.covariance[1+6*1] = 3
-goal.prior_distribution.covariance[2+6*2] = 1
-goal.prior_distribution.covariance[5+6*5] = 100*1
-goal.min_dist = 1
-goal.max_dist = 5
-goal.allow_pitching = True
+goal.targetdescs = [target]
 visionclient.send_goal(goal, feedback_cb=got_feedback)
 
 rospy.spin()

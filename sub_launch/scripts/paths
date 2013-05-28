@@ -27,13 +27,15 @@ visionclient = actionlib.SimpleActionClient('find_down', FindAction)
 print 'Waiting for server...'
 visionclient.wait_for_server()
 
+DEPTH = .5
+GO_RIGHT = False
 
 client = actionlib.SimpleActionClient('moveto', MoveToAction)
 print 'Waiting for server...'
 client.wait_for_server()
 print 'ok'
 
-current = orientation_helpers.PoseEditor.from_PoseTwistStamped_topic('/trajectory').depth(1)
+current = orientation_helpers.PoseEditor.from_PoseTwistStamped_topic('/trajectory').depth(DEPTH)
 client.send_goal(current)
 
 orig_orientation = current.orientation
@@ -52,11 +54,11 @@ def got_feedback(fb):
     obj_pose2 = max([obj_pose2, obj_pose2.turn_right_deg(180)],
         key=lambda p: p.orientation.dot(orig_orientation)**2)
     
-    if orientation_helpers.quat_to_rotvec(transformations.quaternion_multiply(
-            obj_pose1.orientation, transformations.quaternion_inverse(obj_pose2.orientation)))[2] < 0:
-        obj_pose = obj_pose1
-    else:
+    if (orientation_helpers.quat_to_rotvec(transformations.quaternion_multiply(
+            obj_pose1.orientation, transformations.quaternion_inverse(obj_pose2.orientation)))[2] < 0) ^ GO_RIGHT:
         obj_pose = obj_pose2
+    else:
+        obj_pose = obj_pose1
     
     if ignore: return
     print fb
@@ -65,7 +67,7 @@ def got_feedback(fb):
         if not went:
             went = time.time()
         
-        current = current.set_position(obj_pose.position).depth(1)
+        current = current.set_position(obj_pose.position).depth(DEPTH)
         current = current.set_orientation(obj_pose.orientation)
         print current.__dict__
         #current = current.set_position(obj_pose.position + obj_pose.forward_vector*2)

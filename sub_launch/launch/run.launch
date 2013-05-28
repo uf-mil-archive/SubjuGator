@@ -125,6 +125,6 @@
     </rosparam>
   </group>
 
-  <node pkg="rosbag" type="record" name="swim_recorder" args="-a -x '.*camera.*' -o /tmp/swim" respawn="true"/>
+  <node pkg="rosbag" type="record" name="swim_recorder" args="-a -x '.*camera.*' -o /tmp/swim"/>
 
 </launch>

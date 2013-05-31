@@ -37,19 +37,42 @@ client.send_goal_and_wait(current)
 
 
 tf_listener = tf.TransformListener()
+print 'before'
 tf_listener.waitForTransform('/base_link', '/forward_camera', rospy.Time(0), rospy.Duration(1000000))
 bump_pos, _ = tf_listener.lookupTransform('/base_link', '/forward_camera', rospy.Time(0))
+print 'after'
 bump_pos = numpy.array(bump_pos)
 print bump_pos
 
 went = False
 ignore = False
 
+
+import itertools
+rgb_array = lambda x: numpy.array([x.r, x.g, x.b])
+normalized = lambda x: numpy.array(x)/numpy.linalg.norm(numpy.array(x))
+def classify(colors):
+    colordefs = dict(
+        red=(1, 0, 0),
+        green=(0, 1, 0),
+        yellow=(1, 1, 0),
+    )
+    return min(itertools.permutations(colordefs), key=lambda perm:
+        sum(numpy.linalg.norm(normalized(a)-normalized(b))**2
+        for a, b in zip(map(colordefs.__getitem__, perm), map(rgb_array, colors)))
+    )
+
+
 def got_feedback(fb2):
+    print 1
     fb = fb2.targetreses[0]
-    if ignore: return
+    #if ignore: return
     print fb2
     global current, went, ignore
+    colors = classify(targetres.color for targetres in fb2.targetreses)
+    buoys = sorted(zip(fb2.targetreses, colors), key=lambda (x, color): x.pose.position.x)
+    print [(buoy[1], buoy[0].pose.position.x) for buoy in buoys]
+    return
     if fb2.P_within_10cm > .9 or went:
         # approach mode
         buoy_pos = xyz_array(fb.pose.position)
@@ -86,9 +109,9 @@ target.max_dist = 6
 
 goal = FindGoal()
 goal.header.frame_id = current.header.frame_id
-goal.targetdescs = [target]
+goal.targetdescs = [target, target, target]
 visionclient.send_goal(goal, feedback_cb=got_feedback)
 
-client.send_goal(current.forward(10).as_MoveToGoal(speed=.1))
+#client.send_goal(current.forward(10).as_MoveToGoal(speed=.1))
 
 rospy.spin()

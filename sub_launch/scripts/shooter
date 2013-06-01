@@ -89,6 +89,6 @@ target.allow_pitching = True
 goal = FindGoal()
 goal.header.frame_id = current.header.frame_id
 goal.targetdescs = [target]
-visionclient.send_goal(goal, feedback_cb=got_feedback)
+visionclient.send_goal(goal)#, feedback_cb=got_feedback)
 
 rospy.spin()

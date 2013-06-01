@@ -28,7 +28,7 @@ print 'Waiting for server...'
 visionclient.wait_for_server()
 
 DEPTH = .5
-GO_RIGHT = False
+GO_RIGHT = True
 
 client = actionlib.SimpleActionClient('moveto', MoveToAction)
 print 'Waiting for server...'
@@ -104,5 +104,8 @@ goal.header.frame_id = current.header.frame_id
 goal.targetdescs.append(targetdesc)
 goal.targetdescs.append(targetdesc)
 visionclient.send_goal(goal, feedback_cb=got_feedback)
+
+#client.send_goal(current.forward(10).as_MoveToGoal(speed=.1))
+
 
 rospy.spin()

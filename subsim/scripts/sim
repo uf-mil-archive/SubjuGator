@@ -346,7 +346,8 @@ class Buoy(object):
 
 def Buoys(center):
     for j, color in enumerate([(1, 0, 0), (0, 1, 0), (1, 1, 0)]):
-        w.objs.append(Buoy(center + [1-j,j-1,0] + [random.gauss(0, .3) for i in xrange(3)], color))
+        j += 1
+        w.objs.append(Buoy(center + [1-.5*j,.5*j-1,0] + [random.gauss(0, .2) for i in xrange(3)], color))
 
 w = threed.World()
 w.objs.append(threed.MeshDrawer(pool_mesh, (.4, .4, .4)))
@@ -372,7 +373,7 @@ i.init(w, V(body.getPosition()) + (0,-2,2+random.gauss(0, 1)))
 def set_forward_view():
     glTranslate(-.4, .2, -.3)
     threed.rotate_to_body(body, inv=True)
-c1 = threed.Camera(w, 'forward_camera', set_forward_view, body)
+c1 = threed.Camera(w, 'forward_camera', set_forward_view, body, fovy=31)
 
 def set_down_view():
     glRotate(90, 0, -1, 0)

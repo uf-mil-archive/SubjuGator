@@ -1,6 +1,9 @@
 <launch>
   <include file="$(find sub_launch)/launch/common.xml"/>
 
+  <param name="/indirect_kalman_6dof/f_imu" value="30"/>
+  <param name="/indirect_kalman_6dof/f_kalman" value="30"/>
+
   <node pkg="subsim" type="imu_conn" name="imu_conn" respawn="true"/>
   <node pkg="subsim" type="depth_conn" name="depth_conn" respawn="true"/>
   <node pkg="subsim" type="dvl_conn" name="dvl_conn" respawn="true"/>

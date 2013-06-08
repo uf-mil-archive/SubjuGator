@@ -60,6 +60,8 @@ shift: [1.784207689270565e-05, -4.35287404874766e-06, 5.7614231262564255e-05]
 
       g_nav: [0, 0, -9.6898]
       m_nav: [-2244.2e-9, 24151.0e-9, -40572.8e-9]
+
+      verify_timestamps: false
     </rosparam>
     <remap from="odom" to="imu_odom"/>
     <remap from="debug" to="indirect_kalman_6dof/debug"/>

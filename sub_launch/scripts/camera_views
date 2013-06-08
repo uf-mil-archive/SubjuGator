@@ -1,0 +1,5 @@
+#!/bin/sh
+
+rosrun image_view image_view image:=forward_camera/image_rect_color &
+rosrun image_view image_view image:=down_camera/image_rect_color &
+

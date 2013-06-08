@@ -93,7 +93,7 @@ shift: [1.784207689270565e-05, -4.35287404874766e-06, 5.7614231262564255e-05]
     <param name="filename" value="$(find sub_launch)/launch/rise_6dof.yaml"/>
     <rosparam>
       file_basepath: /rise_6dof
-      param_paths: [k, ks, alpha, beta, use_rise]
+      param_paths: [k, ks, alpha, beta, use_rise, accel_feedforward, vel_feedforward]
     </rosparam>
   </group>
 

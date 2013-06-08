@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import division
+
 import argparse
 import math
 
@@ -27,35 +29,65 @@ print 'Waiting for server...'
 visionclient.wait_for_server()
 
 
+
 client = actionlib.SimpleActionClient('moveto', MoveToAction)
 print 'Waiting for server...'
 client.wait_for_server()
 print 'ok'
 
-current = orientation_helpers.PoseEditor.from_PoseTwistStamped_topic('/trajectory').depth(2)
+current = orientation_helpers.PoseEditor.from_PoseTwistStamped_topic('/trajectory').depth(1)
 client.send_goal_and_wait(current)
 
 
 tf_listener = tf.TransformListener()
+print 'before'
 tf_listener.waitForTransform('/base_link', '/forward_camera', rospy.Time(0), rospy.Duration(1000000))
 bump_pos, _ = tf_listener.lookupTransform('/base_link', '/forward_camera', rospy.Time(0))
+print 'after'
 bump_pos = numpy.array(bump_pos)
 print bump_pos
 
 went = False
 ignore = False
 
+
+import itertools
+rgb_array = lambda x: numpy.array([x.r, x.g, x.b])
+normalized = lambda x: numpy.array(x)/numpy.linalg.norm(numpy.array(x))
+def classify(colors):
+    colors = list(colors)
+    colordefs = dict(
+        red=(1, 0, 0),
+        green=(0, 1, 0),
+        yellow=(1, 1, 0),
+    )
+    def err(perm):
+        x = sum(numpy.linalg.norm(normalized(a)-normalized(b))**2
+            for a, b in zip(map(colordefs.__getitem__, perm), colors))
+        print perm, x
+        return x
+    return min(itertools.permutations(colordefs), key=err)
+
+start_time = rospy.Time.now()
+
 def got_feedback(fb2):
+    print 1
     fb = fb2.targetreses[0]
-    if ignore: return
+    #if ignore: return
     print fb2
     global current, went, ignore
-    if fb2.P_within_10cm > .9 or went:
+    colors = classify(rgb_array(targetres.color) for targetres in fb2.targetreses)
+    buoys = sorted(zip(fb2.targetreses, colors), key=lambda (x, color): -current.left_vector.dot(xyz_array(x.pose.position)))
+    print [(buoy[1], buoy[0].pose.position.x) for buoy in buoys]
+    buoydict = dict(zip(colors, fb2.targetreses))
+    #fb = buoydict['red']
+    fb = fb2.targetreses[0]
+    if went or rospy.Time.now() > start_time + rospy.Duration(5):
         # approach mode
         buoy_pos = xyz_array(fb.pose.position)
         
         current = current.set_position(buoy_pos).relative(-bump_pos*.7)
-        client.send_goal(current.as_MoveToGoal(speed=.25))
+        client.send_goal(current.as_MoveToGoal(speed=.1))
         went = True
         
         odom = orientation_helpers.PoseEditor.from_PoseTwistStamped_topic('/trajectory')
@@ -71,24 +103,24 @@ def got_feedback(fb2):
         #current = current.look_at_without_pitching(xyz_array(fb.pose.position))
         #client.send_goal(current)
 
-guess_pos = current.position + current.forward_vector * 4
+#guess_pos = current.position + current.forward_vector * 4
 
 target = TargetDesc()
 target.type = TargetDesc.TYPE_SPHERE
 target.sphere_radius = 4*.0254 # 4 in
-target.prior_distribution.pose.position = Point(*guess_pos)
+#target.prior_distribution.pose.position = Point(*guess_pos)
 target.prior_distribution.pose.orientation.w = 1
 target.prior_distribution.covariance[0+6*0] = 1
 target.prior_distribution.covariance[1+6*1] = 1
 target.prior_distribution.covariance[2+6*2] = 1
 target.min_dist = 2.6
-target.max_dist = 6
+target.max_dist = 8
 
 goal = FindGoal()
-goal.header.frame_id = current.header.frame_id
-goal.targetdescs = [target]
+goal.header.frame_id = '/map'
+goal.targetdescs = [target, target, target]
 visionclient.send_goal(goal, feedback_cb=got_feedback)
 
-client.send_goal(current.forward(10).as_MoveToGoal(speed=.1))
+#client.send_goal(current.forward(10).as_MoveToGoal(speed=.1))
 
 rospy.spin()

@@ -346,7 +346,8 @@ class Buoy(object):
 
 def Buoys(center):
     for j, color in enumerate([(1, 0, 0), (0, 1, 0), (1, 1, 0)]):
-        w.objs.append(Buoy(center + [1-j,j-1,0] + [random.gauss(0, .3) for i in xrange(3)], color))
+        j += 1
+        w.objs.append(Buoy(center + [1-.5*j,.5*j-1,0] + [random.gauss(0, .2) for i in xrange(3)], color))
 
 w = threed.World()
 w.objs.append(threed.MeshDrawer(pool_mesh, (.4, .4, .4)))
@@ -364,19 +365,36 @@ w.objs.append(threed.MeshDrawer(path_mesh, (1, .5, 0)))
 path_mesh = threed.mesh_from_obj(open(roslib.packages.resource_file('auvsi_robosub', 'models', '2012_uf_mock/path.obj'))).rotate(vector.axisangle_to_quat(v(0, 0, 1), -.8)).translate((0, .6, -3.9))
 w.objs.append(threed.MeshDrawer(path_mesh, (1, .5, 0)))
 
+m_from_in = .0254
+w.objs.append(threed.Capsules(world, space, v(3, 0, -3.5), (1, 0, 0), [(m_from_in*s, m_from_in*e) for s, e in [
+    (v(-6, -6, 3), v(+6, -6, 3)),
+    (v(+6, -6, 3), v(+6, +6, 3)),
+    (v(+6, +6, 3), v(-6, +6, 3)),
+    (v(-6, +6, 3), v(-6, -6, 3)),
+    (v(-6, -6, -3), v(+6, -6, -3)),
+    (v(+6, -6, -3), v(+6, +6, -3)),
+    (v(+6, +6, -3), v(-6, +6, -3)),
+    (v(-6, +6, -3), v(-6, -6, -3)),
+    (v(-6, 0, 3), v(-6, 0, -3)),
+    (v(+6, 0, 3), v(+6, 0, -3)),
+    (v(0, -6, 3), v(0, -6, -3)),
+    (v(0, +6, 3), v(0, +6, -3)),
+]], m_from_in*.875/2))
 
+pygame.display.set_icon(pygame.image.load(roslib.packages.resource_file('subsim', 'icons', 'subsim.png')))
+pygame.display.set_caption("subsim")
 i = threed.Interface()
 i.init(w, V(body.getPosition()) + (0,-2,2+random.gauss(0, 1)))
 
 def set_forward_view():
     glTranslate(-.4, .2, -.3)
     threed.rotate_to_body(body, inv=True)
-c1 = threed.Camera(w, 'forward_camera', set_forward_view, body)
+c1 = threed.Camera(w, 'forward_camera', set_forward_view, body, fovy=31)
 
 def set_down_view():
     glRotate(90, 0, -1, 0)
     threed.rotate_to_body(body, inv=True)
-c2 = threed.Camera(w, 'down_camera', set_down_view, body)
+c2 = threed.Camera(w, 'down_camera', set_down_view, body, fovy=31)
 
 def _():
     try:

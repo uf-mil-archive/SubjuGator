@@ -1,0 +1,11 @@
+import pygame
+import sys
+
+d = pygame.display.set_mode((100, 100))
+
+d.fill(map(lambda f: int(255*float(f)+.5), sys.argv[1:4]))
+
+pygame.display.update()
+
+import time
+time.sleep(3e9)

@@ -34,10 +34,6 @@ shift: [1.784207689270565e-05, -4.35287404874766e-06, 5.7614231262564255e-05]
   </node>
   <node pkg="tf" type="static_transform_publisher" name="dvl_broadcaster"
     args="0.431 0 -0.102  0 0 0.382683 -0.923880  base_link dvl 100" />
-  <node pkg="uf_common" type="velocitymeasurements_to_vector3" name="dvl_converter">
-    <remap from="velocitymeasurements" to="/dvl"/>
-    <remap from="vel" to="/dvl_vel"/>
-  </node>
 
   <node pkg="indirect_kalman_6dof" type="indirect_kalman_6dof" name="indirect_kalman_6dof"><rosparam>
       f_imu: 204

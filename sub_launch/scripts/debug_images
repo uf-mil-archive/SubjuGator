@@ -1,5 +1,5 @@
 #!/bin/sh
 
-rosrun image_view image_view image:=object_finder/debug_image &
-rosrun image_view image_view image:=object_finder2/debug_image &
+rosrun image_view image_view image:=forward_object_finder/debug_image &
+rosrun image_view image_view image:=down_object_finder/debug_image &
 

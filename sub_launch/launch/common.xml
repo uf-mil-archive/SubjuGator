@@ -107,15 +107,13 @@ shift: [1.784207689270565e-05, -4.35287404874766e-06, 5.7614231262564255e-05]
   </node>
   
   
-  <node pkg="object_finder" type="object_finder" name="object_finder">
+  <node pkg="object_finder" type="object_finder" name="forward_object_finder">
     <remap from="find" to="find_forward"/>
-    <remap from="camera/camera_info" to="forward_camera/camera_info"/>
-    <remap from="camera/image_rect_color" to="forward_camera/image_rect_color"/>
+    <remap from="camera" to="forward_camera"/>
   </node>
-  <node pkg="object_finder" type="object_finder" name="object_finder2">
+  <node pkg="object_finder" type="object_finder" name="down_object_finder">
     <remap from="find" to="find_down"/>
-    <remap from="camera/camera_info" to="down_camera/camera_info"/>
-    <remap from="camera/image_rect_color" to="down_camera/image_rect_color"/>
+    <remap from="camera" to="down_camera"/>
   </node>
   
   <node pkg="uf_common" type="param_saver" name="param_saver"/>

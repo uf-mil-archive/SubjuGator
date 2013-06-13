@@ -14,10 +14,20 @@ from uf_common.msg import MoveToAction
 if len(sys.argv) < 2:
     print 'Examples:'
     print 'send_waypoint depth 2'
-    print 'send_waypoint forward 5'
+    print 'send_waypoint forward 5 --speed .2'
     print 'send_waypoint set_orientation NORTH'
     print 'send_waypoint yaw_left_deg 30'
     sys.exit()
+
+posargs = []
+kwargs = {}
+orig = list(sys.argv[1:])
+while orig:
+    this = orig.pop(0)
+    if this.startswith('--'):
+        kwargs[this[2:]] = orig.pop(0)
+    else:
+        posargs.append(this)
 
 rospy.init_node('send_waypoint', disable_signals=True)
 
@@ -29,10 +39,11 @@ go = client.send_goal_and_wait
 print 'Waiting for current position...'
 p = orientation_helpers.PoseEditor.from_PoseTwistStamped_topic('/trajectory')
 
-args = [eval(x, orientation_helpers.__dict__) for x in sys.argv[2:]] # lets you do "set_orientation NORTH"
+args = [eval(x, orientation_helpers.__dict__) for x in posargs[1:]] # lets you do "set_orientation NORTH"
 if len(args) >= 2:
     args = [args]
-p = getattr(p, sys.argv[1])(*args)
+p = getattr(p, posargs[0])(*args).as_MoveToGoal(
+    **dict((k, eval(v)) for k, v in kwargs.iteritems()))
 
 print 'Sending goal...'
 def done(goal_status, result):

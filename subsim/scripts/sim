@@ -54,7 +54,7 @@ body = ode.Body(world)
 M = ode.Mass()
 M.setBoxTotal(47, 1.27, .46, .46)
 body.setMass(M)
-body.setPosition((6, 6, -2))
+body.setPosition((9, 9, -2))
 body.setQuaternion(vector.axisangle_to_quat(v(0, 0, 1), math.pi/2+math.pi-math.pi/4))
 
 space = ode.HashSpace()
@@ -71,7 +71,7 @@ body_geoms.append(ode.GeomTransform(space))
 body_geoms[-1].setGeom(body_geoms[-2])
 body_geoms[-1].setBody(body)
 
-pool_mesh = threed.mesh_from_obj(open(roslib.packages.resource_file('subsim', 'scene', 'pool6.obj')))
+pool_mesh = threed.mesh_from_obj(roslib.packages.resource_file('subsim', 'scene', 'pool6.obj'))
 pool_geom = ode.GeomTriMesh(pool_mesh.ode_trimeshdata, space)
 
 def get_water_vel(pos):
@@ -350,20 +350,28 @@ def Buoys(center):
         w.objs.append(Buoy(center + [1-.5*j,.5*j-1,0] + [random.gauss(0, .2) for i in xrange(3)], color))
 
 w = threed.World()
-w.objs.append(threed.MeshDrawer(pool_mesh, (.4, .4, .4)))
+w.objs.append(pool_mesh)
 sub_model = Sub(body, lambda: killed)
 w.objs.append(sub_model)
 #i.objs.append(threed.VectorField(get_water_vel))
 Buoys(v(3, 3, -2))
 
-shooter_mesh = threed.mesh_from_obj(open(roslib.packages.resource_file('auvsi_robosub', 'models', '2012_uf_mock/shooter.obj'))).translate((-3, 0, -2))
-w.objs.append(threed.MeshDrawer(shooter_mesh, (1, 0, 0)))
+shooter_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2012_uf_mock/shooter.obj')).translate((-3, 6, -2))
+w.objs.append(shooter_mesh)
 
-path_mesh = threed.mesh_from_obj(open(roslib.packages.resource_file('auvsi_robosub', 'models', '2012_uf_mock/path.obj'))).translate((0, 0, -3.9))
-w.objs.append(threed.MeshDrawer(path_mesh, (1, .5, 0)))
+shooter_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2013/shooter.obj')).translate((-3, 4, -2))
+w.objs.append(shooter_mesh)
 
-path_mesh = threed.mesh_from_obj(open(roslib.packages.resource_file('auvsi_robosub', 'models', '2012_uf_mock/path.obj'))).rotate(vector.axisangle_to_quat(v(0, 0, 1), -.8)).translate((0, .6, -3.9))
-w.objs.append(threed.MeshDrawer(path_mesh, (1, .5, 0)))
+mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2013_uf_mock/bin.obj'))
+for x in xrange(2):
+    for y in xrange(2):
+        w.objs.append(mesh.translate((-3-y*.75, 0-x/2, -3.9)))
+
+path_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2012_uf_mock/path.obj')).translate((0, 0, -3.9))
+w.objs.append(path_mesh)
+
+path_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2012_uf_mock/path.obj')).rotate(vector.axisangle_to_quat(v(0, 0, 1), -.8)).translate((0, .6, -3.9))
+w.objs.append(path_mesh)
 
 m_from_in = .0254
 w.objs.append(threed.Capsules(world, space, v(3, 0, -3.5), (1, 0, 0), [(m_from_in*s, m_from_in*e) for s, e in [
@@ -380,6 +388,17 @@ w.objs.append(threed.Capsules(world, space, v(3, 0, -3.5), (1, 0, 0), [(m_from_i
     (v(0, -6, 3), v(0, -6, -3)),
     (v(0, +6, 3), v(0, +6, -3)),
 ]], m_from_in*.875/2))
+
+
+w.objs.append(threed.Capsules(world, space, v(7, 7, -2), (1, 0, 0), [(m_from_in*s, m_from_in*e) for s, e in [
+    (v(0, -5*12, -2.5*12), v(0, -5*12, 2.5*12)),
+    (v(0, -5*12, 2.5*12), v(0, 5*12, 2.5*12)),
+    (v(0, 5*12, -2.5*12), v(0, 5*12, 2.5*12)),
+]], m_from_in*3/2, fixed=True, orientation=vector.axisangle_to_quat(v(0, 0, 1), math.degrees(-45))))
+
+
+path_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2012_uf_mock/path.obj')).rotate(vector.axisangle_to_quat(v(0, 0, 1), math.degrees(-45))).translate((6, 6, -3.9))
+w.objs.append(path_mesh)
 
 pygame.display.set_icon(pygame.image.load(roslib.packages.resource_file('subsim', 'icons', 'subsim.png')))
 pygame.display.set_caption("subsim")

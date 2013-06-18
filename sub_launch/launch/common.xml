@@ -81,6 +81,8 @@ shift: [1.784207689270565e-05, -4.35287404874766e-06, 5.7614231262564255e-05]
     umax_b: [ 0.25,  0.25,  0.25,   0.1,   0.1,  0.1]
   </rosparam></node>
 
+  <node pkg="uf_common" type="interactive_marker_moveto" name="interactive_marker_moveto"/>
+
   <node pkg="rise_6dof" type="rise_6dof" name="rise_6dof">
     <remap from="/current" to="odom"/>
     <remap from="/desired" to="trajectory"/>

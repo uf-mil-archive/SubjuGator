@@ -359,7 +359,7 @@ Buoys(v(3, 3, -2))
 shooter_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2012_uf_mock/shooter.obj')).translate((-3, 6, -2))
 w.objs.append(shooter_mesh)
 
-shooter_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2013/shooter.obj')).translate((-3, 4, -2))
+shooter_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2013/shooter_with_holes.obj')).translate((-3, 4, -2))
 w.objs.append(shooter_mesh)
 
 mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2013_uf_mock/bin.obj'))

@@ -1,0 +1,103 @@
+#!/usr/bin/env python
+
+import argparse
+import math
+import time
+
+import numpy
+
+import roslib; roslib.load_manifest('sub_launch')
+import rospy
+import actionlib
+from std_msgs.msg import Header
+from geometry_msgs.msg import Pose, Quaternion, Point, Vector3
+from nav_msgs.msg import Odometry
+from tf import transformations
+
+from uf_common import orientation_helpers
+from uf_common.msg import MoveToAction, MoveToGoal, PoseTwist
+from uf_common.orientation_helpers import xyz_array, xyzw_array
+from object_finder.msg import FindAction, FindGoal, TargetDesc
+
+
+rospy.init_node('newshooter')
+
+
+visionclient = actionlib.SimpleActionClient('find_forward', FindAction)
+print 'Waiting for server...'
+visionclient.wait_for_server()
+
+
+#client = actionlib.SimpleActionClient('moveto', MoveToAction)
+#print 'Waiting for server...'
+#client.wait_for_server()
+#print 'ok'
+
+#current = orientation_helpers.PoseEditor.from_PoseTwistStamped_topic('/trajectory').depth(2)
+#client.send_goal_and_wait(current)
+
+went = False
+ignore = False
+
+wait_until = time.time() #+ 20
+
+def got_feedback(fb2):
+    fb = fb2.targetreses[0]
+    print wait_until - time.time()
+    global current, went, ignore
+    obj_pose = orientation_helpers.PoseEditor.from_Pose(goal.header.frame_id, fb.pose)
+    if ignore: return
+    print fb2
+    if (fb2.P_within_10cm > .95 or went) and time.time() > wait_until:
+        # approach mode
+        
+        marker_pose = obj_pose.relative(xyz_array(fb.markers[1].position))
+        
+        torpedo_pos = numpy.array([.8, .06, -.35]) # .16 for [2] before
+        current = current.set_position(marker_pose.position).relative(-torpedo_pos)
+        client.send_goal(current.as_MoveToGoal(speed=.2))
+
+        
+        odom = orientation_helpers.PoseEditor.from_PoseTwistStamped_topic('/trajectory')
+        print numpy.linalg.norm(odom.position - marker_pose.position)
+        if numpy.linalg.norm(odom.position - marker_pose.position) < 3:
+            # don't make corrections when near buoy
+            ignore = True
+            visionclient.cancel_goal()
+            client.send_goal_and_wait(current.as_MoveToGoal(speed=.5))
+            rospy.signal_shutdown('reached buoy')
+        went = True
+    else:
+        # search mode
+        pass
+        #current = current.look_at_without_pitching(obj_pose.position)
+        #client.send_goal(current)
+
+target = TargetDesc()
+target.type = TargetDesc.TYPE_OBJECT
+target.object_filename = roslib.packages.resource_file('auvsi_robosub', 'models', '2013/12in_hexagon.obj')
+#target.object_filename = roslib.packages.resource_file('auvsi_robosub', 'models', '2013/shooter.obj')
+#target.prior_distribution.pose.position = Point(*current.position + current.forward_vector * 4)
+target.prior_distribution.pose.orientation.w = 1
+target.prior_distribution.covariance[0+6*0] = 3
+target.prior_distribution.covariance[1+6*1] = 3
+target.prior_distribution.covariance[2+6*2] = 1
+target.prior_distribution.covariance[3+6*3] = 100*1
+target.prior_distribution.covariance[5+6*5] = 100*1*0
+target.min_dist = 1
+target.max_dist = 5
+target.allow_rolling = True
+target.disallow_yawing = True
+
+target.extract_origin = Point(0, -0.6096, 0.6096)
+target.extract_x = Vector3(0, 0.6096*2, 0)
+target.extract_y = Vector3(0, 0, -0.6096*2)
+target.extract_x_pixels = 200
+target.extract_y_pixels = 200
+
+goal = FindGoal()
+goal.header.frame_id = '/map'
+goal.targetdescs = [target]
+visionclient.send_goal(goal)#, feedback_cb=got_feedback)
+
+rospy.spin()

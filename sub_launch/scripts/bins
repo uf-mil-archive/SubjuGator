@@ -1,0 +1,96 @@
+#!/usr/bin/env python
+
+import argparse
+import math
+import time
+
+import numpy
+
+import roslib; roslib.load_manifest('sub_launch')
+import rospy
+import actionlib
+from std_msgs.msg import Header
+from geometry_msgs.msg import Pose, Quaternion, Point
+from nav_msgs.msg import Odometry
+from tf import transformations
+
+from uf_common import orientation_helpers
+from uf_common.msg import MoveToAction, MoveToGoal, PoseTwist
+from uf_common.orientation_helpers import xyz_array, xyzw_array
+from object_finder.msg import FindAction, FindGoal, TargetDesc
+
+
+rospy.init_node('bins')
+
+
+visionclient = actionlib.SimpleActionClient('find_down', FindAction)
+print 'Waiting for server...'
+visionclient.wait_for_server()
+
+
+#client = actionlib.SimpleActionClient('moveto', MoveToAction)
+#print 'Waiting for server...'
+#client.wait_for_server()
+#print 'ok'
+
+#current = orientation_helpers.PoseEditor.from_PoseTwistStamped_topic('/trajectory').depth(.5)
+#client.send_goal(current)
+
+#orig_orientation = current.orientation
+
+went = False
+ignore = False
+
+def got_feedback(fb2):
+    fb = fb2.targetreses[0]
+    global current, went, ignore
+    obj_pose = orientation_helpers.PoseEditor.from_Pose(goal.header.frame_id, fb.pose)
+    # choose 180 deg rotation that minimizes difference from sub's original orientation
+    obj_pose = max([obj_pose, obj_pose.turn_right_deg(180)],
+        key=lambda p: p.orientation.dot(orig_orientation)**2)
+    
+    if ignore: return
+    print fb
+    if (fb2.P_within_10cm > .75 or went):
+        # approach mode
+        if not went:
+            went = time.time()
+        
+        current = current.set_position(obj_pose.position).depth(1)
+        current = current.set_orientation(obj_pose.orientation)
+        print current.__dict__
+        #current = current.set_position(obj_pose.position + obj_pose.forward_vector*2)
+        #current = current.look_at(obj_pose.position)
+        client.send_goal(current)
+        if time.time() > went + 10:
+            client.send_goal_and_wait(current)
+            visionclient.cancel_goal()
+            #client.send_goal_and_wait(current.forward(3))
+            rospy.signal_shutdown('reached path')
+    else:
+        # search mode
+        #current = current.look_at(obj_pose.position)
+        #client.send_goal(current)
+        pass
+
+#guess_pos = current.position + -current.body_up_vector * 3
+
+target = TargetDesc()
+target.type = TargetDesc.TYPE_OBJECT
+target.object_filename = roslib.packages.resource_file('auvsi_robosub', 'models', '2013_uf_mock/bin.obj')
+#target.prior_distribution.pose.position = Point(*guess_pos)
+target.prior_distribution.pose.orientation.w = 1
+target.prior_distribution.covariance[0+6*0] = 1
+target.prior_distribution.covariance[1+6*1] = 1
+target.prior_distribution.covariance[2+6*2] = 1
+target.prior_distribution.covariance[5+6*5] = 100
+target.min_dist = 3
+target.max_dist = 5
+target.is_180z_symmetric = True
+
+goal = FindGoal()
+goal.header.frame_id = '/map'
+goal.targetdescs = [target]*4
+visionclient.send_goal(goal)#, feedback_cb=got_feedback)
+
+rospy.spin()

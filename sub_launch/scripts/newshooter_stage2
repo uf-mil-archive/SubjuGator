@@ -73,19 +73,25 @@ def got_feedback(fb2):
         #current = current.look_at_without_pitching(obj_pose.position)
         #client.send_goal(current)
 
+print 'Waiting for current position...'
+current = orientation_helpers.PoseEditor.from_PoseTwistStamped_topic('/trajectory')
+print '    ...Got it'
+
 target = TargetDesc()
 target.type = TargetDesc.TYPE_OBJECT
-target.object_filename = roslib.packages.resource_file('auvsi_robosub', 'models', '2013/shooter.obj')
-target.prior_distribution.pose.orientation.w = 1
-target.prior_distribution.covariance[5+6*5] = 100
+target.object_filename = roslib.packages.resource_file('auvsi_robosub', 'models', '2013/12in_hexagon.obj')
+#target.object_filename = roslib.packages.resource_file('auvsi_robosub', 'models', '2013/shooter.obj')
+#target.prior_distribution.pose.position = Point(*current.position + current.forward_vector * 4)
+target.prior_distribution.pose.orientation = Quaternion(*current.orientation)
+cov = numpy.zeros((6, 6))
+a = numpy.array([current.forward_vector]).T * 100
+cov[3:, 3:] += a.dot(a.T)
+target.prior_distribution.covariance = cov.flatten()
+print cov
 target.min_dist = 1
 target.max_dist = 5
-
-target.extract_origin = Point(0, -0.6096, 0.6096)
-target.extract_x = Vector3(0, 0.6096*2, 0)
-target.extract_y = Vector3(0, 0, -0.6096*2)
-target.extract_x_pixels = 200
-target.extract_y_pixels = 200
+target.allow_rolling = True
+target.disallow_yawing = True
 
 goal = FindGoal()
 goal.header.frame_id = '/map'

@@ -291,6 +291,10 @@ class Sub(object):
                 glColor3f(0, 0, 0)
                 gluSphere(q, 0.1, 40, 20)
             with threed.GLMatrix:
+                glTranslate(+.7, 0, 0)
+                glColor3f(0, 0, 0)
+                gluSphere(q, 0.05, 40, 20)
+            with threed.GLMatrix:
                 glTranslate(0, 0, .5)
                 if self.is_killed_func():
                     glColor3f(1, 0, 0)
@@ -359,16 +363,16 @@ w.objs.append(sub_model)
 #i.objs.append(threed.VectorField(get_water_vel))
 Buoys(v(3, 3, -2))
 
-shooter_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2012_uf_mock/shooter.obj')).translate((-3, 6, -2))
+shooter_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2012_uf_mock/shooter.obj')).translate((-6, 6, -1.5))
 w.objs.append(shooter_mesh)
 
-shooter_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2013/shooter_with_holes.obj')).translate((-3, 4, -2))
+shooter_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2013/shooter_with_holes.obj')).translate((-6, 4, -1.5))
 w.objs.append(shooter_mesh)
 
 mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2013_uf_mock/bin.obj'))
 for x in xrange(2):
     for y in xrange(2):
-        w.objs.append(mesh.translate((-3-y*.75, 0-x/2, -3.9)))
+        w.objs.append(mesh.translate((-4-y*.75, 0-x/2, -3.9)))
 
 path_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2012_uf_mock/path.obj')).translate((0, 0, -3.9))
 w.objs.append(path_mesh)
@@ -409,7 +413,7 @@ i = threed.Interface()
 i.init(w, V(body.getPosition()) + (0,-2,2+random.gauss(0, 1)))
 
 def set_forward_view():
-    glTranslate(-.4, .2, -.3)
+    glTranslate(-.7, 0, 0)
     threed.rotate_to_body(body, inv=True)
 c1 = threed.Camera(w, 'forward_camera', set_forward_view, body, fovy=31)
 

@@ -121,7 +121,7 @@ def world_tick():
         sub_model.vectors.append((relpos, relpos - .02*reldir*thrusters[i]*(fwdforce if thrusters[i] > 0 else revforce)))
         
         # calculate generated field assuming thrusters are magnetic dipoles
-        I = thrusters[i] * 1000
+        I = thrusters[i]
         m = I * reldir.unit()*math.pi*.04**2 # assume thrusters have a 4cm radius
         r = imu_pos - relpos
         mu0 = 4*math.pi*1e-7
@@ -196,12 +196,15 @@ def world_tick():
     #print imu_acc
     
     north = v(-0.022442e-4, 0.241510e-4, -0.405728e-4)
-    magCorrection = v(0.7409404225119256, 0.16518505729708194, 0.41635135769064785, -0.5003725952555389)
-    magShift = v(1.972505436535728e-05, -2.630949101201508e-06, 6.149054775740445e-05)
-    magScale = v(0.9824591199601406, 0.991700915163004, 1.0263720042299143)
+    magScale = [
+        v(1.0138045310392845, 0.00019922504624389086, -0.020790660137153874),
+        v(0.00019922504624392035, 0.9912854707843127, -0.006138853722019713),
+        v(-0.020790660137153832, -0.0061388537220198, 0.9955192452749035),
+    ]
+    magShift = v(1.784207689270565e-05, -4.35287404874766e-06, 5.7614231262564255e-05)
     
     imu_mag_prescale = imu_to_sub.conj().quat_rot(body.vectorFromWorld(north))
-    imu_mag = magCorrection.conj().quat_rot(magCorrection.quat_rot(imu_mag_prescale).scale(magScale)) + magShift
+    imu_mag = V(row*imu_mag_prescale for row in magScale) + magShift
     imu_mag += imu_to_sub.conj().quat_rot(thruster_mag)
     try:
         send_imu_update(

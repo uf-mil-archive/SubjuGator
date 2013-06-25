@@ -107,24 +107,6 @@
 
   <include file="$(find sub_launch)/launch/cameras_pgr.launch"/>
 
-  <node pkg="imagenex_852" type="imagenex_852" name="sonar_driver">
-    <param name="port" value="/dev/sensors/ftdi_A901KFRE"/>
-    <param name="frame_id" value="/sonar"/>
-    <rosparam file="$(find sub_launch)/launch/sonar_driver.yaml"/>
-  </node>
-  <!-- sonar is roughly at 22" 3" 3" -->
-  <node pkg="tf" type="static_transform_publisher" name="sonar_tf"
-    args="0.559 0.076 0.076  0 0 0 1  base_link sonar 100" />
-  <group ns="param_saver/sonar_driver">
-    <param name="filename" value="$(find sub_launch)/launch/sonar_driver.yaml"/>
-    <rosparam>
-      file_basepath: /sonar_driver
-      param_paths: [range_meters, reverse, start_gain_dB, train_angle_degrees,
-          sector_width_degrees, step_size_degrees, pulse_length_usec,
-          data_points, switch_delay_msec, frequency_kHz]
-    </rosparam>
-  </group>
-
   <!-- <node pkg="rosbag" type="record" name="swim_recorder" args="-a -x '.*camera.*' -o /tmp/swim"/> -->
 
 </launch>

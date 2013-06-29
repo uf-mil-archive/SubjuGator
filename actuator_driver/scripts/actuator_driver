@@ -1,0 +1,97 @@
+#!/usr/bin/python
+
+import threading
+
+import serial
+
+import roslib
+roslib.load_manifest('actuator_driver')
+import rospy
+from std_msgs.msg import Header
+
+from actuator_driver.msg import Switches
+from actuator_driver.srv import PulseValve, PulseValveResponse, SetValve, SetValveResponse
+
+
+rospy.init_node('actuator_driver')
+
+
+class ActuatorDevice(object):
+    VALVES = 6
+    SWITCHES = 2
+    
+    def __init__(self, port):
+        self._serial = serial.Serial(port, 115200)
+    
+    def _read(self):
+        b1 = ord(self._serial.read(1))
+        while True:
+            b2 = ord(self._serial.read(1))
+            if b2 == b1 ^ 0xff:
+                return b1
+            print 'invalid checksum', b1, b2
+            b1 = b2
+    def read(self):
+        cmd = self._read()
+        if 0x00 <= cmd < 0x04:
+            return 'switchvalues', [bool(cmd&2**i) for i in xrange(self.SWITCHES)]
+        elif cmd == 0x40:
+            return 'ping',
+        elif 0x80 <= cmd < 0xc0:
+            return 'setvalves', [bool(cmd&2**i) for i in xrange(self.VALVES)]
+        else:
+            print 'unknown cmd', cmd
+            return 'unknown', cmd
+    
+    def _send_packet(self, val):
+        self._serial.write(chr(val) + chr(val ^ 0xff))
+    def send_ping(self):
+        self._send_packet(0x40)
+    def send_setvalves(self, valves):
+        assert len(valves) == self.VALVES
+        self._send_packet(0x80 + sum(2**i for i, valve in enumerate(valves) if valve))
+    def send_readswitches(self):
+        self._send_packet(0x00)
+
+
+ad = ActuatorDevice(rospy.get_param('~port'))
+
+valves = [False]*ActuatorDevice.VALVES
+ad.send_setvalves(valves)
+valves_lock = threading.Lock()
+
+def pulsevalve(req):
+    if req.valve >= ActuatorDevice.VALVES:
+        return None # service error condition
+    
+    with valves_lock:
+        valves[:] = [True if i == req.valve else valve for i, valve in enumerate(valves)]
+        ad.send_setvalves(valves)
+    rospy.sleep(req.duration)
+    with valves_lock:
+        valves[:] = [False if i == req.valve else valve for i, valve in enumerate(valves)]
+        ad.send_setvalves(valves)
+    return PulseValveResponse()
+rospy.Service('~pulsevalve', PulseValve, pulsevalve)
+
+def setvalve(req):
+    if req.valve >= ActuatorDevice.VALVES:
+        return None # service error condition
+    
+    with valves_lock:
+        valves[:] = [True if i == req.valve else valve for i, valve in enumerate(valves)]
+        ad.send_setvalves(valves)
+    return SetValveResponse()
+rospy.Service('~setvalve', SetValve, setvalve)
+
+rospy.Timer(rospy.Duration(0.01), lambda timerevent: ad.send_readswitches())
+pub = rospy.Publisher('~switches', Switches)
+while not rospy.is_shutdown():
+    packet = ad.read()
+    if packet[0] == 'switchvalues':
+        pub.publish(Switches(
+            header=Header(
+                stamp=rospy.Time.now(),
+            ),
+            pressed=packet[1],
+        ))

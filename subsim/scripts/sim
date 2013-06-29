@@ -397,11 +397,11 @@ w.objs.append(threed.Capsules(world, space, v(3, 0, -3.5), (1, 0, 0), [(m_from_i
 ]], m_from_in*.875/2))
 
 
-w.objs.append(threed.Capsules(world, space, v(7, 7, -2), (1, 0, 0), [(m_from_in*s, m_from_in*e) for s, e in [
+'''w.objs.append(threed.Capsules(world, space, v(7, 7, -2), (1, 0, 0), [(m_from_in*s, m_from_in*e) for s, e in [
     (v(0, -5*12, -2.5*12), v(0, -5*12, 2.5*12)),
     (v(0, -5*12, 2.5*12), v(0, 5*12, 2.5*12)),
     (v(0, 5*12, -2.5*12), v(0, 5*12, 2.5*12)),
-]], m_from_in*3/2, fixed=True, orientation=vector.axisangle_to_quat(v(0, 0, 1), math.degrees(-45))))
+]], m_from_in*3/2, fixed=True, orientation=vector.axisangle_to_quat(v(0, 0, 1), math.degrees(-45))))'''
 
 
 path_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2012_uf_mock/path.obj')).rotate(vector.axisangle_to_quat(v(0, 0, 1), math.degrees(-45))).translate((6, 6, -3.9))

@@ -1,0 +1,15 @@
+<package>
+  <description brief="paulboard_driver">
+
+     paulboard_driver
+
+  </description>
+  <author>Matthew Thompson</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/paulboard_driver</url>
+  <depend package="rospy"/>
+  <depend package="hydrophones"/>
+</package>
+
+

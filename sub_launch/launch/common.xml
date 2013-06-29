@@ -5,7 +5,7 @@
     <param name="frame_id" type="string" value="/imu"/>
   </node>
   <node pkg="nodelet" type="nodelet" name="magnetic_dynamic_compensation" args="standalone magnetic_dynamic_compensation/nodelet">
-    <remap from="/imu/mag" to="/imu/mag_lessraw"/>
+n    <remap from="/imu/mag" to="/imu/mag_lessraw"/>
   </node>
   <node pkg="nodelet" type="nodelet" name="magnetic_hardsoft_compensation" args="standalone magnetic_hardsoft_compensation/nodelet">
     <remap from="/imu/mag_raw" to="/imu/mag_lessraw"/>
@@ -35,6 +35,20 @@ shift: [1.6940875638398416e-05, -4.495338954744077e-06, 5.7034766738972114e-05]
   <node pkg="tf" type="static_transform_publisher" name="dvl_broadcaster"
     args="0.431 0 -0.102  0 0 0.382683 -0.923880  base_link dvl 100" />
 
+  <node pkg="paulboard_driver" type="paulboard_driver" name="paulboard_driver">
+    <param name="port" type="string" value="/dev/ttyHydrophone"/>
+    <param name="sample_rate" type="double" value="300000"/>
+    <param name="frame" type="string" value="/hydrophones"/>
+    <param name="permute" type="string" value="1 2 4 3"/>
+  </node>
+  <node pkg="tf" type="static_transform_publisher" name="hyd_broadcaster"
+    args="0 0 0 0 0 1.571 /map /hydrophones 100" />
+  <node pkg="hydrophones" type="hydrophones" name="hydrophones">
+    <param name="dist_h" type="double" value="2.286000e-02"/>
+    <param name="dist_h4" type="double" value="2.286000e-02"/>
+    <param name="v_sound" type="double" value="1500"/>
+  </node>
+  
   <node pkg="indirect_kalman_6dof" type="indirect_kalman_6dof" name="indirect_kalman_6dof"><rosparam>
       f_imu: 204
       f_kalman: 50
@@ -97,7 +111,7 @@ shift: [1.6940875638398416e-05, -4.495338954744077e-06, 5.7034766738972114e-05]
     </rosparam>
   </group>
 
-  <node pkg="thruster_mapper" type="thruster_mapper" name="thruster_mapper"/>
+  <node pkg="thruster_mapper" type="thruster_mapper" name="thruster_mapper" respawn="true"/>
 
   <node pkg="sub_launch" type="odom_to_euler" name="odom_to_euler"/>
 
@@ -115,6 +129,13 @@ shift: [1.6940875638398416e-05, -4.495338954744077e-06, 5.7034766738972114e-05]
     <remap from="find" to="find_down"/>
     <remap from="camera" to="down_camera"/>
   </node>
+
+  <include file="$(find legacy_vision)/launch/legacy_vision.launch">
+    <arg name="camera" value="forward_camera"/>
+  </include>
+  <include file="$(find legacy_vision)/launch/legacy_vision.launch">
+    <arg name="camera" value="down_camera"/>
+  </include>
   
   <node pkg="uf_common" type="param_saver" name="param_saver"/>
 </launch>

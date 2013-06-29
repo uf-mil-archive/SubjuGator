@@ -15,7 +15,7 @@ from leaksensor_driver import xbee, bmp085
 
 
 rospy.init_node('leaksensor_driver')
-report_publisher = rospy.Publisher('leaksensor', Report)
+report_publishers = {}
 addresses = rospy.get_param('~addresses', {})
 
 
@@ -40,12 +40,13 @@ def got_packet(source, rssi, data):
     
     water = bool(flags & 1)
     
-    name = addresses.get(source, '<unknown %s>' % (source,))
-    report_publisher.publish(Report(
+    name = addresses.get(source, 'unknown_' + source)
+    if name not in report_publishers:
+        report_publishers[name] = rospy.Publisher('~' + name, Report)
+    report_publishers[name].publish(Report(
         header=Header(
             stamp=rospy.Time.now(),
         ),
-        id=name,
         temperature=temperature,
         pressure=pressure,
         water=water,

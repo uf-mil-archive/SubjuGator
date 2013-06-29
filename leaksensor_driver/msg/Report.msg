@@ -1,7 +1,5 @@
 Header header
 
-string id
-
-float64 temperature
-float64 pressure
+float64 temperature # degrees celsius
+float64 pressure # pascals
 bool water

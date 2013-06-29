@@ -1,0 +1,136 @@
+#!/usr/bin/env python
+
+import serial
+import numpy
+
+import roslib
+roslib.load_manifest('paulboard_driver')
+import rospy
+
+from std_msgs.msg import Header
+
+from paulboard_driver import ais_bootloader
+from hydrophones.msg import Ping
+
+class Node(object):
+    def __init__(self, port):
+        self.sample_rate = rospy.get_param('~sample_rate', 30e3)
+        self.thresh = rospy.get_param('~thresh', 500)
+        self.frame = rospy.get_param('~frame', '/hydrophones')
+        permute_str = rospy.get_param('~permute', '1 2 3 4')
+        self.permute = [int(v)-1 for v in permute_str.split(' ')]
+        self.ser = serial.Serial(port, 1152000, timeout=.1)
+        self.pub = rospy.Publisher('hydrophones/ping', Ping)
+        self.buf = ""
+        self.last_packet_num = None
+        
+    def run(self):
+        self.ser.write('samplerate set\r')
+        self.ser.write('%d\r' % (self.sample_rate/1e3))
+        self.ser.write('thresh set\r')
+        self.ser.write('%d\r' % self.thresh)
+        self.ser.write('go\r')
+        rospy.sleep(.5)
+        self.ser.flushInput()
+
+        buf = ""
+        while not rospy.is_shutdown():
+            got = self.ser.read(1024)
+            if len(got) > 0:
+                buf += got
+            elif len(buf) > 0:
+                self.parse_publish_ping(buf)
+                buf = ""
+
+    def parse_publish_ping(self, buf):
+        result = self.try_parse_ping(buf)
+        if result is None:
+            rospy.logerr('Got bad ping packet')
+            return
+
+        packet_num, samples = result
+        if self.last_packet_num is not None and packet_num != self.last_packet_num+1:
+            rospy.logwarn('Dropped %d ping packet(s)' % packet_num - (self.last_packet_num+1))
+        self.last_packet_num = packet_num
+
+        samples = samples[self.permute, :]
+        
+        self.pub.publish(Ping(
+                header=Header(stamp=rospy.Time.now(),
+                              frame_id=self.frame),
+                channels=samples.shape[0],
+                samples=samples.shape[1],
+                data=samples.transpose().flatten().tolist(),
+                sample_rate=self.sample_rate))
+                
+    def try_parse_ping(self, buf):
+        # Verify we got a header
+        if len(buf) < 8:
+            return None
+        header = word16(buf[0:2])
+        if header != 0x1234:
+            return None
+
+        # Parse header, verify we have all data
+        packet_num = word16(buf[2:4])
+        sample_rate = word16(buf[4:6])*1000
+        sample_count = word16(buf[6:8])
+        if len(buf) < 8 + 8*sample_count + 4:
+            return None
+        
+        # Parse all samples into an array of column vectors
+        pos = 8
+        samples = numpy.zeros((4, sample_count), numpy.uint16)
+        for sample in xrange(sample_count):
+            for chan in xrange(4):
+                samples[chan, sample] = word16(buf[pos:pos+2])
+                pos += 2
+
+        # Parse footer
+        checksum = word16(buf[pos:pos+2])
+        footer = word16(buf[pos+2:pos+4])
+        if footer != 0x4321:
+            return None
+
+        return (packet_num, samples)
+def word16(str):
+    return ord(str[0]) + (ord(str[1]) << 8)
+        
+def check_board_bootloaded(port):
+    with serial.Serial(port, 1152000, timeout=.1) as ser:
+        for i in xrange(5):
+            ser.flushInput()
+            ser.write('\r')
+            got = ser.read(16)
+            if got.endswith('> '):
+                return True
+    return False
+
+def bootload_board(port):
+    path = roslib.packages.resource_file('paulboard_driver', 'blobs', 'SimpleHyd2013.bin')
+    with serial.Serial(port, 115200, timeout=1) as ser:
+        with open(path, 'rb') as file:
+            ais_bootloader.boot(ser, file)
+
+if __name__ == '__main__':
+    rospy.init_node('paulboard_driver')
+    port = rospy.get_param('~port')
+
+    if check_board_bootloaded(port):
+        rospy.loginfo('PaulBoard already bootloaded')
+    else:
+        rospy.loginfo('Bootloading PaulBoard')
+        while True:
+            try:
+                bootload_board(port)
+                break
+            except ais_bootloader.Exception, ex:
+                rospy.logerr('Failed to bootload: %s' % ex)
+                if rospy.is_shutdown():
+                    break
+                rospy.sleep(1)
+        rospy.loginfo('Bootloading complete')
+        
+    Node(port).run()
+
+        

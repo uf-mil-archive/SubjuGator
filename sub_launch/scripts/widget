@@ -20,7 +20,7 @@ from uf_common.orientation_helpers import xyz_array, xyzw_array
 from object_finder.msg import FindAction, FindGoal, TargetDesc
 
 
-rospy.init_node('path')
+rospy.init_node('widget')
 
 
 visionclient = actionlib.SimpleActionClient('find_down', FindAction)
@@ -84,7 +84,7 @@ target.prior_distribution.covariance[0+6*0] = 1
 target.prior_distribution.covariance[1+6*1] = 1
 target.prior_distribution.covariance[2+6*2] = 1
 target.prior_distribution.covariance[5+6*5] = 100
-target.min_dist = 3
+target.min_dist = 1
 target.max_dist = 5
 target.is_180z_symmetric = True
 
@@ -92,5 +92,7 @@ goal = FindGoal()
 goal.header.frame_id = '/map'
 goal.targetdescs = [target]
 visionclient.send_goal(goal)#, feedback_cb=got_feedback)
+
+print 'end'
 
 rospy.spin()

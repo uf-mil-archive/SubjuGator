@@ -115,6 +115,13 @@ shift: [1.784207689270565e-05, -4.35287404874766e-06, 5.7614231262564255e-05]
     <remap from="find" to="find_down"/>
     <remap from="camera" to="down_camera"/>
   </node>
+
+  <include file="$(find legacy_vision)/launch/legacy_vision.launch">
+    <arg name="camera" value="forward_camera"/>
+  </include>
+  <include file="$(find legacy_vision)/launch/legacy_vision.launch">
+    <arg name="camera" value="down_camera"/>
+  </include>
   
   <node pkg="uf_common" type="param_saver" name="param_saver"/>
 </launch>

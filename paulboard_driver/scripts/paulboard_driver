@@ -15,7 +15,7 @@ from hydrophones.msg import Ping
 class Node(object):
     def __init__(self, port):
         self.sample_rate = rospy.get_param('~sample_rate', 30e3)
-        self.thresh = rospy.get_param('~thresh', 500)
+        self.thresh = rospy.get_param('~thresh', 100)
         self.frame = rospy.get_param('~frame', '/hydrophones')
         permute_str = rospy.get_param('~permute', '1 2 3 4')
         self.permute = [int(v)-1 for v in permute_str.split(' ')]
@@ -23,7 +23,7 @@ class Node(object):
         self.pub = rospy.Publisher('hydrophones/ping', Ping)
         self.buf = ""
         self.last_packet_num = None
-        
+
     def run(self):
         self.ser.write('samplerate set\r')
         self.ser.write('%d\r' % (self.sample_rate/1e3))
@@ -50,11 +50,11 @@ class Node(object):
 
         packet_num, samples = result
         if self.last_packet_num is not None and packet_num != self.last_packet_num+1:
-            rospy.logwarn('Dropped %d ping packet(s)' % packet_num - (self.last_packet_num+1))
+            rospy.logwarn('Dropped %d ping packet(s)' % (packet_num - (self.last_packet_num+1)))
         self.last_packet_num = packet_num
 
         samples = samples[self.permute, :]
-        
+
         self.pub.publish(Ping(
                 header=Header(stamp=rospy.Time.now(),
                               frame_id=self.frame),
@@ -62,7 +62,7 @@ class Node(object):
                 samples=samples.shape[1],
                 data=samples.transpose().flatten().tolist(),
                 sample_rate=self.sample_rate))
-                
+
     def try_parse_ping(self, buf):
         # Verify we got a header
         if len(buf) < 8:
@@ -77,7 +77,7 @@ class Node(object):
         sample_count = word16(buf[6:8])
         if len(buf) < 8 + 8*sample_count + 4:
             return None
-        
+
         # Parse all samples into an array of column vectors
         pos = 8
         samples = numpy.zeros((4, sample_count), numpy.uint16)
@@ -95,7 +95,7 @@ class Node(object):
         return (packet_num, samples)
 def word16(str):
     return ord(str[0]) + (ord(str[1]) << 8)
-        
+
 def check_board_bootloaded(port):
     with serial.Serial(port, 1152000, timeout=.1) as ser:
         for i in xrange(5):
@@ -123,14 +123,14 @@ if __name__ == '__main__':
         while True:
             try:
                 bootload_board(port)
+                rospy.loginfo('Bootloading complete')
                 break
             except ais_bootloader.Exception, ex:
                 rospy.logerr('Failed to bootload: %s' % ex)
                 if rospy.is_shutdown():
                     break
                 rospy.sleep(1)
-        rospy.loginfo('Bootloading complete')
-        
+
     Node(port).run()
 
-        
+

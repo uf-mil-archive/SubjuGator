@@ -5,7 +5,7 @@
     <param name="frame_id" type="string" value="/imu"/>
   </node>
   <node pkg="nodelet" type="nodelet" name="magnetic_dynamic_compensation" args="standalone magnetic_dynamic_compensation/nodelet">
-n    <remap from="/imu/mag" to="/imu/mag_lessraw"/>
+    <remap from="/imu/mag" to="/imu/mag_lessraw"/>
   </node>
   <node pkg="nodelet" type="nodelet" name="magnetic_hardsoft_compensation" args="standalone magnetic_hardsoft_compensation/nodelet">
     <remap from="/imu/mag_raw" to="/imu/mag_lessraw"/>
@@ -36,19 +36,19 @@ shift: [1.6940875638398416e-05, -4.495338954744077e-06, 5.7034766738972114e-05]
     args="0.431 0 -0.102  0 0 0.382683 -0.923880  base_link dvl 100" />
 
   <node pkg="paulboard_driver" type="paulboard_driver" name="paulboard_driver">
-    <param name="port" type="string" value="/dev/ttyHydrophone"/>
+    <param name="port" type="string" value="/dev/ttyHydrophones"/>
     <param name="sample_rate" type="double" value="300000"/>
     <param name="frame" type="string" value="/hydrophones"/>
     <param name="permute" type="string" value="1 2 4 3"/>
   </node>
   <node pkg="tf" type="static_transform_publisher" name="hyd_broadcaster"
-    args="0 0 0 0 0 1.571 /map /hydrophones 100" />
+    args="0 0 0 -1.571 0 0 base_link hydrophones 100" />
   <node pkg="hydrophones" type="hydrophones" name="hydrophones">
     <param name="dist_h" type="double" value="2.286000e-02"/>
     <param name="dist_h4" type="double" value="2.286000e-02"/>
     <param name="v_sound" type="double" value="1500"/>
   </node>
-  
+
   <node pkg="indirect_kalman_6dof" type="indirect_kalman_6dof" name="indirect_kalman_6dof"><rosparam>
       f_imu: 204
       f_kalman: 50
@@ -119,8 +119,8 @@ shift: [1.6940875638398416e-05, -4.495338954744077e-06, 5.7034766738972114e-05]
     <remap from="topic" to="dvl/range"/>
     <param name="cond" value="data &lt; .5"/>
   </node>
-  
-  
+
+
   <node pkg="object_finder" type="object_finder" name="forward_object_finder">
     <remap from="find" to="find_forward"/>
     <remap from="camera" to="forward_camera"/>
@@ -136,6 +136,6 @@ shift: [1.6940875638398416e-05, -4.495338954744077e-06, 5.7034766738972114e-05]
   <include file="$(find legacy_vision)/launch/legacy_vision.launch">
     <arg name="camera" value="down_camera"/>
   </include>
-  
+
   <node pkg="uf_common" type="param_saver" name="param_saver"/>
 </launch>

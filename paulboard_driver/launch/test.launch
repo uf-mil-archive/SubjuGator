@@ -1,12 +1,12 @@
 <launch>
   <node pkg="paulboard_driver" type="paulboard_driver" name="paulboard_driver">
-    <param name="port" type="string" value="/dev/ttyUSB0"/>
+    <param name="port" type="string" value="/dev/ttyHydrophones"/>
     <param name="sample_rate" type="double" value="300000"/>
     <param name="frame" type="string" value="/hydrophones"/>
     <param name="permute" type="string" value="1 2 4 3"/>
   </node>
   <node pkg="tf" type="static_transform_publisher" name="hyd_broadcaster"
-    args="0 0 0 3.141 0 1.571 /map /hydrophones 100" />
+    args="0 0 0 1.571 0 0 base_link hydrophones 100" />
   <node pkg="hydrophones" type="hydrophones" name="hydrophones">
     <param name="dist_h" type="double" value="2.286000e-02"/>
     <param name="dist_h4" type="double" value="2.286000e-02"/>

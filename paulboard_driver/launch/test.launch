@@ -13,5 +13,4 @@
     <param name="v_sound" type="double" value="1500"/>
   </node>
   <node pkg="hydrophones" type="ping_plotter" name="ping_plotter"/>
-  <node pkg="hydrophones" type="ping_logger" name="ping_logger"/>
 </launch>

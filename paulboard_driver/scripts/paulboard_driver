@@ -24,11 +24,15 @@ class Node(object):
         self.buf = ""
         self.last_packet_num = None
 
+    def run_command(self, cmd):
+        self.ser.write(cmd)
+        response = self.ser.read(128)
+        if 'OK' not in response:
+            raise RuntimeError('Invalid response to command "%s"\n got: "%s"' % (cmd, response))
+
     def run(self):
-        self.ser.write('samplerate set\r')
-        self.ser.write('%d\r' % (self.sample_rate/1e3))
-        self.ser.write('thresh set\r')
-        self.ser.write('%d\r' % self.thresh)
+        self.run_command('samplerate set\r%d\r' % (self.sample_rate))
+        self.run_command('thresh set\r%d\r' % (self.thresh))
         self.ser.write('go\r')
         rospy.sleep(.5)
         self.ser.flushInput()
@@ -111,6 +115,7 @@ def bootload_board(port):
     with serial.Serial(port, 115200, timeout=1) as ser:
         with open(path, 'rb') as file:
             ais_bootloader.boot(ser, file)
+    rospy.sleep(.1) # Give program time to start
 
 if __name__ == '__main__':
     rospy.init_node('paulboard_driver')

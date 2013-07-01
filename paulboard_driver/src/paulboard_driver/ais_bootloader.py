@@ -112,6 +112,21 @@ def boot(ser, file):
             logging.debug('JUMPLOAD to 0x%x' % addr)
             ser.write(word2str(addr))
             break
+        elif op == OP_CRCEN:
+            logging.debug('Enabled CRC')
+        elif op == OP_CRCDIS:
+            logging.debug('Disabled CRC')
+        elif op == OP_CRCREQ:
+            calc_crc = read_word_timeout(ser)
+            real_crc = str2word(file.read(4))
+            seek = str2word(file.read(4))
+            if seek > 0x7FFFFFFF:
+                seek = (seek-1) - 0xFFFFFFFF
+            if real_crc == calc_crc:
+                logging.debug('CRC passed')
+            else:
+                logging.debug('CRC failed')
+                file.seek(seek, 1)
         else:
             raise Exception('Unknown opcode 0x%x' % op)
 

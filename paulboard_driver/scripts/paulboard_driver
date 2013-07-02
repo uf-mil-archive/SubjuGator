@@ -15,7 +15,7 @@ from hydrophones.msg import Ping
 class Node(object):
     def __init__(self, port):
         self.sample_rate = rospy.get_param('~sample_rate', 30e3)
-        self.thresh = rospy.get_param('~thresh', 100)
+        self.thresh = rospy.get_param('~thresh', 500)
         self.frame = rospy.get_param('~frame', '/hydrophones')
         permute_str = rospy.get_param('~permute', '1 2 3 4')
         self.permute = [int(v)-1 for v in permute_str.split(' ')]

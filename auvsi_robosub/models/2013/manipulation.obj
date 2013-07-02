@@ -1,0 +1,21 @@
+# Blender v2.62 (sub 0) OBJ File: 'manipulation.blend'
+# www.blender.org
+mtllib manipulation.mtl
+o 20_color_0_0.5_1_Plane.002
+v -0.002540 0.914400 -0.609600
+v -0.002540 -0.914400 -0.609600
+v -0.002540 -0.914400 0.609600
+v -0.002540 0.914400 0.609600
+usemtl Material.002
+s off
+f 1 4 3
+f 1 3 2
+o 10_color_1_1_0_Plane
+v -0.000000 0.609600 -0.304800
+v -0.000000 -0.609600 -0.304800
+v 0.000000 -0.609600 0.304800
+v 0.000000 0.609600 0.304800
+usemtl Material.001
+s off
+f 5 8 7
+f 5 7 6

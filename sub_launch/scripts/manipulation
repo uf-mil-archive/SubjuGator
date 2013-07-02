@@ -1,0 +1,44 @@
+#!/usr/bin/env python
+
+import argparse
+import math
+import time
+
+import numpy
+
+import roslib; roslib.load_manifest('sub_launch')
+import rospy
+import actionlib
+from std_msgs.msg import Header
+from geometry_msgs.msg import Pose, Quaternion, Point, Vector3
+from nav_msgs.msg import Odometry
+from tf import transformations
+
+from uf_common import orientation_helpers
+from uf_common.msg import MoveToAction, MoveToGoal, PoseTwist
+from uf_common.orientation_helpers import xyz_array, xyzw_array
+from object_finder.msg import FindAction, FindGoal, TargetDesc
+
+
+rospy.init_node('manipulation')
+
+
+visionclient = actionlib.SimpleActionClient('find_forward', FindAction)
+print 'Waiting for server...'
+visionclient.wait_for_server()
+
+target = TargetDesc()
+target.type = TargetDesc.TYPE_OBJECT
+target.object_filename = roslib.packages.resource_file('auvsi_robosub', 'models', '2013/manipulation.obj')
+target.prior_distribution.pose.orientation = Quaternion(0, 0, -.68, .73)
+target.prior_distribution.covariance[5+6*5] = 0
+target.disallow_yawing = True
+target.min_dist = 1
+target.max_dist = 10
+
+goal = FindGoal()
+goal.header.frame_id = '/map'
+goal.targetdescs = [target]
+visionclient.send_goal(goal)
+
+rospy.spin()

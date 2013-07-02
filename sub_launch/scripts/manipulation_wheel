@@ -1,0 +1,56 @@
+#!/usr/bin/env python
+
+import argparse
+import math
+import time
+
+import numpy
+
+import roslib; roslib.load_manifest('sub_launch')
+import rospy
+import actionlib
+from std_msgs.msg import Header
+from geometry_msgs.msg import Pose, Quaternion, Point, Vector3
+from nav_msgs.msg import Odometry
+from tf import transformations
+
+from uf_common import orientation_helpers
+from uf_common.msg import MoveToAction, MoveToGoal, PoseTwist
+from uf_common.orientation_helpers import xyz_array, xyzw_array, PoseEditor
+from object_finder.msg import FindAction, FindGoal, TargetDesc
+
+
+rospy.init_node('manipulation_wheel')
+
+import tf
+tf_listener = tf.TransformListener()
+
+tf_listener.waitForTransform('/map', '/base_link', rospy.Time(0), rospy.Time(10000))
+p, q = tf_listener.lookupTransform('/map', '/base_link', rospy.Time(0))
+print q
+pose = PoseEditor('/map', p, q)
+
+visionclient = actionlib.SimpleActionClient('find_forward', FindAction)
+print 'Waiting for server...'
+visionclient.wait_for_server()
+
+target = TargetDesc()
+target.type = TargetDesc.TYPE_OBJECT
+target.object_filename = roslib.packages.resource_file('auvsi_robosub', 'models', '2013/manipulation_wheel.obj')
+target.prior_distribution.pose.orientation = Quaternion(*pose.turn_left_deg(180).orientation)
+
+cov = numpy.zeros((6, 6))
+a = numpy.array([pose.forward_vector]).T * 100
+cov[3:, 3:] += a.dot(a.T)
+target.prior_distribution.covariance = cov.flatten()
+target.disallow_yawing = True
+target.allow_rolling = True
+target.min_dist = .5
+target.max_dist = 3
+
+goal = FindGoal()
+goal.header.frame_id = '/map'
+goal.targetdescs = [target]
+visionclient.send_goal(goal)
+
+rospy.spin()

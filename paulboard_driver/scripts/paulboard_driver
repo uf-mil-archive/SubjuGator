@@ -44,7 +44,7 @@ class Node(object):
 
         buf = ""
         while not rospy.is_shutdown():
-            got = self.ser.read(1024)
+            got = self.ser.read(10240)
             if len(got) > 0:
                 buf += got
             elif len(buf) > 0:

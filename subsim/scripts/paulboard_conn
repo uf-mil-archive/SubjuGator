@@ -1,0 +1,2 @@
+#!/bin/sh
+exec socat -d -d tcp:127.0.0.1:10070 pty,link=/tmp/paulboard,raw,echo=0

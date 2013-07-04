@@ -11,6 +11,7 @@
 
   <depend package="sub_launch"/>
   <depend package="sim"/>
+  <depend package="hydrophones"/>
 </package>
 
 

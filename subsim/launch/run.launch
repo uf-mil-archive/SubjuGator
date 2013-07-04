@@ -1,12 +1,15 @@
 <launch>
-  <include file="$(find sub_launch)/launch/common.xml"/>
-
-  <param name="/indirect_kalman_6dof/f_imu" value="30"/>
-  <param name="/indirect_kalman_6dof/f_kalman" value="30"/>
-
   <node pkg="subsim" type="imu_conn" name="imu_conn" respawn="true"/>
   <node pkg="subsim" type="depth_conn" name="depth_conn" respawn="true"/>
   <node pkg="subsim" type="dvl_conn" name="dvl_conn" respawn="true"/>
+  <node pkg="subsim" type="paulboard_conn" name="paulboard_conn" respawn="true"/>
+
+  <include file="$(find sub_launch)/launch/common.xml"/>
+  <param name="/paulboard_driver/port" value="/tmp/paulboard"/>
+  
+  <param name="/indirect_kalman_6dof/f_imu" value="30"/>
+  <param name="/indirect_kalman_6dof/f_kalman" value="30"/>
+  <param name="/paulboard_driver/permute" value="1 2 3 4"/>
 
   <node pkg="merge_driver" type="merge_driver" name="merge_driver"><rosparam>{address: 127.0.0.1, port: 10060, local_address: 21, remote_address: 60}</rosparam></node>
 

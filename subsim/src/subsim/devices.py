@@ -9,6 +9,8 @@ from twisted.internet import protocol, task
 from twisted.python import log
 
 from sim import datachunker
+from sim.vector import v
+import hydrophones.util
 
 perfect_round = lambda x: (-1 if x < 0 else 1)*int(abs(x) + random.random())
 
@@ -282,7 +284,7 @@ class DVLProtocol(protocol.Protocol):
             struct.pack('<HBB', header_length + sum(map(len, msgs)) + 2, random.randrange(2**8), len(msgs)),
             ''.join(struct.pack('<H', header_length + sum(map(len, msgs[:i]))) for i in xrange(len(msgs))),
             ''.join(msgs),
-            struct.pack('<H', random.randrange(2**16)),
+            struct.pack('<H', random.randrange(2**16))
         ])
         data_with_checksum = data + struct.pack('<H', sum(map(ord, data)))
         self.transport.write(data_with_checksum)
@@ -303,9 +305,6 @@ class DVLProtocol(protocol.Protocol):
     def connectionLost(self, reason):
         self.loop.stop()
         print 'dvl connection lost'
-
-class HydrophoneProtocol(protocol.Protocol):
-    pass
 
 class MergeProtocol(EmbeddedProtocol):
     local_address = 21
@@ -369,3 +368,53 @@ class HeartbeatProtocol(EmbeddedProtocol):
     def connectionLost(self, reason):
         print 'heartbeat connection lost'
 
+class PaulBoardProtocol(EmbeddedProtocol):
+    def __init__(self, listener_set, 
+                 sample_rate=300e3, sample_count=1024, dist_h=2.286e-2, dist_h4=2.286e-2):
+        self.listener_set = listener_set
+        self.packet_num = 0
+        self.sample_rate = sample_rate
+        self.sample_count = sample_count
+        self.dist_h = dist_h
+        self.dist_h4 = dist_h4
+        self.go = False
+        print 'hi'
+    
+    def connectionMade(self):
+        print 'paulboard connection made'
+        self.listener_set.add(self)
+
+    def connectionLost(self, reason):
+        print 'paulboard connection lost'
+        self.listener_set.remove(self)
+
+    def dataReceived(self, data):
+        if 'go' in data:
+            print 'go'
+            self.go = True
+        elif data.endswith('\r'):
+            print 'stop'
+            self.go = False
+            self.transport.write('\r\nOK\r\n> ')
+
+    def sendPing(self, body_pos, freq):
+        if not self.go:
+            return
+        hyd_poses = [v(0, 0, 0),
+                     v(0, self.dist_h, 0),
+                     v(0, -self.dist_h, 0),
+                     v(-self.dist_h4, 0, 0)]
+        dists = [(hyd_pos - body_pos).mag() for hyd_pos in hyd_poses]
+        delays = [0] + [(dist - dists[0]) / 1500 * self.sample_rate for dist in dists[1:]]
+        
+        samples = hydrophones.util.make_ping(delays, 
+                                             {'freq': freq, 
+                                              'sample_rate': self.sample_rate,
+                                              'count': self.sample_count})
+        data = ''.join([
+                struct.pack('<HHHH', 0x1234, self.packet_num, self.sample_rate//1000, self.sample_count),
+                struct.pack('<' + 'H'*4*self.sample_count, *hydrophones.util.samples_to_list(samples))])
+        checksum = sum(map(ord, data))
+        data += struct.pack('<HH', checksum & 0xFFFF, 0x4321)
+        self.transport.write(data)
+        self.packet_num += 1

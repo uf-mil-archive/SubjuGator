@@ -32,6 +32,11 @@ def send_imu_update(**update):
     for imu_listener in imu_listeners:
         imu_listener.sendUpdate(**update)
 
+ping_listeners = set()
+
+def send_ping(*arg, **kwarg):
+    for ping_listener in ping_listeners:
+        ping_listener.sendPing(*arg, **kwarg)
 
 clip = lambda x, (low, high): min(max(x, low), high)
 
@@ -259,7 +264,7 @@ reactor.listenUDP(10060, devices.MergeProtocol(lambda: killed))
 reactor.listenTCP(10061, util.AutoServerFactory(devices.ActuatorProtocol))
 reactor.listenTCP(10255, util.AutoServerFactory(devices.HeartbeatProtocol))
 
-
+reactor.listenTCP(10070, util.AutoServerFactory(devices.PaulBoardProtocol, ping_listeners))
 
 class Sub(object):
     is_base_link = True
@@ -356,6 +361,38 @@ def Buoys(center):
         j += 1
         w.objs.append(Buoy(center + [1-.5*j,.5*j-1,0] + [random.gauss(0, .2) for i in xrange(3)], color))
 
+class Pinger(object):
+    def __init__(self, pos, freq, phase):
+        self.pos = pos
+        self.freq = freq
+        self.phase = phase        
+        self.time = 0
+        self.pinged = False
+    
+    def step(self, dt):
+        self.time += dt
+        if self.time > 1:
+            self.time -= 1
+            self.pinged = False
+        if self.time >= self.phase and not self.pinged:
+            self.send_ping()
+            self.pinged = True
+
+    def send_ping(self):
+        self.blink_time = 0
+        body_pos = body.getPosRelPoint(self.pos)
+        send_ping(body_pos, self.freq)
+
+    def draw(self):
+        q = gluNewQuadric()
+        with threed.GLMatrix:
+            glTranslate(*self.pos)
+            if 0 < self.time - self.phase < .1:
+                glColor3f(.2, 1, .2)
+            else:
+                glColor3f(.2, .2, .2)
+            gluSphere(q, .1, 30, 15)
+        
 w = threed.World()
 w.objs.append(pool_mesh)
 sub_model = Sub(body, lambda: killed)
@@ -396,16 +433,17 @@ w.objs.append(threed.Capsules(world, space, v(3, 0, -3.5), (1, 0, 0), [(m_from_i
     (v(0, +6, 3), v(0, +6, -3)),
 ]], m_from_in*.875/2))
 
-
 '''w.objs.append(threed.Capsules(world, space, v(7, 7, -2), (1, 0, 0), [(m_from_in*s, m_from_in*e) for s, e in [
     (v(0, -5*12, -2.5*12), v(0, -5*12, 2.5*12)),
     (v(0, -5*12, 2.5*12), v(0, 5*12, 2.5*12)),
     (v(0, 5*12, -2.5*12), v(0, 5*12, 2.5*12)),
 ]], m_from_in*3/2, fixed=True, orientation=vector.axisangle_to_quat(v(0, 0, 1), math.degrees(-45))))'''
 
-
 path_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2012_uf_mock/path.obj')).rotate(vector.axisangle_to_quat(v(0, 0, 1), math.degrees(-45))).translate((6, 6, -3.9))
 w.objs.append(path_mesh)
+
+w.objs.append(Pinger((3.3, 0, -3.5), 25e3, .4))
+w.objs.append(Pinger((-3.3, 4, -3.5), 27e3, 0))
 
 pygame.display.set_icon(pygame.image.load(roslib.packages.resource_file('subsim', 'icons', 'subsim.png')))
 pygame.display.set_caption("subsim")

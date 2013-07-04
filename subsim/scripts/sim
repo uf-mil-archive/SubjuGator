@@ -406,10 +406,31 @@ w.objs.append(shooter_mesh)
 shooter_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2013/shooter_with_holes.obj')).translate((-6, 4, -1.5))
 w.objs.append(shooter_mesh)
 
-mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2013_uf_mock/bin.obj'))
-for x in xrange(2):
-    for y in xrange(2):
-        w.objs.append(mesh.translate((-4-y*.75, 0-x/2, -3.9)))
+class Bin(object):
+    def __init__(self, pos, tex):
+        self.pos = pos
+        self.tex = tex
+    def draw(self):
+        with threed.GLMatrix:
+            glTranslate(*self.pos)
+            glScale(0.3048, 0.3048, 0.3048) # work in feet
+            glBegin(GL_QUADS)
+            glColor3f(1, 1, 1)
+            glVertex3f(+1.5, +1, 0)
+            glVertex3f(-1.5, +1, 0)
+            glVertex3f(-1.5, -1, 0)
+            glVertex3f(+1.5, -1, 0)
+            glEnd()
+            
+            with self.tex:
+                glBegin(GL_QUADS)
+                glColor3f(1, 1, 1)
+                glTexCoord2f(0, 0);glVertex3f(+1, +0.5, .1/12)
+                glTexCoord2f(1, 0);glVertex3f(-1, +0.5, .1/12)
+                glTexCoord2f(1, 1);glVertex3f(-1, -0.5, .1/12)
+                glTexCoord2f(0, 1);glVertex3f(+1, -0.5, .1/12)
+                glEnd()
+
 
 path_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2012_uf_mock/path.obj')).translate((0, 0, -3.9))
 w.objs.append(path_mesh)
@@ -458,7 +479,7 @@ c1 = threed.Camera(w, 'forward_camera', set_forward_view, body, fovy=31)
 def set_down_view():
     glRotate(90, 0, -1, 0)
     threed.rotate_to_body(body, inv=True)
-c2 = threed.Camera(w, 'down_camera', set_down_view, body, fovy=31)
+c2 = threed.Camera(w, 'down_camera', set_down_view, body, fovy=61)
 
 def _():
     try:
@@ -470,6 +491,15 @@ def _():
         reactor.stop()
 reactor.callWhenRunning(task.LoopingCall(_).start, 1/24)
 
+
+
+names = '10 16 37 98'.split(' ')
+random.shuffle(names)
+for x in xrange(2):
+    for y in xrange(2):
+        w.objs.append(Bin((-4-y, 0-x/1.5, -3.9), threed.Texture(pygame.image.load(
+            roslib.packages.resource_file('legacy_vision', 'data', 'bins/%s.png' % (names[x*2+y],))
+        ))))
 
 reactor.callWhenRunning(world_tick)
 

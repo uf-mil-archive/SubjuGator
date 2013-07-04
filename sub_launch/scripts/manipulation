@@ -27,11 +27,17 @@ visionclient = actionlib.SimpleActionClient('find_forward', FindAction)
 print 'Waiting for server...'
 visionclient.wait_for_server()
 
+
+current = orientation_helpers.PoseEditor.from_PoseTwistStamped_topic('/trajectory')
+print '    ...Got it'
+
+
+
+
 target = TargetDesc()
 target.type = TargetDesc.TYPE_OBJECT
 target.object_filename = roslib.packages.resource_file('auvsi_robosub', 'models', '2013/manipulation.obj')
-target.prior_distribution.pose.orientation = Quaternion(0, 0, -.68, .73)
-target.prior_distribution.covariance[5+6*5] = 0
+target.prior_distribution.pose.orientation = Quaternion(*current.orientation)
 target.disallow_yawing = True
 target.min_dist = 1
 target.max_dist = 10
@@ -40,5 +46,5 @@ goal = FindGoal()
 goal.header.frame_id = '/map'
 goal.targetdescs = [target]
 visionclient.send_goal(goal)
-
+print 'success'
 rospy.spin()

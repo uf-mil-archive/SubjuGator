@@ -46,7 +46,7 @@ target.prior_distribution.covariance = cov.flatten()
 target.disallow_yawing = True
 target.allow_rolling = True
 target.min_dist = .5
-target.max_dist = 3
+target.max_dist = 1
 
 goal = FindGoal()
 goal.header.frame_id = '/map'

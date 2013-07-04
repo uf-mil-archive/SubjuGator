@@ -105,8 +105,8 @@
 
   <include file="$(find sub_launch)/launch/leaksensor.launch"/>
 
-  <include file="$(find sub_launch)/launch/cameras_pgr.launch"/>
+  <include file="$(find sub_launch)/launch/cameras.launch"/>
 
-  <!-- <node pkg="rosbag" type="record" name="swim_recorder" args="-a -x '.*camera.*' -o /tmp/swim"/> -->
+  <node pkg="rosbag" type="record" name="swim_recorder" args="-a -x '.*camera.*' -o /tmp/swim"/>
 
 </launch>

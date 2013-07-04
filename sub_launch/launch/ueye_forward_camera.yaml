@@ -1,0 +1,13 @@
+auto_exposure: true
+auto_gain: false
+exposure_time: 33.32491228070175
+force_streaming: false
+frame_rate: 29.993433016771068
+gain: 100
+gain_boost: false
+hardware_gamma: true
+pixel_clock: 85
+rotate180: true
+trigger: 0
+white_balance: 0
+zoom: 2

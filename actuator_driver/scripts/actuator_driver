@@ -34,11 +34,11 @@ class ActuatorDevice(object):
     def read(self):
         cmd = self._read()
         if 0x00 <= cmd < 0x04:
-            return 'switchvalues', [bool(cmd&2**i) for i in xrange(self.SWITCHES)]
+            return 'switch_values', [bool(cmd&2**i) for i in xrange(self.SWITCHES)]
         elif cmd == 0x40:
             return 'ping',
         elif 0x80 <= cmd < 0xc0:
-            return 'setvalves', [bool(cmd&2**i) for i in xrange(self.VALVES)]
+            return 'set_valves', [bool(cmd&2**i) for i in xrange(self.VALVES)]
         else:
             print 'unknown cmd', cmd
             return 'unknown', cmd
@@ -47,48 +47,48 @@ class ActuatorDevice(object):
         self._serial.write(chr(val) + chr(val ^ 0xff))
     def send_ping(self):
         self._send_packet(0x40)
-    def send_setvalves(self, valves):
+    def send_set_valves(self, valves):
         assert len(valves) == self.VALVES
         self._send_packet(0x80 + sum(2**i for i, valve in enumerate(valves) if valve))
-    def send_readswitches(self):
+    def send_read_switches(self):
         self._send_packet(0x00)
 
 
 ad = ActuatorDevice(rospy.get_param('~port'))
 
 valves = [False]*ActuatorDevice.VALVES
-ad.send_setvalves(valves)
+ad.send_set_valves(valves)
 valves_lock = threading.Lock()
 
-def pulsevalve(req):
+def pulse_valve(req):
     if req.valve >= ActuatorDevice.VALVES:
         return None # service error condition
     
     with valves_lock:
         valves[:] = [True if i == req.valve else valve for i, valve in enumerate(valves)]
-        ad.send_setvalves(valves)
+        ad.send_set_valves(valves)
     rospy.sleep(req.duration)
     with valves_lock:
         valves[:] = [False if i == req.valve else valve for i, valve in enumerate(valves)]
-        ad.send_setvalves(valves)
+        ad.send_set_valves(valves)
     return PulseValveResponse()
-rospy.Service('~pulsevalve', PulseValve, pulsevalve)
+rospy.Service('~pulse_valve', PulseValve, pulse_valve)
 
-def setvalve(req):
+def set_valve(req):
     if req.valve >= ActuatorDevice.VALVES:
         return None # service error condition
     
     with valves_lock:
         valves[:] = [True if i == req.valve else valve for i, valve in enumerate(valves)]
-        ad.send_setvalves(valves)
+        ad.send_set_valves(valves)
     return SetValveResponse()
-rospy.Service('~setvalve', SetValve, setvalve)
+rospy.Service('~set_valve', SetValve, set_valve)
 
-rospy.Timer(rospy.Duration(0.01), lambda timerevent: ad.send_readswitches())
+rospy.Timer(rospy.Duration(0.01), lambda timerevent: ad.send_read_switches())
 pub = rospy.Publisher('~switches', Switches)
 while not rospy.is_shutdown():
     packet = ad.read()
-    if packet[0] == 'switchvalues':
+    if packet[0] == 'switch_values':
         pub.publish(Switches(
             header=Header(
                 stamp=rospy.Time.now(),

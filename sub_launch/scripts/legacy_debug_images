@@ -1,0 +1,5 @@
+#!/bin/sh
+
+rosrun image_view image_view image:=/$1_camera_legacy_vision/dbg/0 &
+rosrun image_view image_view image:=/$1_camera_legacy_vision/res/0 &
+

@@ -8,7 +8,7 @@
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/auvsi_robosub</url>
-
+  <depend package="uf_smach"/>
 </package>
 
 

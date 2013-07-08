@@ -1,5 +1,6 @@
 <launch>
-
+  <node pkg="kill_handling" type="kill_master" name="kill_master"/>
+  
   <node pkg="nodelet" type="nodelet" name="imu" args="standalone adis16400_imu/nodelet">
     <param name="port" type="string" value="/tmp/imu"/>
     <param name="frame_id" type="string" value="/imu"/>

@@ -21,7 +21,7 @@ remote_address = rospy.get_param('~remote_address')
 
 from kill_handling.broadcaster import KillBroadcaster
 
-kill_br = KillBroadcaster(id=rospy.get_name(), lifetime=rospy.Duration(.3), description='Magnetic kill switch')
+kill_br = KillBroadcaster(id=rospy.get_name(), description='Magnetic kill switch')
 current16_pub = rospy.Publisher('/current16', Float64)
 voltage16_pub = rospy.Publisher('/voltage16', Float64)
 current32_pub = rospy.Publisher('/current32', Float64)

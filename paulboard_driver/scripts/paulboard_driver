@@ -15,7 +15,7 @@ from hydrophones import util
 
 class Node(object):
     def __init__(self, ser):
-        self.sample_rate = rospy.get_param('~sample_rate', 30e3)
+        self.sample_rate = rospy.get_param('~sample_rate', 300e3)
         self.thresh = rospy.get_param('~thresh', 500)
         self.frame = rospy.get_param('~frame', '/hydrophones')
         permute_str = rospy.get_param('~permute', '1 2 3 4')
@@ -28,7 +28,7 @@ class Node(object):
         self.ser.baudrate = 1152000
 
     def run_command(self, cmd):
-        self.ser.timeout = 1
+        self.ser.timeout = .2
         self.ser.write(cmd)
         response = self.ser.read(128)
         if 'OK' not in response:
@@ -38,10 +38,10 @@ class Node(object):
         self.run_command('samplerate set\r%d\r' % (self.sample_rate))
         self.run_command('thresh set\r%d\r' % (self.thresh))
         self.ser.write('go\r')
-        rospy.sleep(.5)
         self.ser.read(99999)
         self.ser.timeout = .1
-
+        rospy.loginfo('Paulboard running')
+        
         buf = ""
         while not rospy.is_shutdown():
             got = self.ser.read(10240)
@@ -107,9 +107,8 @@ def word16(str):
     return ord(str[0]) + (ord(str[1]) << 8)
 
 def check_board_bootloaded(ser):
-    ser.timeout = 1
+    ser.timeout = .5
     ser.write('\r')
-    rospy.sleep(.5)
     got = ser.read(99999)
     if got.endswith('> '):
         return True
@@ -121,7 +120,7 @@ def bootload_board(ser):
     ser.baudrate = 115200
     with open(path, 'rb') as file:
         ais_bootloader.boot(ser, file)
-    rospy.sleep(.1) # Give program time to start
+    rospy.sleep(.5) # Give program time to start
 
 if __name__ == '__main__':
     rospy.init_node('paulboard_driver')

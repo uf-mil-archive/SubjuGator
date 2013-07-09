@@ -79,7 +79,7 @@ def set_valve(req):
         return None # service error condition
     
     with valves_lock:
-        valves[:] = [True if i == req.valve else valve for i, valve in enumerate(valves)]
+        valves[:] = [req.opened if i == req.valve else valve for i, valve in enumerate(valves)]
         ad.send_set_valves(valves)
     return SetValveResponse()
 rospy.Service('~set_valve', SetValve, set_valve)

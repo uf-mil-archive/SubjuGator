@@ -13,10 +13,10 @@
     <param name="frame_id" type="string" value="/imu"/>
     <rosparam>
 scale:
-- [1.026950065441838, 0.0011383025562083826, -0.017298806934546537]
-- [0.001138302556208383, 0.9752327198804839, 0.0029184860331626767]
-- [-0.01729880693454659, 0.0029184860331626862, 0.9987885236089369]
-shift: [1.6940875638398416e-05, -4.495338954744077e-06, 5.7034766738972114e-05]
+- [1.011544534216164, -0.002298650588874438, -0.023595269702739233]
+- [-0.002298650588874462, 0.9883044420088594, 0.008504598603453175]
+- [-0.023595269702739223, 0.008504598603453244, 1.0009140596950137]
+shift: [1.6778983475150477e-05, -5.060432982283784e-06, 5.634942330185231e-05]
     </rosparam>
   </node>
   <node pkg="tf" type="static_transform_publisher" name="imu_broadcaster"
@@ -43,7 +43,7 @@ shift: [1.6940875638398416e-05, -4.495338954744077e-06, 5.7034766738972114e-05]
     <param name="permute" type="string" value="2 3 1 4"/>
   </node>
   <node pkg="tf" type="static_transform_publisher" name="hyd_broadcaster"
-    args="0 0 0 1.571 0 0 base_link hydrophones 100" />
+    args="-0.4 0 0 1.571 0 0 base_link hydrophones 100" />
   <node pkg="hydrophones" type="hydrophones" name="hydrophones">
     <param name="dist_h" type="double" value="2.286000e-02"/>
     <param name="dist_h4" type="double" value="2.286000e-02"/>

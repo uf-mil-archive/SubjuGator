@@ -5,19 +5,24 @@ import roslib; roslib.load_manifest('auvsi_robosub')
 import rospy
 
 import auvsi_robosub.missions
-import auvsi_robosub.missionconfigs
 import uf_smach.util
 from uf_smach import missions
+import smach_ros
 
 def main():
     rospy.init_node('run_missions')
+    mission_names = sys.argv[1:]
+    entries = [missions.PlanEntry(name, 120, None, None) for name in mission_names]
+    shared = uf_smach.util.StateSharedHandles()    
 
-    shared = uf_smach.util.StateSharedHandles()
+    planset = missions.PlanSet(['main'])    
+    planset.get_plan('main').extend(entries)
+    sm = planset.make_sm(shared)
+
+    sis = smach_ros.IntrospectionServer('run_missions', sm, '/SM_ROOT')
+    sis.start()
+    sm.execute()    
+    rospy.spin()
     
-    names = sys.argv[1:]
-    plan = missions.make_plan_state_machine(shared, names)
-
-    missions.run_plans({'main': plan})
-
 if __name__ == '__main__':
     main()

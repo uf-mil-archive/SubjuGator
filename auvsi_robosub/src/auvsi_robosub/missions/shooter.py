@@ -14,13 +14,13 @@ import rospy
 import smach
 import smach_ros
 
-DIST1 = 3 # box-centering distance
-DIST2 = 1.5 # hexagon-searching distance
+DIST1 = 2.5 # box-centering distance
+DIST2 = 1 # hexagon-searching distance
 DIST3 = 0.15 # shooting distance
 
 HEXAGON = 'small'
 #HEXAGON = 'large'
-BOX = 'green'
+BOX = 'blue'
 
 def make_shooter(shared):
     traj = PoseEditor.from_PoseTwistStamped_topic('/trajectory')
@@ -30,8 +30,8 @@ def make_shooter(shared):
     shooter_desc.object_filename = roslib.packages.resource_file('auvsi_robosub', 'models', '2013/shooter.obj')
     shooter_desc.prior_distribution.pose.orientation = Quaternion(*traj.turn_left_deg(180).orientation)
     shooter_desc.disallow_yawing = True
-    shooter_desc.min_dist = 4
-    shooter_desc.max_dist = 8
+    shooter_desc.min_dist = DIST1-1
+    shooter_desc.max_dist = DIST1+3
     
     
     target = TargetDesc()
@@ -69,8 +69,8 @@ def make_shooter(shared):
         smach.Sequence.add('APPROACH_HEXAGON',
                            ApproachObjectState(shared, 'find_forward',
                                                'forward_camera', DIST2))
-        smach.Sequence.add('OPEN_LOOP_FORWARD2', WaypointState(shared, lambda cur: cur.forward(DIST2-DIST3).relative([0, -.06, .3]))) # TODO get adjustments from sub
-#        smach.Sequence.add('SHOOT', ServiceState('/actuator_driver/pulse_valve', PulseValve, 5, rospy.Duration(0.3)))
+        smach.Sequence.add('OPEN_LOOP_FORWARD2', WaypointState(shared, lambda cur: cur.forward(DIST2-DIST3).relative([0, .12, .18]))) # TODO get adjustments from sub
+        smach.Sequence.add('SHOOT', ServiceState('/actuator_driver/pulse_valve', PulseValve, 3, rospy.Duration(0.3)))
         
     return sm
                            

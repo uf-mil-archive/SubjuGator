@@ -1,8 +1,8 @@
 import roslib; roslib.load_manifest('uf_smach')
-from uf_smach.common_states import WaypointState, VelocityState, ServiceState, SleepState
+from auvsi_robosub import subjugator_states
+from uf_smach.common_states import WaypointState, VelocityState, SleepState
 from uf_smach import legacy_vision_states, missions
 from uf_smach.util import StateSharedHandles, left_orientation_selector, right_orientation_selector
-from actuator_driver.srv import SetValve
 
 import numpy
 import rospy
@@ -24,17 +24,13 @@ def make_pizza(shared):
                            legacy_vision_states.CenterApproachObjectState(shared, 'find2_down_camera', desired_scale=200))
         smach.Sequence.add('ALIGN_PIZZA',
                            legacy_vision_states.AlignObjectState(shared, 'find2_down_camera'))
-#        smach.Sequence.add('OPEN',
-#                           ServiceState('/actuator_driver/set_valve', SetValve, 1, False))
-#        smach.Sequence.add('OPEN2',
-#                           ServiceState('/actuator_driver/set_valve', SetValve, 2, True))
+        smach.Sequence.add('OPEN_GRABBER',
+                           subjugator_states.OpenGrabberState())
         smach.Sequence.add('DOWN', WaypointState(shared, lambda cur: cur.down(1.2).backward(.2)))
         smach.Sequence.add('WAIT', SleepState(2))
-#        smach.Sequence.add('CLOSE',
-#                           ServiceState('/actuator_driver/set_valve', SetValve, 2, False))
-#        smach.Sequence.add('CLOSE2',
-#                           ServiceState('/actuator_driver/set_valve', SetValve, 1, True))
-        smach.Sequence.add('UP', WaypointState(shared, lambda cur: cur.depth(.4)))
+        smach.Sequence.add('CLOSE_GRABBER',
+                           subjugator_states.CloseGrabberState(),
+                           transitions={'empty': 'failed'})
     return sm
 
 missions.register_factory('pizza', make_pizza) # Mmmm..

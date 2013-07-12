@@ -1,0 +1,33 @@
+#!/usr/bin/python
+
+import threading
+
+import serial
+
+import roslib
+roslib.load_manifest('actuator_driver')
+import rospy
+from std_msgs.msg import Header
+
+from actuator_driver.msg import Switches
+from actuator_driver.srv import PulseValve, PulseValveResponse, SetValve, SetValveResponse
+
+rospy.init_node('actuator_driver_dummy')
+
+def pulse_valve(req):
+    rospy.loginfo('Pulse valve %d' % (req.valve))
+    return PulseValveResponse()
+rospy.Service('~pulse_valve', PulseValve, pulse_valve)
+
+def set_valve(req):
+    rospy.loginfo('%s valve %d' % ('Opened' if req.opened else 'Closed', req.valve))
+    return SetValveResponse()
+rospy.Service('~set_valve', SetValve, set_valve)
+
+pub = rospy.Publisher('~switches', Switches)
+while not rospy.is_shutdown():
+    rospy.sleep(.1)
+    pub.publish(Switches(
+            header=Header(
+                stamp=rospy.Time.now()),
+            pressed=[False, False]))

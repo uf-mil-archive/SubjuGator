@@ -1,4 +1,5 @@
 import roslib; roslib.load_manifest('uf_smach')
+from auvsi_robosub import subjugator_states
 from uf_smach.common_states import WaypointState, VelocityState
 from uf_smach import common_states, missions
 from uf_smach.object_finder_states import WaitForObjectsState, ApproachObjectState
@@ -64,6 +65,8 @@ def make_manipulation(shared):
         smach.Sequence.add('APPROACH_WHEEL',
                            ApproachObjectState(shared, 'find_forward',
                                                'forward_camera', DIST2))
+        smach.Sequence.add('EXTEND',
+                           subjugator_states.GasPoweredStickState(True))
         smach.Sequence.add('OPEN_LOOP_FORWARD2', WaypointState(shared, lambda cur: cur.forward(DIST2-DIST3)))
         smach.Sequence.add('TURN',
                            common_states.WaypointSeriesState(shared, [
@@ -72,6 +75,8 @@ def make_manipulation(shared):
             lambda cur: cur.down(.1),
             lambda cur: cur.right(.1),
         ]))
+        smach.Sequence.add('RETRACT',
+                           subjugator_states.GasPoweredStickState(False))
     return sm
 
 missions.register_factory('manipulation', make_manipulation)

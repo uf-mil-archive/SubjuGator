@@ -1,10 +1,10 @@
 import sys
 
 import roslib; roslib.load_manifest('uf_smach')
-from uf_smach.common_states import WaypointState, VelocityState, ServiceState
+from auvsi_robosub import subjugator_states
+from uf_smach.common_states import WaypointState, VelocityState
 from uf_smach import legacy_vision_states, missions
 from uf_smach.util import StateSharedHandles, left_orientation_selector, right_orientation_selector
-from actuator_driver.srv import PulseValve
 
 import numpy
 import rospy
@@ -54,7 +54,8 @@ def make_bins(shared):
             smach.Sequence.add(str(i)+'_CENTER_SINGLE3', legacy_vision_states.CenterObjectState(shared, 'find2_down_camera', selector=select_image_text_or_most_central(bin_string)))
             smach.Sequence.add(str(i)+'_DEPTH3', WaypointState(shared, lambda cur: cur.depth(2.25)))
             
-            smach.Sequence.add(str(i)+'_DROP', ServiceState('/actuator_driver/pulse_valve', PulseValve, 0, rospy.Duration(0.5)))
+            smach.Sequence.add(str(i)+'_DROP',
+                               subjugator_states.DropBallState())
 
     return sm
 

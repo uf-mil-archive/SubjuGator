@@ -1,4 +1,5 @@
 import roslib; roslib.load_manifest('uf_smach')
+from auvsi_robosub import subjugator_states
 from uf_smach import missions
 from uf_smach.common_states import WaypointState, VelocityState, ServiceState
 from uf_smach.object_finder_states import WaitForObjectsState, ApproachObjectState
@@ -7,7 +8,6 @@ from uf_common.msg import PoseTwistStamped
 from uf_common.orientation_helpers import PoseEditor
 from geometry_msgs.msg import Quaternion
 from uf_smach.util import StateSharedHandles, left_position_selector, right_position_selector
-from actuator_driver.srv import PulseValve
 
 import numpy
 import rospy
@@ -70,7 +70,7 @@ def make_shooter(shared):
                            ApproachObjectState(shared, 'find_forward',
                                                'forward_camera', DIST2))
         smach.Sequence.add('OPEN_LOOP_FORWARD2', WaypointState(shared, lambda cur: cur.forward(DIST2-DIST3).relative([0, -.06, .3]))) # TODO get adjustments from sub
-#        smach.Sequence.add('SHOOT', ServiceState('/actuator_driver/pulse_valve', PulseValve, 5, rospy.Duration(0.3)))
+        smach.Sequence.add('SHOOT', subjugator_states.ShootTorpedoState('right'))
         
     return sm
                            

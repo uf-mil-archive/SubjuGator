@@ -21,7 +21,7 @@ class CloseGrabberState(smach.State):
         self._setvalve(VALVE_GRABBER_CLOSE, True)
         rospy.sleep(1)
         pressed = rospy.wait_for_message('actuator_driver/switches', Switches).pressed
-        if not any(pressed):
+        if not all(pressed):
             return 'succeeded'
         else:
             return 'empty'

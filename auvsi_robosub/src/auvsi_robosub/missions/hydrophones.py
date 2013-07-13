@@ -1,12 +1,7 @@
 import roslib; roslib.load_manifest('uf_smach')
-from uf_smach.common_states import WaypointState
-from uf_smach.hydrophone_states import HydrophoneTravelState
-from uf_smach.util import StateSharedHandles
-from uf_smach import missions
+from uf_smach import common_states, hydrophone_states, missions
 
-import rospy
 import smach
-import smach_ros
 import functools
 
 def make_hydrophones(freq, shared):
@@ -16,8 +11,8 @@ def make_hydrophones(freq, shared):
     # Open the container
     with sm:
         # Add states to the container
-        smach.Sequence.add('DEPTH', WaypointState(shared, lambda cur: cur.depth(.5)))
-        smach.Sequence.add('HYDROPHONES', HydrophoneTravelState(shared, freq))
+        smach.Sequence.add('DEPTH', common_states.WaypointState(shared, lambda cur: cur.depth(.5)))
+        smach.Sequence.add('HYDROPHONES', hydrophone_states.HydrophoneTravelState(shared, freq))
     return sm
 
 for freq in [23, 25, 27]:

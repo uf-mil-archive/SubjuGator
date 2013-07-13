@@ -357,7 +357,7 @@ class Buoy(object):
         glEnd()
 
 def Buoys(center):
-    for j, color in enumerate([(1, 0, 0), (0, 1, 0), (1, 1, 0)]):
+    for j, color in enumerate([(1, 0, 0)]):
         j += 1
         w.objs.append(Buoy(center + [1-.5*j,.5*j-1,0] + [random.gauss(0, .2) for i in xrange(3)], color))
 

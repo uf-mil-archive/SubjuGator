@@ -1,6 +1,6 @@
 from . import test
 from . import bins
-from . import pizza
+from . import grabber
 from . import manipulation
 from . import shooter
 from . import hydrophones

@@ -6,9 +6,9 @@ from actuator_driver.msg import Switches
 VALVE_DROPPER = 0
 VALVE_GRABBER_CLOSE = 1
 VALVE_GRABBER_OPEN = 2
-VALVE_SHOOTER_LEFT = 3
+VALVE_SHOOTER_RIGHT = 3
 VALVE_GAS_POWERED_STICK = 4
-VALVE_SHOOTER_RIGHT = 5
+VALVE_SHOOTER_LEFT = 5
 
 class CloseGrabberState(smach.State):
     def __init__(self):
@@ -44,7 +44,7 @@ class DropBallState(smach.State):
         self._pulsevalve = rospy.ServiceProxy('actuator_driver/pulse_valve', PulseValve)
         
     def execute(self, userdata):
-        self._pulsevalve(VALVE_DROPPER, rospy.Duration(.3))
+        self._pulsevalve(VALVE_DROPPER, rospy.Duration(.5))
         return 'succeeded'
 
 class ShootTorpedoState(smach.State):

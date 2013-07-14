@@ -8,9 +8,9 @@ def make_grabber(shared):
     sm_approach = smach.Sequence(['succeeded', 'failed', 'preempted'], 'succeeded')
     with sm_approach:
         smach.Sequence.add('DEPTH',
-                           common_states.WaypointState(shared, lambda cur: cur.depth(1)))
+                           common_states.WaypointState(shared, lambda cur: cur.depth(.3)))
         smach.Sequence.add('APPROACH',
-                           common_states.VelocityState(shared, numpy.array([.3, 0, 0])))
+                           common_states.VelocityState(shared, numpy.array([.1, 0, 0])))
         smach.Sequence.add('WAIT_PIZZA',
                            legacy_vision_states.WaitForObjectsState(shared, 'find2_down_camera', 'wreath',
                                                                     timeout=30),
@@ -19,7 +19,7 @@ def make_grabber(shared):
     sm_descend_grab = smach.Sequence(['succeeded', 'failed', 'empty', 'preempted'], 'succeeded')
     with sm_descend_grab:
         smach.Sequence.add('DEPTH',
-                           common_states.WaypointState(shared, lambda cur: cur.depth(1)))
+                           common_states.WaypointState(shared, lambda cur: cur.depth(.3)))
         smach.Sequence.add('CENTER_APPROACH_PIZZA',
                            legacy_vision_states.CenterApproachObjectState(shared, 'find2_down_camera',
                                                                           desired_scale=200))
@@ -48,12 +48,14 @@ def make_grabber(shared):
         smach.StateMachine.add('APPROACH', sm_approach,
                                transitions={'succeeded': 'DESCEND_GRAB'})
         smach.StateMachine.add('DESCEND_GRAB', sm_descend_grab,
-                               transitions={'succeeded': 'succeeded',
+                               transitions={'succeeded': 'UP',
                                             'failed': 'APPROACH',
                                             'empty': 'EXTRA_GRAB'})
         smach.StateMachine.add('EXTRA_GRAB', sm_extra_grab,
-                               transitions={'succeeded': 'succeeded',
+                               transitions={'succeeded': 'UP',
                                             'empty': 'RETRY_GRAB_COUNTER'})
+        smach.StateMachine.add('UP',
+                               common_states.WaypointState(shared, lambda cur: cur.depth(.3)))
         smach.StateMachine.add('RETRY_GRAB_COUNTER', common_states.CounterState(1),
                                transitions={'succeeded': 'DESCEND_GRAB',
                                             'exceeded': 'APPROACH'})

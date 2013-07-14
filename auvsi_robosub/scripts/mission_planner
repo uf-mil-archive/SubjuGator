@@ -13,6 +13,16 @@ def main():
     rospy.init_node('mission_planner')
 
     missionserver = missions.MissionServer(['main', 'hydrophone'])
+    missionserver.get_plan('main').extend([
+            missions.PlanEntry('buoy', 120, 'hydrophone', None),
+            missions.PlanEntry('bins', 120, 'hydrophone', 'any'),
+            missions.PlanEntry('manipulation', 120, 'hydrophone', 'right'),
+            missions.PlanEntry('hydrophone_25khz', 120, None, None),
+            missions.PlanEntry('grabber', 120, None, None)])
+    missionserver.get_plan('hydrophone').extend([
+            missions.PlanEntry('hydrophone_25khz', 1000, None, None),
+            missions.PlanEntry('grabber', 1000, None, None)])
+            
     rospy.spin()
     
 if __name__ == '__main__':

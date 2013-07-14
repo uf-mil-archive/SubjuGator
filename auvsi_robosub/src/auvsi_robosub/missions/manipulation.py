@@ -10,7 +10,7 @@ import numpy
 import smach
 
 BOARD_DIST = 3 # board-centering distance
-WHEEL_DIST = 1.25 # wheel-searching distance
+WHEEL_DIST = 1 # wheel-searching distance
 TURN_DIST = 0 # turning distance
 
 def make_manipulation(shared):
@@ -57,7 +57,7 @@ def make_manipulation(shared):
                                                                     BOARD_DIST))
         smach.Sequence.add('OPEN_LOOP_FORWARD',
                            common_states.WaypointState(shared,
-                                                       lambda cur: cur.forward(BOARD_DIST-WHEEL_DIST)))
+                                                       lambda cur: cur.forward(BOARD_DIST-WHEEL_DIST).left(.5)))
         smach.Sequence.add('WAIT_WHEEL',
                            object_finder_states.WaitForObjectsState(shared, 'find_forward',
                                                                     lambda: [wheel], .99))

@@ -73,7 +73,7 @@ def make_bins(shared):
             smach.Sequence.add('APPROACH_SINGLE',
                                legacy_vision_states.CenterApproachObjectState(shared,
                                                                               'find2_down_camera',
-                                                                              desired_scale=5000,
+                                                                              desired_scale=30000,
                                                                               selector=selector))
             smach.Sequence.add('DOWN',
                                common_states.WaypointState(shared, lambda cur: cur.down(.5)))
@@ -84,7 +84,7 @@ def make_bins(shared):
     with sm_pipe:
         smach.Sequence.add('TURN_DEPTH',
                            common_states.WaypointState(shared,
-                                                       lambda cur: cur.depth(1).turn_left_deg(90)))
+                                                       lambda cur: cur.depth(1).turn_right_deg(90)))
         smach.Sequence.add('APPROACH',
                            common_states.VelocityState(shared,
                                                        numpy.array([.3, 0, 0])))
@@ -98,7 +98,8 @@ def make_bins(shared):
         smach.StateMachine.add('APPROACH', sm_approach,
                                transitions={'succeeded': 'CENTER_1'})
         smach.StateMachine.add('CENTER_1', sm_center,
-                               transitions={'succeeded': 'DROP_1'})
+                               transitions={'succeeded': 'DROP_1',
+                                            'failed': 'APPROACH'})
         smach.StateMachine.add('DROP_1', sm_drops[0],
                                transitions={'succeeded': 'CENTER_2',
                                             'failed': 'RETRY_CENTER_1'})

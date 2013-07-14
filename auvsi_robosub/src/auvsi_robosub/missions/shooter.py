@@ -12,8 +12,8 @@ import smach
 DEPTH = 1.5
 
 #BOARD_DIST = 2.5 # box-centering distance
-BOARD_DIST = 4
-HEXAGON_DIST = 1 # hexagon-searching distance
+BOARD_DIST = 2
+HEXAGON_DIST = .5 # hexagon-searching distance
 SHOOT_DIST = 0.15 # shooting distance
 
 SIZE = 'small'
@@ -56,10 +56,10 @@ def make_shooter(shared):
                            common_states.VelocityState(shared, numpy.array([.4, 0, 0])))
         smach.Sequence.add('WAIT_SHOOTER',
                            object_finder_states.WaitForObjectsState(shared, 'find_forward',
-                                                                    shooter_desc_cb, .85),
+                                                                    shooter_desc_cb, .95),
                            transitions={'timeout': 'failed'})
     sm_shoots = []
-    for color in COLORS:
+    for color, shooter in zip(COLORS, ['left', 'right']):
         sm_shoot = smach.Sequence(['succeeded', 'failed', 'preempted'], 'succeeded')
         sm_shoots.append(sm_shoot)
         with sm_shoot:
@@ -73,7 +73,7 @@ def make_shooter(shared):
             smach.Sequence.add('WAIT_HEXAGON',
                                object_finder_states.WaitForObjectsState(shared, 'find_forward',
                                                                         lambda: hexagon_desc_cb(SIZE, color),
-                                                                        .95),
+                                                                        .99),
                                transitions={'timeout': 'failed'})
             smach.Sequence.add('APPROACH_HEXAGON',
                                object_finder_states.ApproachObjectState(shared,
@@ -82,8 +82,10 @@ def make_shooter(shared):
             smach.Sequence.add('OPEN_LOOP_FORWARD2',
                                common_states.WaypointState(shared,
                                                            lambda cur: cur.forward(HEXAGON_DIST-SHOOT_DIST)\
-                                                                          .relative([0, .12, .18])))
-            smach.Sequence.add('SHOOT', subjugator_states.ShootTorpedoState('left'))
+                                                                          .relative([0, .12, .18]
+                                                                                    if shooter == 'left' else
+                                                                                    [0, -.12, .18])))
+            smach.Sequence.add('SHOOT', subjugator_states.ShootTorpedoState(shooter))
 
     sm_retreat = smach.Sequence(['succeeded', 'failed', 'preempted'], 'succeeded')
     with sm_retreat:

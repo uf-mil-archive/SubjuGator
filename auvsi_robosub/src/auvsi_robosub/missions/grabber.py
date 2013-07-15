@@ -61,4 +61,16 @@ def make_grabber(shared):
                                             'exceeded': 'APPROACH'})
     return sm
 
+def make_grabber_drop(shared):
+    sm = smach.Sequence(['succeeded', 'failed', 'preempted'], 'succeeded')
+    with sm:
+        smach.Sequence.add('DEPTH',
+                           common_states.WaypointState(shared, lambda cur: cur.depth(2)))
+        smach.Sequence.add('OPEN_GRABBER',
+                           subjugator_states.OpenGrabberState())
+        smach.Sequence.add('UP_DEPTH',
+                           common_states.WaypointState(shared, lambda cur: cur.depth(.3)))                           
+    return sm
+        
 missions.register_factory('grabber', make_grabber)
+missions.register_factory('grabber_drop', make_grabber_drop)

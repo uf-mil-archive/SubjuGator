@@ -1,33 +1,34 @@
 <launch>
-
-  <node pkg="nodelet" type="nodelet" name="forward_camera_driver" args="standalone ueye/CameraNodelet">
+  <node pkg="nodelet" type="nodelet" name="forward_camera_nodelets"
+        args="manager" output="screen"/>
+  <node pkg="nodelet" type="nodelet" name="forward_camera_driver"
+        args="load ueye2/UEyeNodelet forward_camera_nodelets">
     <remap from="image_raw" to="forward_camera/image_raw"/>
     <remap from="camera_info" to="forward_camera/camera_info"/>
-    <param name="config_path" value="$(find sub_launch)/launch/"/>
     <param name="frame_id" value="/forward_camera"/>
-    <param name="cameraId" value="2"/>
+    <param name="id" value="2"/>
+    <param name="hbins" value="2"/>
+    <param name="vbins" value="2"/>
+    <param name="framerate" value="10"/>
+    <param name="calibration_file" value="$(find sub_launch)/launch/forward_cal.txt"/>
     <rosparam file="$(find sub_launch)/launch/ueye_forward_camera.yaml"/>
   </node>
   <group ns="param_saver/forward_camera_driver">
     <param name="filename" value="$(find sub_launch)/launch/ueye_forward_camera.yaml"/>
     <rosparam>
       file_basepath: /forward_camera_driver
-      param_paths: [white_balance, trigger, force_streaming, hardware_gamma, auto_exposure, exposure_time, gain_boost, auto_gain, gain, zoom, frame_rate, pixel_clock, rotate180]
+      param_paths: [red_gain, green_gain, blue_gain, auto_reference]
     </rosparam>
   </group>
-  <!-- <node pkg="pgr_camera" type="pgr_camera_node" name="forward_camera_driver">
-    <param name="serial_number" value="10282860"/>
-    <param name="frame_id" value="/forward_camera"/>
-    <param name="camera_info_url"
-      value="file://$(find sub_launch)/launch/forward_camera_calibration.yaml"/>
-    <remap from="camera" to="forward_camera"/>
-  </node> -->
   <node pkg="tf" type="static_transform_publisher" name="forward_camera_tf"
     args="0.566 0 0.049  0.5 -0.5 0.5 -0.5  base_link forward_camera 100" />
-  <node ns="forward_camera" pkg="image_proc" type="image_proc"
-          name="image_proc"/>
-  <param name="/forward_camera/corner_cut" value="100"/> <!-- TODO shouldn't be here probably -->
-  
+  <include file="$(find image_proc)/launch/image_proc.launch" ns="/forward_camera">
+    <arg name="manager" value="/forward_camera_nodelets"/>
+  </include>
+  <param name="/forward_camera/corner_cut" value="100"/>
+
+  <node pkg="nodelet" type="nodelet" name="down_camera_nodelets"
+        args="manager" output="screen"/>  
 <!--  <node pkg="pgr_camera" type="pgr_camera_node" name="down_camera_driver">
     <param name="serial_number" value="10282863"/>
     <param name="frame_id" value="/down_camera"/>
@@ -35,16 +36,28 @@
       value="file://$(find sub_launch)/launch/down_camera_calibration.yaml"/>
     <remap from="camera" to="down_camera"/>
   </node>-->
-  <node pkg="nodelet" type="nodelet" name="down_camera_driver" args="standalone ueye/CameraNodelet">    
+  <node pkg="nodelet" type="nodelet" name="down_camera_driver"
+        args="load ueye2/UEyeNodelet down_camera_nodelets">    
     <remap from="image_raw" to="down_camera/image_raw"/>
     <remap from="camera_info" to="down_camera/camera_info"/>
-    <param name="config_path" value="$(find sub_launch)/launch/"/>
     <param name="frame_id" value="/down_camera"/>
-    <param name="cameraId" value="1"/>
+    <param name="id" value="1"/>
+    <param name="hbins" value="4"/>
+    <param name="vbins" value="4"/>
+    <param name="framerate" value="10"/>
+    <param name="calibration_file" value="$(find sub_launch)/launch/down_cal.txt"/>
     <rosparam file="$(find sub_launch)/launch/ueye_down_camera.yaml"/>
   </node>
+  <group ns="param_saver/down_camera_driver">
+    <param name="filename" value="$(find sub_launch)/launch/ueye_down_camera.yaml"/>
+    <rosparam>
+      file_basepath: /forward_camera_driver
+      param_paths: [red_gain, green_gain, blue_gain, auto_reference]
+    </rosparam>
+  </group>
   <node pkg="tf" type="static_transform_publisher" name="down_camera_tf"
     args="0.297 0 -0.102  0.707107 -0.707107 0 0  base_link down_camera 100" />
-  <node ns="down_camera" pkg="image_proc" type="image_proc"
-          name="image_proc" />
+  <include file="$(find image_proc)/launch/image_proc.launch" ns="/down_camera">
+    <arg name="manager" value="/down_camera_nodelets"/>
+  </include>
 </launch>

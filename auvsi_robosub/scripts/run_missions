@@ -7,22 +7,25 @@ import rospy
 import auvsi_robosub.missions
 import uf_smach.util
 from uf_smach import missions
+from kill_handling.listener import KillListener
 import smach_ros
 
 def main():
     rospy.init_node('run_missions')
     mission_names = sys.argv[1:]
     entries = [missions.PlanEntry(name, 120, None, None) for name in mission_names]
-    shared = uf_smach.util.StateSharedHandles()    
+    shared = uf_smach.util.StateSharedHandles()
 
     planset = missions.PlanSet(['main'])    
     planset.get_plan('main').extend(entries)
     sm = planset.make_sm(shared)
 
+    listener = KillListener(lambda: sm.request_preempt())
     sis = smach_ros.IntrospectionServer('run_missions', sm, '/SM_ROOT')
     sis.start()
-    sm.execute()    
-    rospy.spin()
+    sm.execute()
+    sis.stop()
+#    rospy.spin()
     
 if __name__ == '__main__':
     main()

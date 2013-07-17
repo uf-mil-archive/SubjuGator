@@ -1,13 +1,1 @@
-auto_exposure: true
-auto_gain: false
-exposure_time: 10.0
-force_streaming: false
-frame_rate: 10.0
-gain: 100
-gain_boost: false
-hardware_gamma: false
-pixel_clock: 20
-rotate180: false
-trigger: 0
-white_balance: 1
-zoom: 2
+{}

@@ -22,13 +22,13 @@ def make_grabber(shared):
                            common_states.WaypointState(shared, lambda cur: cur.depth(.3)))
         smach.Sequence.add('CENTER_APPROACH_PIZZA',
                            legacy_vision_states.CenterApproachObjectState(shared, 'find2_down_camera',
-                                                                          desired_scale=200))
+                                                                          desired_scale=120))
         smach.Sequence.add('ALIGN_PIZZA',
                            legacy_vision_states.AlignObjectState(shared, 'find2_down_camera'))
         smach.Sequence.add('OPEN_GRABBER',
                            subjugator_states.OpenGrabberState())
         smach.Sequence.add('DOWN',
-                           common_states.WaypointState(shared, lambda cur: cur.down(1.2).backward(.2)))
+                           common_states.WaypointState(shared, lambda cur: cur.down(1.2)))
         smach.Sequence.add('WAIT',
                            common_states.SleepState(2))
         smach.Sequence.add('CLOSE_GRABBER',
@@ -65,7 +65,7 @@ def make_grabber_drop(shared):
     sm = smach.Sequence(['succeeded', 'failed', 'preempted'], 'succeeded')
     with sm:
         smach.Sequence.add('DEPTH',
-                           common_states.WaypointState(shared, lambda cur: cur.depth(2)))
+                           common_states.WaypointState(shared, lambda cur: cur.depth(1)))
         smach.Sequence.add('OPEN_GRABBER',
                            subjugator_states.OpenGrabberState())
         smach.Sequence.add('UP_DEPTH',

@@ -26,7 +26,7 @@ def make_bins(shared):
     with sm_approach:
         smach.Sequence.add('DEPTH',
                            common_states.WaypointState(shared,
-                                                       lambda cur: cur.depth(.2)))
+                                                       lambda cur: cur.depth(.4)))
         smach.Sequence.add('APPROACH',
                            common_states.VelocityState(shared,
                                                        numpy.array([.2, 0, 0])))
@@ -41,7 +41,7 @@ def make_bins(shared):
     sm_center = smach.Sequence(['succeeded', 'failed', 'preempted'], 'succeeded')
     with sm_center:
         smach.Sequence.add('DEPTH',
-                           common_states.WaypointState(shared, lambda cur: cur.depth(.2)))
+                           common_states.WaypointState(shared, lambda cur: cur.depth(.4)))
         smach.Sequence.add('WAIT_ALL',
                            legacy_vision_states.WaitForObjectsState(shared,
                                                                     'find2_down_camera', 'bins/all',
@@ -73,10 +73,10 @@ def make_bins(shared):
             smach.Sequence.add('APPROACH_SINGLE',
                                legacy_vision_states.CenterApproachObjectState(shared,
                                                                               'find2_down_camera',
-                                                                              desired_scale=30000,
+                                                                              desired_scale=9000,
                                                                               selector=selector))
             smach.Sequence.add('DOWN',
-                               common_states.WaypointState(shared, lambda cur: cur.down(.5)))
+                               common_states.WaypointState(shared, lambda cur: cur.down(.5).backward(.1)))
             smach.Sequence.add('DROP',
                                subjugator_states.DropBallState())
 
@@ -116,7 +116,7 @@ def make_bins(shared):
                                common_states.CounterState(1),
                                transitions={'succeeded': 'CENTER_2',
                                             'exceeded': 'failed'})
-        smach.StateMachine.add('FIND_PIPE', sm_pipe)
+        smach.StateMachine.add('FIND_PIPE', sm_pipe)        
     return sm
 
 missions.register_factory('bins', make_bins)

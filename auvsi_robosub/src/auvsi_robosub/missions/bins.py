@@ -4,7 +4,7 @@ from uf_smach import common_states, legacy_vision_states, missions
 import numpy
 import smach
 
-DROP_ORDER = ['10', '16']
+DROP_ORDER = ['37', '98']
 
 def unit_vector(x):
     return x/numpy.linalg.norm(x)

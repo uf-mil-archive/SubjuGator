@@ -7,14 +7,14 @@ import smach
 
 DEPTH = 1.5
 
-BOARD_SCALE = 1000
+BOARD_SCALE = 2000
 HEXAGON_SCALE = 8000
-ALIGN_FORWARD = 0.15
-ALIGN_STRAFE = 0.12
-ALIGN_UP = 0.18
+ALIGN_FORWARD = 0.50
+ALIGN_STRAFE = 0.10
+ALIGN_UP = 0.10
 
 SIZE = 'small'
-COLORS = ['red', 'blue']
+COLORS = ['yellow', 'green']
     
 def make_shooter(shared):
     # Create a SMACH state machine
@@ -47,22 +47,24 @@ def make_shooter(shared):
                 smach.Sequence.add('OPEN_LOOP_FORWARD',
                                    common_states.WaypointState(shared,
                                                                lambda cur: cur.forward(ALIGN_FORWARD)\
-                                                                              .left(ALIGN_STRAFE)\
+                                                                              .right(ALIGN_STRAFE)\
                                                                               .up(ALIGN_UP)))
             else:
                 smach.Sequence.add('OPEN_LOOP_FORWARD',
                                    common_states.WaypointState(shared,
                                                                lambda cur: cur.forward(ALIGN_FORWARD)\
-                                                                              .right(ALIGN_STRAFE)\
+                                                                              .left(ALIGN_STRAFE)\
                                                                               .up(ALIGN_UP)))
+            smach.Sequence.add('SLEEP', common_states.SleepState(3))
             smach.Sequence.add('SHOOT', subjugator_states.ShootTorpedoState(shooter))
+            smach.Sequence.add('SLEEP2', common_states.SleepState(3))
 
     sm_retreat = smach.Sequence(['succeeded', 'failed', 'preempted'], 'succeeded')
     with sm_retreat:
         smach.Sequence.add('RETREAT',
                            common_states.VelocityState(shared, numpy.array([-.2, 0, 0])))
         smach.Sequence.add('WAIT',
-                           common_states.SleepState(5))
+                           common_states.SleepState(4))
         
     sm = smach.StateMachine(['succeeded', 'failed', 'preempted'])
     with sm:

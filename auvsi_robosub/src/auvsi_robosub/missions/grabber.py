@@ -39,7 +39,7 @@ def make_grabber(shared):
         smach.Sequence.add('OPEN_GRABBER',
                            subjugator_states.OpenGrabberState())
         smach.Sequence.add('DOWN',
-                           common_states.WaypointState(shared, lambda cur: cur.down(.25)))
+                           common_states.WaypointState(shared, lambda cur: cur.down(.1)))
         smach.Sequence.add('CLOSE_GRABBER',
                            subjugator_states.CloseGrabberState())
                            

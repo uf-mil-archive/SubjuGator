@@ -30,7 +30,6 @@
 
   <depend package="camera1394"/>
   <depend package="image_proc"/>
-  <depend package="pgr_camera"/>
 </package>
 
 

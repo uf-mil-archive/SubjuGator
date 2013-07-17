@@ -1,4 +1,3 @@
-from . import test
 from . import bins
 from . import grabber
 from . import manipulation
@@ -6,3 +5,5 @@ from . import shooter
 from . import hydrophones
 from . import buoy
 from . import hedge
+from . import surface
+from . import starting_gate

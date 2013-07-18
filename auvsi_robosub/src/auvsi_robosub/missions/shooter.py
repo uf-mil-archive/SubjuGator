@@ -29,13 +29,13 @@ def make_shooter(shared):
         sm_shoot = smach.Sequence(['succeeded', 'failed', 'preempted'], 'succeeded')
         sm_shoots.append(sm_shoot)
         with sm_shoot:
-            smach.Sequence.add('WAIT_SHOOTER',
-                               legacy_vision_states.WaitForObjectsState(shared, 'find2_forward_camera',
-                                                                        '/'.join(['shooter', color, 'box'])),
-                               transitions={'timeout': 'failed'})
-            smach.Sequence.add('APPROACH_SHOOTER',
-                               legacy_vision_states.CenterApproachObjectState(shared, 'find2_forward_camera',
-                                                                              desired_scale=BOARD_SCALE))
+            # smach.Sequence.add('WAIT_SHOOTER',
+            #                    legacy_vision_states.WaitForObjectsState(shared, 'find2_forward_camera',
+            #                                                             '/'.join(['shooter', color, 'box'])),
+            #                    transitions={'timeout': 'failed'})
+            # smach.Sequence.add('APPROACH_SHOOTER',
+            #                    legacy_vision_states.CenterApproachObjectState(shared, 'find2_forward_camera',
+            #                                                                   desired_scale=BOARD_SCALE))
             smach.Sequence.add('WAIT_HEXAGON',
                                legacy_vision_states.WaitForObjectsState(shared, 'find2_forward_camera',
                                                                         '/'.join(['shooter', color, SIZE])),

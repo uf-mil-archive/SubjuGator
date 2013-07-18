@@ -1,6 +1,7 @@
 from . import bins
 from . import grabber
 from . import manipulation
+from . import manipulation_thresh
 from . import shooter
 from . import hydrophones
 from . import buoy

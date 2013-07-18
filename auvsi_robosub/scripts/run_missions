@@ -24,6 +24,7 @@ def main():
     sis = smach_ros.IntrospectionServer('run_missions', sm, '/SM_ROOT')
     sis.start()
     sm.execute()
+    shared['moveto'].cancel_goal()
     sis.stop()
 #    rospy.spin()
     

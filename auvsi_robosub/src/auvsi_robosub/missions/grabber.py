@@ -8,7 +8,7 @@ def make_grabber(shared):
     sm_approach = smach.Sequence(['succeeded', 'failed', 'preempted'], 'succeeded')
     with sm_approach:
         smach.Sequence.add('DEPTH',
-                           common_states.WaypointState(shared, lambda cur: cur.depth(.3)))
+                           common_states.WaypointState(shared, lambda cur: cur.depth(2)))
         smach.Sequence.add('APPROACH',
                            common_states.VelocityState(shared, numpy.array([.1, 0, 0])))
         smach.Sequence.add('WAIT_PIZZA',
@@ -18,13 +18,14 @@ def make_grabber(shared):
         
     sm_descend_grab = smach.Sequence(['succeeded', 'failed', 'empty', 'preempted'], 'succeeded')
     with sm_descend_grab:
-        smach.Sequence.add('DEPTH',
-                           common_states.WaypointState(shared, lambda cur: cur.depth(.3)))
         smach.Sequence.add('CENTER_APPROACH_PIZZA',
                            legacy_vision_states.CenterApproachObjectState(shared, 'find2_down_camera',
-                                                                          desired_scale=120))
+                                                                          desired_scale=90, gain=1))
         smach.Sequence.add('ALIGN_PIZZA',
                            legacy_vision_states.AlignObjectState(shared, 'find2_down_camera'))
+        smach.Sequence.add('CENTER_APPROACH_PIZZA2',
+                           legacy_vision_states.CenterApproachObjectState(shared, 'find2_down_camera',
+                                                                          desired_scale=120, gain=.5))
         smach.Sequence.add('OPEN_GRABBER',
                            subjugator_states.OpenGrabberState())
         smach.Sequence.add('DOWN',

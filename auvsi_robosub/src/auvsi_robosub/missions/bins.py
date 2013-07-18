@@ -84,7 +84,7 @@ def make_bins(shared):
     with sm_pipe:
         smach.Sequence.add('TURN_DEPTH',
                            common_states.WaypointState(shared,
-                                                       lambda cur: cur.depth(1).turn_right_deg(90)))
+                                                       lambda cur: cur.depth(1).turn_right_deg(90))) # Should be left at transdec
         smach.Sequence.add('APPROACH',
                            common_states.VelocityState(shared,
                                                        numpy.array([.3, 0, 0])))
@@ -115,7 +115,7 @@ def make_bins(shared):
         smach.StateMachine.add('RETRY_CENTER_2',
                                common_states.CounterState(1),
                                transitions={'succeeded': 'CENTER_2',
-                                            'exceeded': 'failed'})
+                                            'exceeded': 'FIND_PIPE'})
         smach.StateMachine.add('FIND_PIPE', sm_pipe)        
     return sm
 

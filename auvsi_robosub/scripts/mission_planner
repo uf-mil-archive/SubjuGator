@@ -15,8 +15,9 @@ def main():
     missionserver = missions.MissionServer(['main', 'hydrophone'])
     missionserver.get_plan('main').extend([
             missions.PlanEntry('buoy', 120, 'hydrophone', None),
+            missions.PlanEntry('hedge', 120, 'hydrophone', 'any'),
             missions.PlanEntry('bins', 120, 'hydrophone', 'any'),
-            missions.PlanEntry('manipulation', 120, 'hydrophone', 'right'),
+            missions.PlanEntry('manipulation', 120, 'hydrophone', 'left'),
             missions.PlanEntry('hydrophone_25khz', 120, None, None),
             missions.PlanEntry('grabber', 120, None, None)])
     missionserver.get_plan('hydrophone').extend([

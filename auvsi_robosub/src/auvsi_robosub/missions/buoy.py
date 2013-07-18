@@ -31,7 +31,7 @@ def make_buoy(shared):
                                                                     'find_forward',
                                                                     'forward_camera', 2))
         smach.Sequence.add('BUMP',
-                           common_states.WaypointSeriesState(shared, [lambda cur: cur.forward(2.25),
+                           common_states.WaypointSeriesState(shared, [lambda cur: cur.forward(2.5),
                                                                       lambda cur: cur.backward(.5)]))
         smach.Sequence.add('OVER',
                            common_states.WaypointSeriesState(shared, [lambda cur: cur.depth(.3),

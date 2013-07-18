@@ -1,20 +1,50 @@
 import roslib; roslib.load_manifest('uf_smach')
 from auvsi_robosub import subjugator_states
-from uf_smach import missions, common_states, legacy_vision_states
+from uf_smach import missions, common_states, object_finder_states
+from uf_common.orientation_helpers import PoseEditor
+from object_finder.msg import TargetDesc
+from uf_common.msg import PoseTwistStamped
+from geometry_msgs.msg import Quaternion
 
 import numpy
 import smach
 
 DEPTH = 1.5
 
-BOARD_SCALE = 2000
-HEXAGON_SCALE = 8000
-ALIGN_FORWARD = 0.50
-ALIGN_STRAFE = 0.10
-ALIGN_UP = 0.10
+#BOARD_DIST = 2.5 # box-centering distance
+BOARD_DIST = 2
+HEXAGON_DIST = .5 # hexagon-searching distance
+SHOOT_DIST = 0.15 # shooting distance
 
 SIZE = 'small'
-COLORS = ['yellow', 'green']
+COLORS = ['red', 'blue']
+
+def shooter_desc_cb():
+    traj = PoseEditor.from_PoseTwistStamped_topic('/trajectory')
+    desc = TargetDesc()
+    desc.type = TargetDesc.TYPE_OBJECT
+    desc.object_filename = roslib.packages.resource_file('auvsi_robosub', 'models', '2013/shooter.obj')
+    desc.prior_distribution.pose.orientation = Quaternion(*traj.turn_left_deg(180).orientation)
+    desc.disallow_yawing = True
+    desc.min_dist = BOARD_DIST-1
+    desc.max_dist = BOARD_DIST+3
+    return [desc]
+
+def hexagon_desc_cb(size, color):
+    traj = PoseEditor.from_PoseTwistStamped_topic('/trajectory')
+    desc = TargetDesc()
+    desc.type = TargetDesc.TYPE_OBJECT
+    desc.object_filename = roslib.packages.resource_file('auvsi_robosub', 'models', '2013/shooter_%sin_%s_hexagon.obj' % (7 if size == 'small' else 12, color))
+    desc.prior_distribution.pose.orientation = Quaternion(*traj.turn_left_deg(180).orientation)
+    cov = numpy.zeros((6, 6))
+    a = numpy.array([traj.forward_vector]).T * 100
+    cov[3:, 3:] += a.dot(a.T)
+    desc.prior_distribution.covariance = cov.flatten()
+    desc.min_dist = HEXAGON_DIST*.9
+    desc.max_dist = HEXAGON_DIST/.9
+    desc.allow_rolling = True
+    desc.disallow_yawing = True
+    return [desc]
     
 def make_shooter(shared):
     # Create a SMACH state machine
@@ -24,48 +54,50 @@ def make_shooter(shared):
                            common_states.WaypointState(shared, lambda cur: cur.depth(DEPTH)))
         smach.Sequence.add('APPROACH',
                            common_states.VelocityState(shared, numpy.array([.4, 0, 0])))
+        smach.Sequence.add('WAIT_SHOOTER',
+                           object_finder_states.WaitForObjectsState(shared, 'find_forward',
+                                                                    shooter_desc_cb, .95),
+                           transitions={'timeout': 'failed'})
     sm_shoots = []
     for color, shooter in zip(COLORS, ['left', 'right']):
         sm_shoot = smach.Sequence(['succeeded', 'failed', 'preempted'], 'succeeded')
         sm_shoots.append(sm_shoot)
         with sm_shoot:
-            # smach.Sequence.add('WAIT_SHOOTER',
-            #                    legacy_vision_states.WaitForObjectsState(shared, 'find2_forward_camera',
-            #                                                             '/'.join(['shooter', color, 'box'])),
-            #                    transitions={'timeout': 'failed'})
-            # smach.Sequence.add('APPROACH_SHOOTER',
-            #                    legacy_vision_states.CenterApproachObjectState(shared, 'find2_forward_camera',
-            #                                                                   desired_scale=BOARD_SCALE))
+            smach.Sequence.add('APPROACH_SHOOTER',
+                               object_finder_states.ApproachObjectState(shared,
+                                                                        'find_forward', 'forward_camera',
+                                                                        BOARD_DIST, marker=color))
+            smach.Sequence.add('OPEN_LOOP_FORWARD',
+                               common_states.WaypointState(shared,
+                                                           lambda cur: cur.forward(BOARD_DIST-HEXAGON_DIST)))
             smach.Sequence.add('WAIT_HEXAGON',
-                               legacy_vision_states.WaitForObjectsState(shared, 'find2_forward_camera',
-                                                                        '/'.join(['shooter', color, SIZE])),
+                               object_finder_states.WaitForObjectsState(shared, 'find_forward',
+                                                                        lambda: hexagon_desc_cb(SIZE, color),
+                                                                        .99),
                                transitions={'timeout': 'failed'})
             smach.Sequence.add('APPROACH_HEXAGON',
-                               legacy_vision_states.CenterApproachObjectState(shared, 'find2_forward_camera',
-                                                                              desired_scale=HEXAGON_SCALE))
-            if shooter == 'left':
-                smach.Sequence.add('OPEN_LOOP_FORWARD',
-                                   common_states.WaypointState(shared,
-                                                               lambda cur: cur.forward(ALIGN_FORWARD)\
-                                                                              .right(ALIGN_STRAFE)\
-                                                                              .up(ALIGN_UP)))
-            else:
-                smach.Sequence.add('OPEN_LOOP_FORWARD',
-                                   common_states.WaypointState(shared,
-                                                               lambda cur: cur.forward(ALIGN_FORWARD)\
-                                                                              .left(ALIGN_STRAFE)\
-                                                                              .up(ALIGN_UP)))
-            smach.Sequence.add('SLEEP', common_states.SleepState(3))
+                               object_finder_states.ApproachObjectState(shared,
+                                                                        'find_forward', 'forward_camera',
+                                                                        HEXAGON_DIST))
+            smach.Sequence.add('OPEN_LOOP_FORWARD2',
+                               common_states.WaypointState(shared,
+                                                           lambda cur: cur.forward(HEXAGON_DIST-SHOOT_DIST)\
+                                                                          .relative([0, .12, .18]
+                                                                                    if shooter == 'left' else
+                                                                                    [0, -.12, .18])))
             smach.Sequence.add('SHOOT', subjugator_states.ShootTorpedoState(shooter))
-            smach.Sequence.add('SLEEP2', common_states.SleepState(3))
 
     sm_retreat = smach.Sequence(['succeeded', 'failed', 'preempted'], 'succeeded')
     with sm_retreat:
         smach.Sequence.add('RETREAT',
-                           common_states.VelocityState(shared, numpy.array([-.2, 0, 0])))
-        smach.Sequence.add('WAIT',
-                           common_states.SleepState(4))
-        
+                           common_states.WaypointState(shared,
+                                                       lambda cur: cur.backward(BOARD_DIST+1).depth(DEPTH)))
+        smach.Sequence.add('APPROACH',
+                           common_states.VelocityState(shared, numpy.array([.2, 0, 0])))
+        smach.Sequence.add('WAIT_SHOOTER',
+                           object_finder_states.WaitForObjectsState(shared, 'find_forward',
+                                                                    shooter_desc_cb, .9),
+                           transitions={'timeout': 'failed'})
     sm = smach.StateMachine(['succeeded', 'failed', 'preempted'])
     with sm:
         smach.StateMachine.add('APPROACH_SHOOT_1', sm_approach,

@@ -8,7 +8,7 @@ def make_hedge(shared):
     sm_approach = smach.Sequence(['succeeded', 'failed', 'preempted'], 'succeeded')
     with sm_approach:
         smach.Sequence.add('DEPTH',
-                           common_states.WaypointState(shared, lambda cur: cur.depth(1.5)))
+                           common_states.WaypointState(shared, lambda cur: cur.depth(2)))
         smach.Sequence.add('APPROACH',
                            common_states.VelocityState(shared, numpy.array([.2, 0, 0])))
         smach.Sequence.add('WAIT_HEDGE',
@@ -21,7 +21,7 @@ def make_hedge(shared):
     with sm_center:
         smach.Sequence.add('CENTER_APPROACH_HEDGE',
                            legacy_vision_states.CenterApproachObjectState(shared, 'find2_forward_camera',
-                                                                          desired_scale=180))
+                                                                          desired_scale=200))
         smach.Sequence.add('LEFT',
                            common_states.WaypointState(shared, lambda cur: cur.turn_left_deg(90)))
         smach.Sequence.add('GO',

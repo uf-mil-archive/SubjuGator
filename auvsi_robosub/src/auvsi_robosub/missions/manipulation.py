@@ -47,10 +47,14 @@ def make_manipulation(shared):
                            common_states.WaypointState(shared, lambda cur: cur.depth(1.5)))
         
         smach.Sequence.add('APPROACH',
-                           common_states.VelocityState(shared, numpy.array([.4, 0, 0])))
+                           common_states.VelocityState(shared, numpy.array([.2, 0, 0])))
         smach.Sequence.add('WAIT_MANIPULATION',
                            object_finder_states.WaitForObjectsState(shared, 'find_forward',
-                                                                    lambda: [manipulation_desc], .85))
+                                                                    lambda: [manipulation_desc], .95))
+        smach.Sequence.add('STOP',
+                           common_states.VelocityState(shared, numpy.array([0, 0, 0])))
+        smach.Sequence.add('SLEEP',
+                           common_states.SleepState(5))
         smach.Sequence.add('APPROACH_MANIPULATION',
                            object_finder_states.ApproachObjectState(shared,
                                                                     'find_forward', 'forward_camera',

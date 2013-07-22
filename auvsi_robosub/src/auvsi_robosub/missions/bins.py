@@ -54,7 +54,8 @@ def make_bins(shared):
                                                                  body_vec_align=[0, 1, 0]))
         smach.Sequence.add('CENTER_ALL_2',
                            legacy_vision_states.CenterObjectState(shared, 'find2_down_camera'))
-
+        smach.Sequence.add('SAVE_POS',
+                           common_states.SaveWaypointState('bins'))
 
     sm_drops = []
     for bin_string in DROP_ORDER:

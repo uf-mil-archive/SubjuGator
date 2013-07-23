@@ -1,4 +1,5 @@
 import roslib; roslib.load_manifest('uf_smach')
+from auvsi_robosub import constants
 from uf_smach import common_states, object_finder_states, legacy_vision_states, missions
 from object_finder.msg import TargetDesc
 
@@ -31,25 +32,29 @@ def make_buoy(shared):
                                                                     'find_forward',
                                                                     'forward_camera', 2))
         smach.Sequence.add('BUMP',
-                           common_states.WaypointSeriesState(shared, [lambda cur: cur.forward(2.5),
-                                                                      lambda cur: cur.backward(.5)]))
+                           common_states.WaypointSeriesState(shared,
+                                                             [lambda cur: cur.forward(2.5),
+                                                              lambda cur: cur.backward(.5)]))
         smach.Sequence.add('OVER',
-                           common_states.WaypointSeriesState(shared, [lambda cur: cur.depth(.3),
-                                                                      lambda cur: cur.forward(2.5)]))
+                           common_states.WaypointSeriesState(shared,
+                                                             [lambda cur: cur.depth(.3),
+                                                              lambda cur: cur.forward(2.5)]))
 
     search_pattern_sm = smach.StateMachine(['preempted'])
     with search_pattern_sm:
         smach.StateMachine.add('START',
-                               common_states.WaypointSeriesState(shared, [lambda cur: cur.depth(.3), # Changeme at pool, pipes broken in sim?
-                                                                          lambda cur: cur.left(SEARCH_WIDTH/2)],
-                                                                 speed=.2),
+                               common_states.WaypointSeriesState(shared,
+                                                                 [lambda cur: cur.depth(constants.PIPE_DEPTH),
+                                                                  lambda cur: cur.left(SEARCH_WIDTH/2)],
+                                                                 speed=constants.PIPE_SPEED),
                                transitions={'succeeded': 'SEARCH'})
         smach.StateMachine.add('SEARCH',
-                               common_states.WaypointSeriesState(shared, [lambda cur: cur.right(SEARCH_WIDTH),
-                                                                          lambda cur: cur.forward(SEARCH_ADVANCE),
-                                                                          lambda cur: cur.left(SEARCH_WIDTH),
-                                                                          lambda cur: cur.forward(SEARCH_ADVANCE)],
-                                                                 speed=.2),
+                               common_states.WaypointSeriesState(shared,
+                                                                 [lambda cur: cur.right(SEARCH_WIDTH),
+                                                                  lambda cur: cur.forward(SEARCH_ADVANCE),
+                                                                  lambda cur: cur.left(SEARCH_WIDTH),
+                                                                  lambda cur: cur.forward(SEARCH_ADVANCE)],
+                                                                 speed=constants.PIPE_SPEED),
                                transitions={'succeeded': 'SEARCH'})
 
     search_sm = smach.Concurrence(['succeeded', 'failed', 'preempted'],

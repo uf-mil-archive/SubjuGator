@@ -4,13 +4,15 @@ from uf_smach import common_states, legacy_vision_states, missions
 import numpy
 import smach
 
+APPROACH_DEPTH = .3
+
 def make_grabber(shared):
     sm_approach = smach.Sequence(['succeeded', 'failed', 'preempted'], 'succeeded')
     with sm_approach:
         smach.Sequence.add('DEPTH',
-                           common_states.WaypointState(shared, lambda cur: cur.depth(.3)))
+                           common_states.WaypointState(shared, lambda cur: cur.depth(APPROACH_DEPTH)))
         smach.Sequence.add('APPROACH',
-                           common_states.VelocityState(shared, numpy.array([.1, 0, 0])))
+                           common_states.VelocityState(shared, numpy.array([.2, 0, 0])))
         smach.Sequence.add('WAIT_PIZZA',
                            legacy_vision_states.WaitForObjectsState(shared, 'find2_down_camera', 'wreath',
                                                                     timeout=30),
@@ -31,7 +33,7 @@ def make_grabber(shared):
         smach.Sequence.add('DOWN',
                            common_states.WaypointState(shared, lambda cur: cur.down(1.1)))
         smach.Sequence.add('WAIT',
-                           common_states.SleepState(2))
+                           common_states.SleepState(1))
         smach.Sequence.add('CLOSE_GRABBER',
                            subjugator_states.CloseGrabberState())
 
@@ -41,6 +43,8 @@ def make_grabber(shared):
                            subjugator_states.OpenGrabberState())
         smach.Sequence.add('DOWN',
                            common_states.WaypointState(shared, lambda cur: cur.down(.1)))
+        smach.Sequence.add('WAIT',
+                           common_states.SleepState(1))
         smach.Sequence.add('CLOSE_GRABBER',
                            subjugator_states.CloseGrabberState())
                            

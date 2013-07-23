@@ -86,5 +86,13 @@ def make_shooter(shared):
                                                            lambda cur: cur.backward(.5)),
                                transitions={'succeeded': 'succeeded'})
     return sm
-                           
+
+def make_shooter_approach(shared):
+    sm = common_states.WaypointSeriesState(shared,
+                                           [lambda cur: cur.turn_right_deg(30),
+                                            lambda cur: cur.forward(6),
+                                            lambda cur: cur.turn_left_deg(100)])
+    return sm
+
 missions.register_factory('shooter', make_shooter)
+missions.register_factory('shooter_approach', make_shooter_approach)

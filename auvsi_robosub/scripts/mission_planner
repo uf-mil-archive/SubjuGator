@@ -14,15 +14,25 @@ def main():
 
     missionserver = missions.MissionServer(['main', 'hydrophone'])
     missionserver.get_plan('main').extend([
-            missions.PlanEntry('buoy', 120, 'hydrophone', None),
+            missions.PlanEntry('starting_gate', 120, None, None),
+            missions.PlanEntry('buoy', 120, 'hydrophone', 'any'),
             missions.PlanEntry('hedge', 120, 'hydrophone', 'any'),
-            missions.PlanEntry('bins', 120, 'hydrophone', 'any'),
+            missions.PlanEntry('bins', 120, 'hydrophone', 'right'),
+            missions.PlanEntry('shooter_approach', 120, 'hydrophone', None),
+            missions.PlanEntry('shooter', 120, 'hydrophone', None),
+            missions.PlanEntry('bins_return', 120, 'hydrophone', None),
             missions.PlanEntry('manipulation', 120, 'hydrophone', 'left'),
-            missions.PlanEntry('hydrophone_25khz', 120, None, None),
-            missions.PlanEntry('grabber', 120, None, None)])
+            missions.PlanEntry('hydrophone_grab', 120, None, None),
+            missions.PlanEntry('grabber', 120, None, None),
+            missions.PlanEntry('surface', 120, None, None),
+            missions.PlanEntry('hydrophone_drop', 120, None, None),
+            missions.PlanEntry('grabber_drop', 120, None, None)])
     missionserver.get_plan('hydrophone').extend([
-            missions.PlanEntry('hydrophone_25khz', 1000, None, None),
-            missions.PlanEntry('grabber', 1000, None, None)])
+            missions.PlanEntry('hydrophone_grab', 120, None, None),
+            missions.PlanEntry('grabber', 120, None, None),
+            missions.PlanEntry('surface', 120, None, None),
+            missions.PlanEntry('hydrophone_drop', 120, None, None),
+            missions.PlanEntry('grabber_drop', 120, None, None)])
             
     rospy.spin()
     

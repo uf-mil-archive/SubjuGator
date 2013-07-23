@@ -1,9 +1,10 @@
-from auvsi_robosub import subjugator_states
+from auvsi_robosub import subjugator_states, constants
 from uf_smach import common_states, legacy_vision_states, missions
 
 import numpy
 import smach
 
+CENTER_DEPTH = .4
 DROP_ORDER = ['37', '98']
 
 def unit_vector(x):
@@ -26,7 +27,7 @@ def make_bins(shared):
     with sm_approach:
         smach.Sequence.add('DEPTH',
                            common_states.WaypointState(shared,
-                                                       lambda cur: cur.depth(.4)))
+                                                       lambda cur: cur.depth(CENTER_DEPTH)))
         smach.Sequence.add('APPROACH',
                            common_states.VelocityState(shared,
                                                        numpy.array([.2, 0, 0])))
@@ -35,13 +36,12 @@ def make_bins(shared):
                                                                     'find2_down_camera', 'bins/all'),
                            transitions={'timeout': 'failed'})
         smach.Sequence.add('EXTRA_FORWARD',
-                           common_states.WaypointState(shared,
-                                                       lambda cur: cur.forward(.5)))
+                           common_states.SleepState(1))
         
     sm_center = smach.Sequence(['succeeded', 'failed', 'preempted'], 'succeeded')
     with sm_center:
         smach.Sequence.add('DEPTH',
-                           common_states.WaypointState(shared, lambda cur: cur.depth(.4)))
+                           common_states.WaypointState(shared, lambda cur: cur.depth(CENTER_DEPTH)))
         smach.Sequence.add('WAIT_ALL',
                            legacy_vision_states.WaitForObjectsState(shared,
                                                                     'find2_down_camera', 'bins/all',
@@ -80,19 +80,6 @@ def make_bins(shared):
                                common_states.WaypointState(shared, lambda cur: cur.down(.5).backward(.1)))
             smach.Sequence.add('DROP',
                                subjugator_states.DropBallState())
-
-    sm_pipe = smach.Sequence(['succeeded', 'failed', 'preempted'], 'succeeded')
-    with sm_pipe:
-        smach.Sequence.add('TURN_DEPTH',
-                           common_states.WaypointState(shared,
-                                                       lambda cur: cur.depth(1).turn_right_deg(90))) # Should be left at transdec
-        smach.Sequence.add('APPROACH',
-                           common_states.VelocityState(shared,
-                                                       numpy.array([.3, 0, 0])))
-        smach.Sequence.add('WAIT_PIPE',
-                           legacy_vision_states.WaitForObjectsState(shared,
-                                                                    'find2_down_camera', 'pipe'),
-                           transitions={'timeout': 'failed'})
             
     sm = smach.StateMachine(['succeeded', 'failed', 'preempted'])
     with sm:
@@ -111,13 +98,44 @@ def make_bins(shared):
         smach.StateMachine.add('CENTER_2', sm_center,
                                transitions={'succeeded': 'DROP_2'})
         smach.StateMachine.add('DROP_2', sm_drops[1],
-                               transitions={'succeeded': 'FIND_PIPE',
+                               transitions={'succeeded': 'succeeded',
                                             'failed': 'RETRY_CENTER_2'})
         smach.StateMachine.add('RETRY_CENTER_2',
                                common_states.CounterState(1),
                                transitions={'succeeded': 'CENTER_2',
-                                            'exceeded': 'FIND_PIPE'})
-        smach.StateMachine.add('FIND_PIPE', sm_pipe)        
+                                            'exceeded': 'succeeded'})
+    return sm
+
+def make_bins_return(shared):
+    sm = smach.Sequence(['succeeded', 'failed', 'preempted'], 'succeeded')
+    with sm:
+        smach.Sequence.add('RETURN',
+                           common_states.ReturnToWaypointState(shared, 'bins'))
+        # TODO search pattern
+        smach.Sequence.add('WAIT_BINS',
+                           legacy_vision_states.WaitForObjectsState(shared,
+                                                                    'find2_down_camera', 'bins/all',
+                                                                    timeout=5),
+                           transitions={'timeout': 'failed'})
+        smach.Sequence.add('CENTER_ALL',
+                           legacy_vision_states.CenterObjectState(shared, 'find2_down_camera'))
+        smach.Sequence.add('ALIGN_ALL',
+                           legacy_vision_states.AlignObjectState(shared, 'find2_down_camera',
+                                                                 body_vec_align=[0, 1, 0]))
+        smach.Sequence.add('CENTER_ALL_2',
+                           legacy_vision_states.CenterObjectState(shared, 'find2_down_camera'))
+        smach.Sequence.add('TURN_DEPTH',
+                           common_states.WaypointState(shared,
+                                                       lambda cur: cur.depth(constants.PIPE_DEPTH)\
+                                                                      .turn_left_deg(90)))
+        smach.Sequence.add('APPROACH',
+                           common_states.VelocityState(shared,
+                                                       numpy.array([constants.PIPE_SPEED, 0, 0])))
+        smach.Sequence.add('WAIT_PIPE',
+                           legacy_vision_states.WaitForObjectsState(shared,
+                                                                    'find2_down_camera', 'pipe'),
+                           transitions={'timeout': 'failed'})
     return sm
 
 missions.register_factory('bins', make_bins)
+missions.register_factory('bins_return', make_bins_return)

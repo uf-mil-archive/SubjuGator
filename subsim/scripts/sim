@@ -481,7 +481,7 @@ random.shuffle(names)
 height = FLOOR + random.uniform(.3, .6)
 for x in xrange(2):
     for y in xrange(2):
-        w.objs.append(Bin(world_from_px(850, 381, height) + (-(y-.5)/1.5, -(x-.5), 0), q_from_yaw(90),threed.Texture(pygame.image.load(
+        w.objs.append(Bin(world_from_px(850, 381, height) + (-(y-.5)/1.5, -(x-.5), 0), q_from_yaw(80),threed.Texture(pygame.image.load(
             roslib.packages.resource_file('legacy_vision', 'data', 'bins/%s.png' % (names[x*2+y],))
         ))))
 

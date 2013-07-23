@@ -1,0 +1,2 @@
+PIPE_DEPTH = .4
+PIPE_SPEED = .3

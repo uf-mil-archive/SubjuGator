@@ -21,7 +21,7 @@ def make_manipulation(shared):
     # Open the container
     with sm:
         smach.Sequence.add('DEPTH',
-                           common_states.WaypointState(shared, lambda cur: cur.depth(1.5)))
+                           common_states.WaypointState(shared, lambda cur: cur.depth(3)))
         
         smach.Sequence.add('APPROACH',
                            common_states.VelocityState(shared, numpy.array([.4, 0, 0])))
@@ -34,13 +34,13 @@ def make_manipulation(shared):
                                                             desired_scale=130e3/BOARD_DIST**2))
         smach.Sequence.add('OPEN_LOOP_FORWARD',
                            common_states.WaypointState(shared,
-                                       lambda cur: cur.forward(BOARD_DIST-WHEEL_DIST).left(.5)))
+                                       lambda cur: cur.forward(BOARD_DIST-WHEEL_DIST).left(.25)))
         smach.Sequence.add('WAIT_WHEEL',
                            legacy_vision_states.WaitForObjectsState(shared, 'find2_forward_camera',
                                                                     'grapes/grape'))
         smach.Sequence.add('APPROACH_WHEEL',
                            legacy_vision_states.CenterApproachObjectState(shared, 'find2_forward_camera',
-                                                    desired_scale=30e3/WHEEL_DIST**2, gain=.05))
+                                                    desired_scale=30e3/WHEEL_DIST**2, gain=.2))
         smach.Sequence.add('EXTEND',
                            subjugator_states.GasPoweredStickState(True))
         smach.Sequence.add('OPEN_LOOP_FORWARD2',

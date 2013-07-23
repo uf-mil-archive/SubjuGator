@@ -3,6 +3,7 @@ from . import grabber
 from . import manipulation
 from . import manipulation_thresh
 from . import shooter
+from . import shooter_pf
 from . import hydrophones
 from . import buoy
 from . import hedge

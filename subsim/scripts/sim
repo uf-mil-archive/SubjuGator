@@ -76,7 +76,9 @@ body_geoms.append(ode.GeomTransform(space))
 body_geoms[-1].setGeom(body_geoms[-2])
 body_geoms[-1].setBody(body)
 
-pool_mesh = threed.mesh_from_obj(roslib.packages.resource_file('subsim', 'scene', 'pool6.obj'))
+FLOOR = -16 * 12*.0254 # 16ft
+
+pool_mesh = threed.mesh_from_obj(roslib.packages.resource_file('subsim', 'scene', 'pool6.obj')).translate(v(0, 0, FLOOR+4))
 pool_geom = ode.GeomTriMesh(pool_mesh.ode_trimeshdata, space)
 
 def get_water_vel(pos):
@@ -392,19 +394,61 @@ class Pinger(object):
             else:
                 glColor3f(.2, .2, .2)
             gluSphere(q, .1, 30, 15)
-        
+
+def world_from_px(x, y, Z):
+    # refer to doc/layout.png
+    return v(91*(x-(45+956/2))/956, -61*(y-(56+542/2))/542, Z)
+def q_from_yaw(yaw_deg):
+    return vector.axisangle_to_quat(v(0, 0, 1), math.radians(yaw_deg))
+
 w = threed.World()
 w.objs.append(pool_mesh)
 sub_model = Sub(body, lambda: killed)
 w.objs.append(sub_model)
 #i.objs.append(threed.VectorField(get_water_vel))
-Buoys(v(3, 3, -2))
+#Buoys(v(3, 3, -2))
+body.setPosition(world_from_px(610, 552, -0.5))
+body.setQuaternion(q_from_yaw(10))
 
-shooter_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2012_uf_mock/shooter.obj')).translate((-6, 6, -1.5))
-w.objs.append(shooter_mesh)
+pygame.display.set_icon(pygame.image.load(roslib.packages.resource_file('subsim', 'icons', 'subsim.png')))
+pygame.display.set_caption("subsim")
+i = threed.Interface()
+i.init(w, V(body.getPosition()) + (0,-2,2+random.gauss(0, 1)))
 
-shooter_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2013/shooter_with_holes.obj')).translate((-6, 4, -1.5))
-w.objs.append(shooter_mesh)
+
+
+m_from_in = .0254
+w.objs.append(threed.Capsules(world, space, world_from_px(667, 533, -1), (1, 0, 0), [(m_from_in*s, m_from_in*e) for s, e in [
+    (v(0, -5*12, -2.5*12), v(0, -5*12, 2.5*12)),
+    (v(0, -5*12, 2.5*12), v(0, 5*12, 2.5*12)),
+    (v(0, 5*12, -2.5*12), v(0, 5*12, 2.5*12)),
+]], m_from_in*3/2, fixed=True, orientation=q_from_yaw(-170)))
+
+path_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2013/path.obj'))
+
+w.objs.append(path_mesh
+    .rotate(q_from_yaw(3))
+    .translate(world_from_px(690, 531, FLOOR+random.uniform(0.3, 0.6))))
+
+w.objs.append(Buoy(world_from_px(771, 519, -1), (1, 0, 0), radius=9/2*.0254))
+
+
+w.objs.append(path_mesh
+    .rotate(q_from_yaw(90))
+    .translate(world_from_px(787, 498, FLOOR+random.uniform(0.3, 0.6))))
+
+gate_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2013/gate.obj'))
+w.objs.append(gate_mesh
+    .rotate(q_from_yaw(-100))
+    .translate(world_from_px(791, 454, FLOOR + random.uniform(1.2, 1.8))))
+
+
+w.objs.append(path_mesh
+    .rotate(q_from_yaw(135))
+    .translate(world_from_px(790, 430, FLOOR+random.uniform(0.3, 0.6))))
+w.objs.append(path_mesh
+    .rotate(q_from_yaw(45))
+    .translate(world_from_px(813, 435, FLOOR+random.uniform(0.3, 0.6))))
 
 class Bin(object):
     def __init__(self, pos, tex):
@@ -430,16 +474,37 @@ class Bin(object):
                 glTexCoord2f(1, 1);glVertex3f(-1, -0.5, .1/12)
                 glTexCoord2f(0, 1);glVertex3f(+1, -0.5, .1/12)
                 glEnd()
+names = '10 16 37 98'.split(' ')
+random.shuffle(names)
+height = FLOOR + random.uniform(.3, .6)
+for x in xrange(2):
+    for y in xrange(2):
+        w.objs.append(Bin(world_from_px(850, 381, height) + (-y, -x/1.5, 0), threed.Texture(pygame.image.load(
+            roslib.packages.resource_file('legacy_vision', 'data', 'bins/%s.png' % (names[x*2+y],))
+        ))))
 
 
-path_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2012_uf_mock/path.obj')).translate((0, 0, -3.9))
-w.objs.append(path_mesh)
+shooter_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2013/shooter_with_holes.obj'))
+w.objs.append(shooter_mesh
+    .rotate(q_from_yaw(-120))
+    .translate(world_from_px(912, 347, -1.5)))
 
-path_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2012_uf_mock/path.obj')).rotate(vector.axisangle_to_quat(v(0, 0, 1), -.8)).translate((0, .6, -3.9))
-w.objs.append(path_mesh)
+
+
+w.objs.append(path_mesh
+    .rotate(q_from_yaw(180))
+    .translate(world_from_px(828, 330, FLOOR+random.uniform(0.3, 0.6))))
+w.objs.append(path_mesh
+    .rotate(q_from_yaw(110))
+    .translate(world_from_px(849, 319, FLOOR+random.uniform(0.3, 0.6))))
+
+
+w.objs.append(gate_mesh
+    .rotate(q_from_yaw(-85))
+    .translate(world_from_px(829, 271, FLOOR + random.uniform(1.2, 1.8))))
 
 m_from_in = .0254
-w.objs.append(threed.Capsules(world, space, v(3, 0, -3.5), (1, 0, 0), [(m_from_in*s, m_from_in*e) for s, e in [
+w.objs.append(threed.Capsules(world, space, world_from_px(848, 196, -2), (1, 0, 0), [(m_from_in*s, m_from_in*e) for s, e in [
     (v(-6, -6, 3), v(+6, -6, 3)),
     (v(+6, -6, 3), v(+6, +6, 3)),
     (v(+6, +6, 3), v(-6, +6, 3)),
@@ -452,34 +517,28 @@ w.objs.append(threed.Capsules(world, space, v(3, 0, -3.5), (1, 0, 0), [(m_from_i
     (v(+6, 0, 3), v(+6, 0, -3)),
     (v(0, -6, 3), v(0, -6, -3)),
     (v(0, +6, 3), v(0, +6, -3)),
-]], m_from_in*.875/2))
+]], m_from_in*.875/2, fixed=True))
 
-'''w.objs.append(threed.Capsules(world, space, v(7, 7, -2), (1, 0, 0), [(m_from_in*s, m_from_in*e) for s, e in [
-    (v(0, -5*12, -2.5*12), v(0, -5*12, 2.5*12)),
-    (v(0, -5*12, 2.5*12), v(0, 5*12, 2.5*12)),
-    (v(0, 5*12, -2.5*12), v(0, 5*12, 2.5*12)),
-]], m_from_in*3/2, fixed=True, orientation=vector.axisangle_to_quat(v(0, 0, 1), math.degrees(-45))))'''
 
-path_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2012_uf_mock/path.obj')).rotate(vector.axisangle_to_quat(v(0, 0, 1), math.degrees(-45))).translate((6, 6, -3.9))
-w.objs.append(path_mesh)
+w.objs.append(Pinger(world_from_px(755, 181, -3.5), 25e3, .4))
+w.objs.append(Pinger(world_from_px(848, 196, -3.5), 27e3, 0))
 
-w.objs.append(Pinger((3.3, 0, -3.5), 25e3, .4))
-w.objs.append(Pinger((-3.3, 4, -3.5), 27e3, 0))
 
-pygame.display.set_icon(pygame.image.load(roslib.packages.resource_file('subsim', 'icons', 'subsim.png')))
-pygame.display.set_caption("subsim")
-i = threed.Interface()
-i.init(w, V(body.getPosition()) + (0,-2,2+random.gauss(0, 1)))
+manipulation_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2013/manipulation.obj'))
+w.objs.append(manipulation_mesh
+    .rotate(q_from_yaw(0))
+    .translate(world_from_px(618, 323, random.uniform(-1.8, -2.4))))
+
 
 def set_forward_view():
     glTranslate(-.7, 0, 0)
     threed.rotate_to_body(body, inv=True)
-c1 = threed.Camera(w, 'forward_camera', set_forward_view, body, fovy=31)
+c1 = threed.Camera(w, 'forward_camera', set_forward_view, body, fovy=60)
 
 def set_down_view():
     glRotate(90, 0, -1, 0)
     threed.rotate_to_body(body, inv=True)
-c2 = threed.Camera(w, 'down_camera', set_down_view, body, fovy=61)
+c2 = threed.Camera(w, 'down_camera', set_down_view, body, fovy=50)
 
 def _():
     try:
@@ -493,13 +552,7 @@ reactor.callWhenRunning(task.LoopingCall(_).start, 1/24)
 
 
 
-names = '10 16 37 98'.split(' ')
-random.shuffle(names)
-for x in xrange(2):
-    for y in xrange(2):
-        w.objs.append(Bin((-4-y, 0-x/1.5, -3.9), threed.Texture(pygame.image.load(
-            roslib.packages.resource_file('legacy_vision', 'data', 'bins/%s.png' % (names[x*2+y],))
-        ))))
+
 
 reactor.callWhenRunning(world_tick)
 

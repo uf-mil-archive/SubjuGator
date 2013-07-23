@@ -8,8 +8,8 @@ def make_starting_gate(shared):
     sm = smach.Sequence(['succeeded', 'failed', 'preempted'], 'succeeded')
     with sm:
         smach.Sequence.add('GO',
-                           common_states.WaypointSeriesState(shared, [lambda cur: cur.depth(2),
-                                                                      lambda cur: cur.forward(8)]))
+                           common_states.WaypointSeriesState(shared, [lambda cur: cur.depth(1),
+                                                                      lambda cur: cur.forward(15)]))
         smach.Sequence.add('PIPE_DEPTH',
                            common_states.WaypointState(shared,
                                                        lambda cur: cur.depth(constants.PIPE_DEPTH)))

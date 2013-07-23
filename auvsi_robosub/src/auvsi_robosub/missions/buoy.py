@@ -20,12 +20,12 @@ def make_buoy(shared):
     buoy_sm = smach.Sequence(['succeeded', 'failed', 'preempted'], 'succeeded')
     with buoy_sm:
         smach.Sequence.add('DEPTH',
-                           common_states.WaypointState(shared, lambda cur: cur.depth(1.5)))
+                           common_states.WaypointState(shared, lambda cur: cur.depth(2.5)))
         smach.Sequence.add('APPROACH',
                            common_states.VelocityState(shared, numpy.array([.2, 0, 0])))
         smach.Sequence.add('WAIT_BUOYS',
                            object_finder_states.WaitForObjectsState(shared, 'find_forward',
-                                                                    lambda: [buoy_desc], .95),
+                                                                    lambda: [buoy_desc], .90),
                            transitions={'timeout': 'failed'})
         smach.Sequence.add('APPROACH_BUOY',
                            object_finder_states.ApproachObjectState(shared,

@@ -23,7 +23,7 @@ def make_shooter(shared):
         smach.Sequence.add('DEPTH',
                            common_states.WaypointState(shared, lambda cur: cur.depth(DEPTH)))
         smach.Sequence.add('APPROACH',
-                           common_states.VelocityState(shared, numpy.array([.4, 0, 0])))
+                           common_states.VelocityState(shared, numpy.array([.1, 0, 0])))
     sm_shoots = []
     for color, shooter in zip(COLORS, ['left', 'right']):
         sm_shoot = smach.Sequence(['succeeded', 'failed', 'preempted'], 'succeeded')

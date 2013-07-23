@@ -5,16 +5,16 @@ from uf_smach import missions, common_states, legacy_vision_states
 import numpy
 import smach
 
-DEPTH = 1.5
+DEPTH = 3
 
 BOARD_SCALE = 2000
 HEXAGON_SCALE = 3000
-ALIGN_FORWARD = 1
+ALIGN_FORWARD = .75
 ALIGN_STRAFE = 0.10
 ALIGN_UP = 0.10
 
 SIZE = 'small'
-COLORS = ['yellow', 'green']
+COLORS = ['red', 'green']
     
 def make_shooter(shared):
     # Create a SMACH state machine

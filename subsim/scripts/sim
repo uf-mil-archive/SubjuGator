@@ -451,12 +451,14 @@ w.objs.append(path_mesh
     .translate(world_from_px(813, 435, FLOOR+random.uniform(0.3, 0.6))))
 
 class Bin(object):
-    def __init__(self, pos, tex):
+    def __init__(self, pos, q, tex):
         self.pos = pos
+        self.q = q
         self.tex = tex
     def draw(self):
         with threed.GLMatrix:
             glTranslate(*self.pos)
+            glMultMatrixf(self.q.quat_to_matrix4())
             glScale(0.3048, 0.3048, 0.3048) # work in feet
             glBegin(GL_QUADS)
             glColor3f(1, 1, 1)
@@ -479,7 +481,7 @@ random.shuffle(names)
 height = FLOOR + random.uniform(.3, .6)
 for x in xrange(2):
     for y in xrange(2):
-        w.objs.append(Bin(world_from_px(850, 381, height) + (-y, -x/1.5, 0), threed.Texture(pygame.image.load(
+        w.objs.append(Bin(world_from_px(850, 381, height) + (-(y-.5)/1.5, -(x-.5), 0), q_from_yaw(90),threed.Texture(pygame.image.load(
             roslib.packages.resource_file('legacy_vision', 'data', 'bins/%s.png' % (names[x*2+y],))
         ))))
 

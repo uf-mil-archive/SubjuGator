@@ -9,7 +9,7 @@ import numpy
 import smach
 
 BOARD_DIST = 3 # board-centering distance
-WHEEL_DIST = 1 # wheel-searching distance
+WHEEL_DIST = 1.1 # wheel-searching distance
 TURN_DIST = 0 # turning distance
 
 class SaveZState(smach.State):
@@ -95,7 +95,7 @@ def make_manipulation(shared):
     sm = smach.Sequence(['succeeded', 'timeout', 'failed', 'preempted'], 'succeeded')
     with sm:
         smach.Sequence.add('DEPTH',
-                           common_states.WaypointState(shared, lambda cur: cur.depth(3)))
+                           common_states.WaypointState(shared, lambda cur: cur.depth(2.5)))
         
         smach.Sequence.add('APPROACH',
                            common_states.VelocityState(shared, numpy.array([.4, 0, 0])))

@@ -83,7 +83,7 @@ shift: [1.8266060470689045e-05, -5.266451315444063e-06, 5.987404697539948e-05]
   </rosparam>
     <remap from="orig_odom" to="imu_odom"/>
   </node>
-  <node pkg="odometry_utils" type="odometry_to_tf" name="odometry_to_tf"/>
+  <node pkg="nodelet" type="nodelet" args="standalone odometry_utils/odometry_to_tf" name="odometry_to_tf"/>
 
   <node pkg="c3_trajectory_generator" type="c3_trajectory_generator" name="c3_trajectory_generator"><rosparam>
     fixed_frame: /map

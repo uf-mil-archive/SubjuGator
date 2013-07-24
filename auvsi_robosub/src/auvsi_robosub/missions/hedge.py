@@ -16,7 +16,7 @@ def make_hedge(shared):
         smach.Sequence.add('WAIT_HEDGE',
                            legacy_vision_states.WaitForObjectsState(shared, 'find2_forward_camera',
                                                                     'hedge',
-                                                                    timeout=15),
+                                                                    timeout=25),
                            transitions={'timeout': 'failed'})
     
     sm_center = smach.Sequence(['succeeded', 'failed', 'preempted'], 'succeeded')

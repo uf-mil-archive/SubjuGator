@@ -5,8 +5,8 @@ import smach
 import functools
 
 APPROACH_DEPTH = .5
-GRAB_FREQ = 25
-DROP_FREQ = 24
+GRAB_FREQ = 27
+DROP_FREQ = 27
 
 def make_hydrophones(freq, shared):
     sm = smach.Sequence(['succeeded', 'failed', 'preempted'], 'succeeded')

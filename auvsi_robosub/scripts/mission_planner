@@ -26,7 +26,7 @@ def main():
             missions.PlanEntry('hydrophone_grab', 120, None, None),
             missions.PlanEntry('grabber', 120, None, None),
             missions.PlanEntry('surface', 120, None, None),
-#            missions.PlanEntry('hydrophone_drop', 120, None, None),
+            missions.PlanEntry('hydrophone_drop', 120, None, None),
             missions.PlanEntry('grabber_drop', 120, None, None)])
             
     rospy.spin()

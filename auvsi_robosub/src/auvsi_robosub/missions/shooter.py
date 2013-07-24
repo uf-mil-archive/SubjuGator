@@ -9,9 +9,9 @@ DEPTH = 3
 
 BOARD_SCALE = 2000
 HEXAGON_SCALE = 3000
-ALIGN_FORWARD = .75
+ALIGN_FORWARD = .85
 ALIGN_STRAFE = 0.10
-ALIGN_UP = 0.10
+ALIGN_UP = 0.12
 
 SIZE = 'small'
 COLORS = ['red', 'green']
@@ -38,7 +38,7 @@ def make_shooter(shared):
             #                                                                   desired_scale=BOARD_SCALE))
             smach.Sequence.add('WAIT_HEXAGON',
                                legacy_vision_states.WaitForObjectsState(shared, 'find2_forward_camera',
-                                                                        '/'.join(['shooter', color, SIZE])),
+                                                                        '/'.join(['shooter_flood', color, SIZE])),
                                transitions={'timeout': 'failed'})
             smach.Sequence.add('APPROACH_HEXAGON',
                                legacy_vision_states.CenterApproachObjectState(shared, 'find2_forward_camera',

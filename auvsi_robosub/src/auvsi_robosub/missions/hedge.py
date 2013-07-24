@@ -23,7 +23,7 @@ def make_hedge(shared):
     with sm_center:
         smach.Sequence.add('CENTER_APPROACH_HEDGE',
                            legacy_vision_states.CenterApproachObjectState(shared, 'find2_forward_camera',
-                                                                          desired_scale=200))
+                                                                          desired_scale=180))
         smach.Sequence.add('LEFT',
                            common_states.WaypointState(shared, lambda cur: cur.turn_left_deg(90)))
         smach.Sequence.add('GO',

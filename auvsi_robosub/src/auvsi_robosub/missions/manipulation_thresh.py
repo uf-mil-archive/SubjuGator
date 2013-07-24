@@ -49,12 +49,12 @@ def make_manipulation(shared):
                                                                       .relative([0, .06, 0])))
         smach.Sequence.add('TURN',
                            common_states.WaypointSeriesState(shared, [
-                    lambda cur: cur.down(.2),
-                    lambda cur: cur.right(.2),
-                    lambda cur: cur.up(.2),
-                    lambda cur: cur.left(.2),
-                    lambda cur: cur.down(.2),
-                    lambda cur: cur.right(.2)]))
+                    lambda cur: cur.down(.25),
+                    lambda cur: cur.right(.25),
+                    lambda cur: cur.up(.25),
+                    lambda cur: cur.left(.25),
+                    lambda cur: cur.down(.25),
+                    lambda cur: cur.right(.25)]))
         smach.Sequence.add('RETRACT',
                            subjugator_states.GasPoweredStickState(False))
         smach.Sequence.add('BACKUP',

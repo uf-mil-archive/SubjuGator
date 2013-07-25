@@ -77,7 +77,7 @@ def make_bins(shared):
                                                                               desired_scale=9000,
                                                                               selector=selector))
             smach.Sequence.add('DOWN',
-                               common_states.WaypointState(shared, lambda cur: cur.down(1).backward(.1)))
+                               common_states.WaypointState(shared, lambda cur: cur.down(2).backward(.15)))
             smach.Sequence.add('DROP',
                                subjugator_states.DropBallState())
             

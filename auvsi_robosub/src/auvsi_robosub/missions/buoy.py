@@ -66,7 +66,7 @@ def make_buoy(shared):
         smach.Concurrence.add('WAIT',
                               legacy_vision_states.WaitForObjectsState(shared,
                                                                        'find2_down_camera', 'pipe'))
-
+        
     sm = smach.StateMachine(['succeeded', 'failed', 'preempted'])
     with sm:
         smach.StateMachine.add('BUOY', buoy_sm,

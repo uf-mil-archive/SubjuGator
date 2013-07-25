@@ -37,7 +37,7 @@ def make_buoy(shared):
                                                               lambda cur: cur.backward(.5)]))
         smach.Sequence.add('OVER',
                            common_states.WaypointSeriesState(shared,
-                                                             [lambda cur: cur.depth(.3),
+                                                             [lambda cur: cur.depth(.5),
                                                               lambda cur: cur.forward(2.5)]))
 
     search_pattern_sm = smach.StateMachine(['preempted'])

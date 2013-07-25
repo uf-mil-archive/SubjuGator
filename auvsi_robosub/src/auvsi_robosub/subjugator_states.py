@@ -44,7 +44,7 @@ class DropBallState(smach.State):
         self._pulsevalve = rospy.ServiceProxy('actuator_driver/pulse_valve', PulseValve)
         
     def execute(self, userdata):
-        self._pulsevalve(VALVE_DROPPER, rospy.Duration(.5))
+        self._pulsevalve(VALVE_DROPPER, rospy.Duration(1))
         return 'succeeded'
 
 class ShootTorpedoState(smach.State):

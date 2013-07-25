@@ -98,7 +98,7 @@ def make_manipulation(shared):
                            common_states.VelocityState(shared, numpy.array([.4, 0, 0])))
         smach.Sequence.add('WAIT_MANIPULATION',
                            legacy_vision_states.WaitForObjectsState(shared, 'find2_forward_camera',
-                                                                'grapes/board'))
+                                                                'grapes/board', timeout=15))
         smach.Sequence.add('APPROACH_MANIPULATION',
                            legacy_vision_states.CenterApproachObjectState(shared,
                                                             'find2_forward_camera',

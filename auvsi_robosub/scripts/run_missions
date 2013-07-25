@@ -13,7 +13,7 @@ import smach_ros
 def main():
     rospy.init_node('run_missions')
     mission_names = sys.argv[1:]
-    entries = [missions.PlanEntry(name, 120, None, None, 0) for name in mission_names]
+    entries = [missions.PlanEntry(name, 999, None, None, 0) for name in mission_names]
     shared = uf_smach.util.StateSharedHandles()
 
     planset = missions.PlanSet(['main'])    

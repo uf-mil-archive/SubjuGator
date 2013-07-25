@@ -78,8 +78,8 @@ body_geoms[-1].setBody(body)
 
 FLOOR = -16 * 12*.0254 # 16ft
 
-pool_mesh = threed.mesh_from_obj(roslib.packages.resource_file('subsim', 'scene', 'pool6.obj')).translate(v(0, 0, FLOOR+4))
-pool_geom = ode.GeomTriMesh(pool_mesh.ode_trimeshdata, space)
+#pool_mesh = threed.mesh_from_obj(roslib.packages.resource_file('subsim', 'scene', 'pool6.obj')).translate(v(0, 0, FLOOR+4)).scale(v(10, 10, 1))
+#pool_geom = ode.GeomTriMesh(pool_mesh.ode_trimeshdata, space)
 
 def get_water_vel(pos):
     return v(0, 0, 0)
@@ -402,7 +402,7 @@ def q_from_yaw(yaw_deg):
     return vector.axisangle_to_quat(v(0, 0, 1), math.radians(yaw_deg))
 
 w = threed.World()
-w.objs.append(pool_mesh)
+#w.objs.append(pool_mesh)
 sub_model = Sub(body, lambda: killed)
 w.objs.append(sub_model)
 #i.objs.append(threed.VectorField(get_water_vel))

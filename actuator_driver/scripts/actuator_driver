@@ -8,6 +8,7 @@ import roslib
 roslib.load_manifest('actuator_driver')
 import rospy
 from std_msgs.msg import Header
+from kill_handling.listener import KillListener
 
 from actuator_driver.msg import Switches
 from actuator_driver.srv import PulseValve, PulseValveResponse, SetValve, SetValveResponse
@@ -60,8 +61,14 @@ valves = [False]*ActuatorDevice.VALVES
 ad.send_set_valves(valves)
 valves_lock = threading.Lock()
 
+def on_kill():
+    with valves_lock:
+        valves[:] = [False for valve in valves]
+        ad.send_set_valves(valves)
+kill_listener = KillListener(on_kill)
+
 def pulse_valve(req):
-    if req.valve >= ActuatorDevice.VALVES:
+    if req.valve >= ActuatorDevice.VALVES or kill_listener.get_killed():
         return None # service error condition
     
     with valves_lock:
@@ -75,7 +82,7 @@ def pulse_valve(req):
 rospy.Service('~pulse_valve', PulseValve, pulse_valve)
 
 def set_valve(req):
-    if req.valve >= ActuatorDevice.VALVES:
+    if req.valve >= ActuatorDevice.VALVES or kill_listener.get_killed():
         return None # service error condition
     
     with valves_lock:

@@ -4,6 +4,7 @@ from uf_smach import common_states, object_finder_states, missions
 from object_finder.msg import TargetDesc
 from uf_common.msg import PoseTwistStamped
 from uf_common.orientation_helpers import PoseEditor
+from uf_common import orientation_helpers
 from geometry_msgs.msg import Quaternion
 
 import numpy
@@ -90,4 +91,14 @@ def make_manipulation(shared):
                            common_states.WaypointState(shared, lambda cur: cur.backward(1)))
     return sm
 
+def make_manipulation_to_pinger(shared):
+    sm = smach.Sequence(['succeeded', 'failed', 'preempted'], 'succeeded')
+    with sm:
+        smach.Sequence.add('GO',
+                           common_states.WaypointSeriesState(shared,
+                                                             [lambda cur: cur.set_orientation(orientation_helpers.NORTH).turn_right_deg(45).depth(1),
+                                                              lambda cur: cur.forward(12)]))
+    return sm
+
 missions.register_factory('manipulation', make_manipulation)
+missions.register_factory('manipulation_to_pinger', make_manipulation_to_pinger)

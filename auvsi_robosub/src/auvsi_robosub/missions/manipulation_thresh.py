@@ -8,10 +8,6 @@ from geometry_msgs.msg import Quaternion
 import numpy
 import smach
 
-BOARD_DIST = 3 # board-centering distance
-WHEEL_DIST = 1.1 # wheel-searching distance
-TURN_DIST = 0 # turning distance
-
 class SaveZState(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['succeeded'], output_keys=['z'])
@@ -39,8 +35,8 @@ def make_manipulation(shared):
                            legacy_vision_states.WaitForObjectsState(shared, 'find2_forward_camera',
                                                                     'grapes/grape'))
         smach.Sequence.add('APPROACH_WHEEL',
-                           legacy_vision_states.CenterApproachObjectState(shared, 'find2_forward_camera',
-                                                    desired_scale=30e3/1.1**2, gain=.2))
+                           legacy_vision_states.CenterObjectState(shared, 'find2_forward_camera',
+                                                    gain=.2))
         smach.Sequence.add('EXTEND',
                            subjugator_states.GasPoweredStickState(True))
         smach.Sequence.add('OPEN_LOOP_FORWARD2',
@@ -67,14 +63,14 @@ def make_manipulation(shared):
         ))
         smach.StateMachine.add('GO_UP', common_states.WaypointSeriesState(shared, [
             lambda cur: cur.right(.08),
-            lambda cur: cur.down(.08),
-            lambda cur: cur.forward(.65),
+            lambda cur: cur.down(.15),
+            lambda cur: cur.forward(.95),
             lambda cur: cur.up(1),
         ]))
         smach.StateMachine.add('GO_DOWN', common_states.WaypointSeriesState(shared, [
             lambda cur: cur.right(.08),
-            lambda cur: cur.up(.08),
-            lambda cur: cur.forward(.65),
+            lambda cur: cur.up(.15),
+            lambda cur: cur.forward(.95),
             lambda cur: cur.down(1),
         ]))
     
@@ -88,8 +84,8 @@ def make_manipulation(shared):
                            legacy_vision_states.WaitForObjectsState(shared, 'find2_forward_camera',
                                                                     'grapes/lever'))
         smach.Sequence.add('APPROACH_LEVER',
-                           legacy_vision_states.CenterApproachObjectState(shared, 'find2_forward_camera',
-                                                    desired_scale=5e3/1.1**2, gain=.2))
+                           legacy_vision_states.CenterObjectState(shared, 'find2_forward_camera',
+                                                    gain=.2))
         smach.Sequence.add('MOVE_LEVER', sm_move_lever)
     
     # Create a SMACH state machine

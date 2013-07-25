@@ -103,6 +103,12 @@ def make_manipulation(shared):
                            legacy_vision_states.CenterApproachObjectState(shared,
                                                             'find2_forward_camera',
                                                             desired_scale=130e3/3**2))
+        smach.Sequence.add('YAW', common_states.WaypointState(shared,
+            lambda cur: cur.heading(-179 + (180 if cur.forward_vector[0] < 0 else 0))))
+        smach.Sequence.add('APPROACH_MANIPULATION_POST_YAW',
+                           legacy_vision_states.CenterApproachObjectState(shared,
+                                                            'find2_forward_camera',
+                                                            desired_scale=130e3/3**2))
         smach.Sequence.add('WHEEL', sm_wheel, transitions=dict(failed='BACKUP'))
         
         smach.Sequence.add('BACKUP',

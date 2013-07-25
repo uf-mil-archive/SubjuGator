@@ -30,7 +30,7 @@ def make_manipulation(shared):
     with sm_wheel:
         smach.Sequence.add('OPEN_LOOP_FORWARD',
                            common_states.WaypointState(shared,
-                                       lambda cur: cur.forward(1.9)))
+                                       lambda cur: cur.forward(1.9), speed=.25))
         smach.Sequence.add('WAIT_WHEEL',
                            legacy_vision_states.WaitForObjectsState(shared, 'find2_forward_camera',
                                                                     'grapes/grape'))
@@ -43,7 +43,7 @@ def make_manipulation(shared):
                            common_states.WaypointState(shared,
                                                        lambda cur: cur.forward(.85)\
                                                                       .relative([0, 0, 0])
-                                                                      .relative([0, .075, .075])))
+                                                                      .relative([0, .075, .075]), speed=.1))
         smach.Sequence.add('TURN',
                            common_states.WaypointSeriesState(shared, [
                     lambda cur: cur.down(.2),

@@ -18,7 +18,9 @@ def make_hedge(shared):
                                                                     'hedge',
                                                                     timeout=25),
                            transitions={'timeout': 'failed'})
-    
+        smach.Sequence.add('SLEEP',
+                           common_states.SleepState(shared, 2)) # Get a bit closer
+        
     sm_center = smach.Sequence(['succeeded', 'failed', 'preempted'], 'succeeded')
     with sm_center:
         smach.Sequence.add('CENTER_APPROACH_HEDGE',

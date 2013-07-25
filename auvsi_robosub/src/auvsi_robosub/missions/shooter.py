@@ -14,7 +14,7 @@ ALIGN_STRAFE = 0.10
 ALIGN_UP = 0.12
 
 SIZE = 'small'
-COLORS = ['red', 'yellow']
+COLORS = ['green', 'blue']
     
 def make_shooter(shared):
     # Create a SMACH state machine

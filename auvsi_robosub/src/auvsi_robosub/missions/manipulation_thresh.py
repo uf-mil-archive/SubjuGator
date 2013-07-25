@@ -41,17 +41,17 @@ def make_manipulation(shared):
                            subjugator_states.GasPoweredStickState(True))
         smach.Sequence.add('OPEN_LOOP_FORWARD2',
                            common_states.WaypointState(shared,
-                                                       lambda cur: cur.forward(.8)\
-                                                                      .relative([0, -.08, -.04])
+                                                       lambda cur: cur.forward(.85)\
+                                                                      .relative([0, 0, 0])
                                                                       .relative([0, .075, .075])))
         smach.Sequence.add('TURN',
                            common_states.WaypointSeriesState(shared, [
-                    lambda cur: cur.down(.15),
-                    lambda cur: cur.right(.15),
-                    lambda cur: cur.up(.15),
-                    lambda cur: cur.left(.15),
-                    lambda cur: cur.down(.15),
-                    lambda cur: cur.right(.15)]))
+                    lambda cur: cur.down(.2),
+                    lambda cur: cur.right(.2),
+                    lambda cur: cur.up(.2),
+                    lambda cur: cur.left(.2),
+                    lambda cur: cur.down(.2),
+                    lambda cur: cur.right(.2)]))
         smach.Sequence.add('RETRACT',
                            subjugator_states.GasPoweredStickState(False))
     
@@ -64,13 +64,13 @@ def make_manipulation(shared):
         smach.StateMachine.add('GO_UP', common_states.WaypointSeriesState(shared, [
             lambda cur: cur.right(.08),
             lambda cur: cur.down(.15),
-            lambda cur: cur.forward(.95),
+            lambda cur: cur.forward(1),
             lambda cur: cur.up(1),
         ]))
         smach.StateMachine.add('GO_DOWN', common_states.WaypointSeriesState(shared, [
             lambda cur: cur.right(.08),
             lambda cur: cur.up(.15),
-            lambda cur: cur.forward(.95),
+            lambda cur: cur.forward(1),
             lambda cur: cur.down(1),
         ]))
     

@@ -34,18 +34,18 @@ def make_manipulation(shared):
     with sm_wheel:
         smach.Sequence.add('OPEN_LOOP_FORWARD',
                            common_states.WaypointState(shared,
-                                       lambda cur: cur.forward(BOARD_DIST-WHEEL_DIST)))
+                                       lambda cur: cur.forward(1.9)))
         smach.Sequence.add('WAIT_WHEEL',
                            legacy_vision_states.WaitForObjectsState(shared, 'find2_forward_camera',
                                                                     'grapes/grape'))
         smach.Sequence.add('APPROACH_WHEEL',
                            legacy_vision_states.CenterApproachObjectState(shared, 'find2_forward_camera',
-                                                    desired_scale=30e3/WHEEL_DIST**2, gain=.2))
+                                                    desired_scale=30e3/1.1**2, gain=.2))
         smach.Sequence.add('EXTEND',
                            subjugator_states.GasPoweredStickState(True))
         smach.Sequence.add('OPEN_LOOP_FORWARD2',
                            common_states.WaypointState(shared,
-                                                       lambda cur: cur.forward(WHEEL_DIST-TURN_DIST)\
+                                                       lambda cur: cur.forward(1.1)\
                                                                       .relative([0, .06, 0])))
         smach.Sequence.add('TURN',
                            common_states.WaypointSeriesState(shared, [
@@ -67,13 +67,13 @@ def make_manipulation(shared):
         smach.StateMachine.add('GO_UP', common_states.WaypointSeriesState(shared, [
             lambda cur: cur.right(.08),
             lambda cur: cur.down(.08),
-            lambda cur: cur.forward(WHEEL_DIST-TURN_DIST),
+            lambda cur: cur.forward(1.1),
             lambda cur: cur.up(1),
         ]))
         smach.StateMachine.add('GO_DOWN', common_states.WaypointSeriesState(shared, [
             lambda cur: cur.right(.08),
             lambda cur: cur.up(.08),
-            lambda cur: cur.forward(WHEEL_DIST-TURN_DIST),
+            lambda cur: cur.forward(1.1),
             lambda cur: cur.down(1),
         ]))
     
@@ -81,14 +81,14 @@ def make_manipulation(shared):
     with sm_lever:
         smach.Sequence.add('OPEN_LOOP_FORWARD',
                            common_states.WaypointState(shared,
-                                       lambda cur: cur.forward(BOARD_DIST-WHEEL_DIST)))
+                                       lambda cur: cur.forward(1.9)))
         smach.Sequence.add('SAVE_Z', SaveZState())
         smach.Sequence.add('WAIT_LEVER',
                            legacy_vision_states.WaitForObjectsState(shared, 'find2_forward_camera',
                                                                     'grapes/lever'))
         smach.Sequence.add('APPROACH_LEVER',
                            legacy_vision_states.CenterApproachObjectState(shared, 'find2_forward_camera',
-                                                    desired_scale=5e3/WHEEL_DIST**2, gain=.2))
+                                                    desired_scale=5e3/1.1**2, gain=.2))
         smach.Sequence.add('MOVE_LEVER', sm_move_lever)
     
     # Create a SMACH state machine
@@ -105,7 +105,7 @@ def make_manipulation(shared):
         smach.Sequence.add('APPROACH_MANIPULATION',
                            legacy_vision_states.CenterApproachObjectState(shared,
                                                             'find2_forward_camera',
-                                                            desired_scale=130e3/BOARD_DIST**2))
+                                                            desired_scale=130e3/3**2))
         smach.Sequence.add('WHEEL', sm_wheel, transitions=dict(failed='BACKUP'))
         
         smach.Sequence.add('BACKUP',
@@ -118,7 +118,7 @@ def make_manipulation(shared):
         smach.Sequence.add('APPROACH_MANIPULATION2',
                            legacy_vision_states.CenterApproachObjectState(shared,
                                                             'find2_forward_camera',
-                                                            desired_scale=130e3/BOARD_DIST**2))
+                                                            desired_scale=130e3/3**2))
         smach.Sequence.add('LEVER', sm_lever)
         smach.Sequence.add('BACKUP2',
                            common_states.WaypointState(shared, lambda cur: cur.backward(1)))

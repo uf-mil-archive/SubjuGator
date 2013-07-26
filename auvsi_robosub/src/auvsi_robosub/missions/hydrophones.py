@@ -6,8 +6,8 @@ import smach
 import functools
 
 APPROACH_DEPTH = .5
-GRAB_FREQ = 24
-DROP_FREQ = 25
+GRAB_FREQ = 24.5
+DROP_FREQ = 24.5
 
 def make_hydrophones(freq, shared):
     sm_travel = smach.StateMachine(['succeeded', 'preempted'])

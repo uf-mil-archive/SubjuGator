@@ -1,3 +1,5 @@
+import math
+
 import roslib; roslib.load_manifest('uf_smach')
 from auvsi_robosub import subjugator_states
 from uf_smach import common_states, legacy_vision_states, missions
@@ -104,7 +106,7 @@ def make_manipulation(shared):
                                                             'find2_forward_camera',
                                                             desired_scale=130e3/3**2))
         smach.Sequence.add('YAW', common_states.WaypointState(shared,
-            lambda cur: cur.heading(-179 + (180 if cur.forward_vector[0] < 0 else 0))))
+            lambda cur: cur.heading(math.radians(-179 + (180 if cur.forward_vector[0] > 0 else 0)))))
         smach.Sequence.add('APPROACH_MANIPULATION_POST_YAW',
                            legacy_vision_states.CenterApproachObjectState(shared,
                                                             'find2_forward_camera',

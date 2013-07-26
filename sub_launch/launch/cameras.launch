@@ -54,7 +54,7 @@
   <group ns="param_saver/down_camera_driver">
     <param name="filename" value="$(find sub_launch)/launch/ueye_down_camera.yaml"/>
     <rosparam>
-      file_basepath: /forward_camera_driver
+      file_basepath: /down_camera_driver
       param_paths: [red_gain, green_gain, blue_gain, auto_reference]
     </rosparam>
   </group>

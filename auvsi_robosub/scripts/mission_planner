@@ -17,11 +17,11 @@ def main():
             missions.PlanEntry('starting_gate', 120, None, None, 0),
             missions.PlanEntry('buoy', 120, 'timeout', 'any', 0),
             missions.PlanEntry('hedge', 120, 'timeout', 'any', 0),
-            missions.PlanEntry('bins', 120, 'timeout', 'right', 4),
+            missions.PlanEntry('bins', 180, 'timeout', 'right', 4),
             missions.PlanEntry('shooter_approach', 120, 'timeout', None, 0),
             missions.PlanEntry('shooter', 120, 'timeout', None, 0),
             missions.PlanEntry('bins_return', 120, 'timeout', None, 0),
-            missions.PlanEntry('manipulation_thresh', 120, 'timeout', 'left', 12)])
+            missions.PlanEntry('manipulation_thresh', 180, 'timeout', 'left', 12)])
     missionserver.get_plan('timeout').extend([
             missions.PlanEntry('hydrophone_grab', 9999, None, None, 0),
             missions.PlanEntry('grabber', 9999, None, None, 0),

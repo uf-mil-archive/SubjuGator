@@ -35,7 +35,7 @@ def make_manipulation(shared):
                                        lambda cur: cur.forward(1.9), speed=.25))
         smach.Sequence.add('WAIT_WHEEL',
                            legacy_vision_states.WaitForObjectsState(shared, 'find2_forward_camera',
-                                                                    'grapes/grape'))
+                                                                    'grapes/grape', timeout=10))
         smach.Sequence.add('APPROACH_WHEEL',
                            legacy_vision_states.CenterObjectState(shared, 'find2_forward_camera',
                                                     gain=.2))
@@ -48,12 +48,12 @@ def make_manipulation(shared):
                                                                       .relative([0, .075, .075]), speed=.1))
         smach.Sequence.add('TURN',
                            common_states.WaypointSeriesState(shared, [
-                    lambda cur: cur.down(.2),
-                    lambda cur: cur.right(.2),
-                    lambda cur: cur.up(.2),
-                    lambda cur: cur.left(.2),
-                    lambda cur: cur.down(.2),
-                    lambda cur: cur.right(.2)]))
+                    lambda cur: cur.down(.3),
+                    lambda cur: cur.right(.3),
+                    lambda cur: cur.up(.3),
+                    lambda cur: cur.left(.3),
+                    lambda cur: cur.down(.3),
+                    lambda cur: cur.right(.3)], speed=.1))
         smach.Sequence.add('RETRACT',
                            subjugator_states.GasPoweredStickState(False))
     
@@ -68,12 +68,14 @@ def make_manipulation(shared):
             lambda cur: cur.down(.15),
             lambda cur: cur.forward(1),
             lambda cur: cur.up(1),
+            lambda cur: cur.down(1.5),
         ]))
         smach.StateMachine.add('GO_DOWN', common_states.WaypointSeriesState(shared, [
             lambda cur: cur.right(.08),
             lambda cur: cur.up(.15),
             lambda cur: cur.forward(1),
             lambda cur: cur.down(1),
+            lambda cur: cur.up(1.5),
         ]))
     
     sm_lever = smach.Sequence(['succeeded', 'timeout', 'failed', 'preempted'], 'succeeded')
@@ -84,7 +86,7 @@ def make_manipulation(shared):
         smach.Sequence.add('SAVE_Z', SaveZState())
         smach.Sequence.add('WAIT_LEVER',
                            legacy_vision_states.WaitForObjectsState(shared, 'find2_forward_camera',
-                                                                    'grapes/lever'))
+                                                                    'grapes/lever', timeout=10))
         smach.Sequence.add('APPROACH_LEVER',
                            legacy_vision_states.CenterObjectState(shared, 'find2_forward_camera',
                                                     gain=.2))
@@ -119,7 +121,7 @@ def make_manipulation(shared):
                            common_states.VelocityState(shared, numpy.array([.1, 0, 0])))
         smach.Sequence.add('WAIT_MANIPULATION2',
                            legacy_vision_states.WaitForObjectsState(shared, 'find2_forward_camera',
-                                                                'grapes/board'))
+                                                                'grapes/board', timeout=15))
         smach.Sequence.add('APPROACH_MANIPULATION2',
                            legacy_vision_states.CenterApproachObjectState(shared,
                                                             'find2_forward_camera',

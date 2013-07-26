@@ -1,7 +1,7 @@
 # Blender v2.62 (sub 0) OBJ File: 'manipulation.blend'
 # www.blender.org
 mtllib manipulation.mtl
-o 20_color_0_0.5_1_Plane.002
+o background_20_color_0_0.5_1_Plane.002
 v -0.002540 0.914400 -0.609600
 v -0.002540 -0.914400 -0.609600
 v -0.002540 -0.914400 0.609600

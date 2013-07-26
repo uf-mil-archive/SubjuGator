@@ -44,7 +44,7 @@ def make_manipulation(shared):
         smach.Sequence.add('OPEN_LOOP_FORWARD2',
                            common_states.WaypointState(shared,
                                                        lambda cur: cur.forward(.85)\
-                                                                      .relative([0, 0, 0])
+                                                                      .relative([0, -0.02, -0.02])
                                                                       .relative([0, .075, .075]), speed=.1))
         smach.Sequence.add('TURN',
                            common_states.WaypointSeriesState(shared, [
@@ -67,15 +67,15 @@ def make_manipulation(shared):
             lambda cur: cur.right(.08),
             lambda cur: cur.down(.15),
             lambda cur: cur.forward(1),
-            lambda cur: cur.up(1),
-            lambda cur: cur.down(1.5),
+            lambda cur: cur.up(.3),
+            lambda cur: cur.down(1),
         ]))
         smach.StateMachine.add('GO_DOWN', common_states.WaypointSeriesState(shared, [
             lambda cur: cur.right(.08),
             lambda cur: cur.up(.15),
             lambda cur: cur.forward(1),
-            lambda cur: cur.down(1),
-            lambda cur: cur.up(1.5),
+            lambda cur: cur.down(.3),
+            lambda cur: cur.up(1),
         ]))
     
     sm_lever = smach.Sequence(['succeeded', 'timeout', 'failed', 'preempted'], 'succeeded')

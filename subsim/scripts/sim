@@ -395,6 +395,12 @@ class Pinger(object):
                 glColor3f(.2, .2, .2)
             gluSphere(q, .1, 30, 15)
 
+class CrazyPinger(Pinger):
+    def send_ping(self):
+        self.blink_time = 0
+        pos = (random.gauss(0, 1), random.gauss(0, 1), random.gauss(2, 1))
+        send_ping(pos, self.freq)
+            
 def world_from_px(x, y, Z):
     # refer to doc/layout.png
     return v(91*(x-(45+956/2))/956, -61*(y-(56+542/2))/542, Z)
@@ -522,8 +528,9 @@ w.objs.append(threed.Capsules(world, space, world_from_px(848, 196, -2), (1, 0, 
 ]], m_from_in*.875/2, fixed=True))
 
 
-w.objs.append(Pinger(world_from_px(755, 181, -3.5), 25e3, .4))
-w.objs.append(Pinger(world_from_px(848, 196, -3.5), 27e3, 0))
+w.objs.append(Pinger(world_from_px(755, 181, -3.5), 24e3, .4))
+w.objs.append(Pinger(world_from_px(848, 196, -3.5), 25e3, 0))
+w.objs.append(CrazyPinger(world_from_px(1000, 196, -3.5), 27e3, .7))
 
 h = random.uniform(-1.8, -2.4)
 manipulation_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2013/manipulation.obj'))

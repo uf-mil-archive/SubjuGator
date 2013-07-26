@@ -1,5 +1,6 @@
 import roslib; roslib.load_manifest('uf_smach')
 from uf_smach import common_states, hydrophone_states, missions
+from uf_common import orientation_helpers
 
 import smach
 import functools
@@ -9,14 +10,23 @@ GRAB_FREQ = 24
 DROP_FREQ = 25
 
 def make_hydrophones(freq, shared):
+    sm_travel = smach.StateMachine(['succeeded', 'preempted'])
+    with sm_travel:
+        smach.StateMachine.add('HYDROPHONES',
+                               hydrophone_states.HydrophoneTravelState(shared, freq),
+                               transitions={'failed': 'GO_NNE'})
+        smach.StateMachine.add('GO_NNE',
+                               common_states.WaypointSeriesState(shared,
+                                                                 [lambda cur: cur.set_orientation(orientation_helpers.NORTH).turn_right_deg(22.5),
+                                                                  lambda cur: cur.forward(5)]),
+                               transitions={'succeeded': 'HYDROPHONES'})    
     sm = smach.Sequence(['succeeded', 'failed', 'preempted'], 'succeeded')
 
     with sm:
         smach.Sequence.add('DEPTH',
                            common_states.WaypointState(shared,
                                                        lambda cur: cur.depth(APPROACH_DEPTH)))
-        smach.Sequence.add('HYDROPHONES',
-                           hydrophone_states.HydrophoneTravelState(shared, freq))
+        smach.Sequence.add('TRAVEL', sm_travel)
     return sm
 
 def make_hydrophones_close(freq, shared):

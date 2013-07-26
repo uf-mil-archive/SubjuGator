@@ -25,8 +25,8 @@ def main():
     missionserver.get_plan('timeout').extend([
             missions.PlanEntry('hydrophone_grab', 9999, None, None, 0),
             missions.PlanEntry('grabber', 9999, None, None, 0),
-            missions.PlanEntry('surface', 9999, None, None, 0),
             missions.PlanEntry('hydrophone_drop', 9999, None, None, 0),
+            missions.PlanEntry('surface', 9999, None, None, 0),
             missions.PlanEntry('grabber_drop', 9999, None, None, 0)])
             
     rospy.spin()

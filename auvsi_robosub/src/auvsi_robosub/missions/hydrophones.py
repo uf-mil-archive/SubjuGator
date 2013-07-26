@@ -40,9 +40,9 @@ def make_hydrophones_close(freq, shared):
                            hydrophone_states.HydrophoneTravelState(shared, freq))
         smach.Sequence.add('HYDROPHONES_APPROACH',
                            hydrophone_states.HydrophoneApproachState(shared, freq))
-#        smach.Sequence.add('BACKUP',
-#                           common_states.WaypointState(shared,
-#                                                       lambda cur: cur.backward(.5)))
+        smach.Sequence.add('BACKUP',
+                           common_states.WaypointState(shared,
+                                                       lambda cur: cur.backward(.3)))
     return sm
 
 missions.register_factory('hydrophone_grab',

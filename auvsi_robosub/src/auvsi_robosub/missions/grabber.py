@@ -70,7 +70,7 @@ def make_grabber_drop(shared):
     sm = smach.Sequence(['succeeded', 'failed', 'preempted'], 'succeeded')
     with sm:
         smach.Sequence.add('DEPTH',
-                           common_states.WaypointState(shared, lambda cur: cur.depth(1.5)))
+                           common_states.WaypointState(shared, lambda cur: cur.depth(2)))
         smach.Sequence.add('OPEN_GRABBER',
                            subjugator_states.OpenGrabberState())
         smach.Sequence.add('UP_DEPTH',

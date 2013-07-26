@@ -15,12 +15,20 @@ def make_hydrophones(shared):
     with sm_travel:
         smach.StateMachine.add('HYDROPHONES',
                                hydrophone_states.HydrophoneTravelState(shared, FREQ, FREQ_RANGE),
-                               transitions={'failed': 'GO_NNE'})
-        smach.StateMachine.add('GO_NNE',
-                               common_states.WaypointSeriesState(shared,
-                                                                 [lambda cur: cur.set_orientation(orientation_helpers.NORTH).turn_right_deg(22.5),
-                                                                  lambda cur: cur.forward(5)]),
-                               transitions={'succeeded': 'HYDROPHONES'})    
+                               transitions={'failed': 'GO_AWAY'})
+        if constants.MODE == 'competition':
+            smach.StateMachine.add('GO_AWAY',
+                                   common_states.WaypointSeriesState(shared,
+                                                                     [lambda cur: cur.set_orientation(orientation_helpers.NORTH).turn_right_deg(22.5),
+                                                                      lambda cur: cur.forward(5)]),
+                                   transitions={'succeeded': 'HYDROPHONES'})
+        else:
+            smach.StateMachine.add('GO_AWAY',
+                                   common_states.WaypointSeriesState(shared,
+                                                                     [lambda cur: cur.set_orientation(orientation_helpers.NORTH).turn_left_deg(22.5),
+                                                                      lambda cur: cur.forward(5)]),
+                                   transitions={'succeeded': 'HYDROPHONES'})    
+
     sm = smach.Sequence(['succeeded', 'failed', 'preempted'], 'succeeded')
 
     with sm:

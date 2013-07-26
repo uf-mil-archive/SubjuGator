@@ -1,4 +1,5 @@
 import roslib; roslib.load_manifest('uf_smach')
+from auvsi_robosub import constants
 from uf_smach import common_states, hydrophone_states, missions
 from uf_common import orientation_helpers
 
@@ -6,14 +7,14 @@ import smach
 import functools
 
 APPROACH_DEPTH = .5
-GRAB_FREQ = 24.5
-DROP_FREQ = 24.5
+FREQ = 24.5e3 if constants.MODE == 'competition' else 27e3
+FREQ_RANGE = 1.25e3
 
-def make_hydrophones(freq, shared):
+def make_hydrophones(shared):
     sm_travel = smach.StateMachine(['succeeded', 'preempted'])
     with sm_travel:
         smach.StateMachine.add('HYDROPHONES',
-                               hydrophone_states.HydrophoneTravelState(shared, freq),
+                               hydrophone_states.HydrophoneTravelState(shared, FREQ, FREQ_RANGE),
                                transitions={'failed': 'GO_NNE'})
         smach.StateMachine.add('GO_NNE',
                                common_states.WaypointSeriesState(shared,
@@ -29,7 +30,7 @@ def make_hydrophones(freq, shared):
         smach.Sequence.add('TRAVEL', sm_travel)
     return sm
 
-def make_hydrophones_close(freq, shared):
+def make_hydrophones_close(shared):
     sm = smach.Sequence(['succeeded', 'failed', 'preempted'], 'succeeded')
 
     with sm:
@@ -37,15 +38,13 @@ def make_hydrophones_close(freq, shared):
                            common_states.WaypointState(shared,
                                                        lambda cur: cur.depth(1.75)))
         smach.Sequence.add('HYDROPHONES_TRAVEL',
-                           hydrophone_states.HydrophoneTravelState(shared, freq))
+                           hydrophone_states.HydrophoneTravelState(shared, FREQ, FREQ_RANGE))
         smach.Sequence.add('HYDROPHONES_APPROACH',
-                           hydrophone_states.HydrophoneApproachState(shared, freq))
+                           hydrophone_states.HydrophoneApproachState(shared, FREQ, FREQ_RANGE))
         smach.Sequence.add('BACKUP',
                            common_states.WaypointState(shared,
                                                        lambda cur: cur.backward(.3)))
     return sm
 
-missions.register_factory('hydrophone_grab',
-                          functools.partial(make_hydrophones, GRAB_FREQ*1e3))
-missions.register_factory('hydrophone_drop',
-                          functools.partial(make_hydrophones_close, DROP_FREQ*1e3))
+missions.register_factory('hydrophone_grab', make_hydrophones)
+missions.register_factory('hydrophone_drop', make_hydrophones_close)

@@ -36,7 +36,9 @@ def make_bins(shared):
                                                                     'find2_down_camera', 'bins/all'),
                            transitions={'timeout': 'failed'})
         smach.Sequence.add('EXTRA_FORWARD',
-                           common_states.SleepState(1))
+                           common_states.SleepState(2))
+        smach.Sequence.add('RIGHT_TWEAK',
+                           common_states.WaypointState(shared, lambda cur: cur.turn_right_deg(25)))
         
     sm_center = smach.Sequence(['succeeded', 'failed', 'preempted'], 'succeeded')
     with sm_center:
@@ -135,6 +137,12 @@ def make_bins_return(shared):
                            legacy_vision_states.WaitForObjectsState(shared,
                                                                     'find2_down_camera', 'pipe'),
                            transitions={'timeout': 'failed'})
+        smach.Sequence.add('CENTER_PIPE', 
+                           legacy_vision_states.CenterObjectState(shared,
+                                                                   'find2_down_camera'))
+        smach.Sequence.add('TURN',
+                           common_states.WaypointState(shared,
+                                                       lambda cur: cur.turn_left_deg(75) if constants.MODE == 'competition' else cur.turn_right_deg(90)))
     return sm
 
 missions.register_factory('bins', make_bins)

@@ -5,6 +5,7 @@ import roslib; roslib.load_manifest('auvsi_robosub')
 import rospy
 
 import auvsi_robosub.missions
+from auvsi_robosub import constants
 import uf_smach.util
 from uf_smach import missions
 import smach_ros
@@ -17,11 +18,11 @@ def main():
             missions.PlanEntry('starting_gate', 120, None, None, 0),
             missions.PlanEntry('buoy', 120, 'timeout', 'any', 0),
             missions.PlanEntry('hedge', 120, 'timeout', 'any', 0),
-            missions.PlanEntry('bins', 180, 'timeout', 'right', 4),
+            missions.PlanEntry('bins', 180, 'timeout', 'right' if constants.MODE == 'competition' else 'left', 4),
             missions.PlanEntry('shooter_approach', 120, 'timeout', None, 0),
             missions.PlanEntry('shooter', 120, 'timeout', None, 0),
             missions.PlanEntry('bins_return', 120, 'timeout', None, 0),
-            missions.PlanEntry('manipulation_thresh', 180, 'timeout', 'left', 12)])
+            missions.PlanEntry('manipulation_thresh', 180, 'timeout', 'left' if constants.MODE == 'competition' else 'right', 12)])
     missionserver.get_plan('timeout').extend([
             missions.PlanEntry('hydrophone_grab', 9999, None, None, 0),
             missions.PlanEntry('grabber', 9999, None, None, 0),

@@ -1,5 +1,5 @@
 import roslib; roslib.load_manifest('uf_smach')
-from auvsi_robosub import subjugator_states
+from auvsi_robosub import subjugator_states, constants
 from uf_smach import missions, common_states, legacy_vision_states
 
 import numpy

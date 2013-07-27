@@ -38,7 +38,8 @@ def make_shooter(shared):
             #                                                                   desired_scale=BOARD_SCALE))
             smach.Sequence.add('WAIT_HEXAGON',
                                legacy_vision_states.WaitForObjectsState(shared, 'find2_forward_camera',
-                                                                        '/'.join(['shooter_flood', color, SIZE])),
+                                                                        '/'.join(['shooter_flood', color, SIZE]),
+                                                                        timeout=15),
                                transitions={'timeout': 'failed'})
             smach.Sequence.add('APPROACH_HEXAGON',
                                legacy_vision_states.CenterApproachObjectState(shared, 'find2_forward_camera',

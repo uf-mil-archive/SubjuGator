@@ -90,7 +90,7 @@ def make_shooter(shared):
 def make_shooter_approach(shared):
     sm = common_states.WaypointSeriesState(shared,
                                            [lambda cur: cur.turn_left_deg(65),
-                                            lambda cur: cur.right(1.5)])
+                                            lambda cur: cur.right(.5)])
     return sm
 
 missions.register_factory('shooter', make_shooter)

@@ -139,7 +139,7 @@ def make_bins_return(shared):
                            transitions={'timeout': 'failed'})
         smach.Sequence.add('CENTER_PIPE', 
                            legacy_vision_states.CenterObjectState(shared,
-                                                                   'find2_down_camera'))
+                                                                  'find2_down_camera'))
         smach.Sequence.add('TURN',
                            common_states.WaypointState(shared,
                                                        lambda cur: cur.turn_left_deg(75) if constants.MODE == 'competition' else cur.turn_right_deg(90)))

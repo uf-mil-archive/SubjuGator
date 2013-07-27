@@ -15,7 +15,7 @@ def make_grabber(shared):
                            common_states.VelocityState(shared, numpy.array([.2, 0, 0])))
         smach.Sequence.add('WAIT_PIZZA',
                            legacy_vision_states.WaitForObjectsState(shared, 'find2_down_camera', 'wreath',
-                                                                    timeout=30),
+                                                                    timeout=9999),
                            transitions={'timeout': 'failed'})
         
     sm_descend_grab = smach.Sequence(['succeeded', 'failed', 'empty', 'preempted'], 'succeeded')

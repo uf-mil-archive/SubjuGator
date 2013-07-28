@@ -80,9 +80,13 @@ def make_bins(shared):
                                                                               selector=selector))
             smach.Sequence.add('DOWN',
                                common_states.WaypointState(shared, lambda cur: cur.depth(3).backward(.15)))
+            smach.Sequence.add('SLEEP',
+                               common_states.SleepState(2))
             smach.Sequence.add('DROP',
                                subjugator_states.DropBallState())
-            
+            smach.Sequence.add('SLEEP2',
+                               common_states.SleepState(2))
+
     sm = smach.StateMachine(['succeeded', 'failed', 'preempted'])
     with sm:
         smach.StateMachine.add('APPROACH', sm_approach,

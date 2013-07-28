@@ -2,6 +2,7 @@ import roslib; roslib.load_manifest('uf_smach')
 from auvsi_robosub import constants
 from uf_smach import common_states, hydrophone_states, missions
 from uf_common import orientation_helpers
+from auvsi_robosub import subjugator_states
 
 import smach
 import functools
@@ -32,6 +33,8 @@ def make_hydrophones(shared):
     sm = smach.Sequence(['succeeded', 'failed', 'preempted'], 'succeeded')
 
     with sm:
+        smach.Sequence.add('RETRACT',
+                           subjugator_states.GasPoweredStickState(False))
         smach.Sequence.add('DEPTH',
                            common_states.WaypointState(shared,
                                                        lambda cur: cur.depth(APPROACH_DEPTH)))

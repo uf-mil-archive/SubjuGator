@@ -45,14 +45,14 @@ def make_buoy(shared):
         smach.StateMachine.add('START',
                                common_states.WaypointSeriesState(shared,
                                                                  [lambda cur: cur.depth(constants.PIPE_DEPTH),
-                                                                  lambda cur: cur.left(SEARCH_WIDTH/2)],
+                                                                  lambda cur: cur.right(SEARCH_WIDTH/2)],
                                                                  speed=constants.PIPE_SPEED),
                                transitions={'succeeded': 'SEARCH'})
         smach.StateMachine.add('SEARCH',
                                common_states.WaypointSeriesState(shared,
-                                                                 [lambda cur: cur.right(SEARCH_WIDTH),
+                                                                 [lambda cur: cur.left(SEARCH_WIDTH),
                                                                   lambda cur: cur.forward(SEARCH_ADVANCE),
-                                                                  lambda cur: cur.left(SEARCH_WIDTH),
+                                                                  lambda cur: cur.right(SEARCH_WIDTH),
                                                                   lambda cur: cur.forward(SEARCH_ADVANCE)],
                                                                  speed=constants.PIPE_SPEED),
                                transitions={'succeeded': 'SEARCH'})

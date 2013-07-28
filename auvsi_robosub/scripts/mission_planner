@@ -27,7 +27,7 @@ def main():
             missions.PlanEntry('shooter_approach', 120, 'timeout', None, 0),
             missions.PlanEntry('shooter', 120, 'timeout', None, 0),
             missions.PlanEntry('bins_return', 120, 'timeout', None, 0),
-            missions.PlanEntry('manipulation_thresh', 180, 'timeout', 'left' if constants.MODE == 'competition' else 'right', 12)])
+            missions.PlanEntry('manipulation_thresh', 210, 'timeout', 'left' if constants.MODE == 'competition' else 'right', 12)])
     missionserver.get_plan('timeout').extend([
             missions.PlanEntry('hydrophone_grab', 9999, None, None, 0),
             missions.PlanEntry('grabber', 9999, None, None, 0),

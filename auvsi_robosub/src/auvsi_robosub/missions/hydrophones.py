@@ -44,10 +44,10 @@ def make_hydrophones_close(shared):
     with sm:
         smach.Sequence.add('DEPTH',
                            common_states.WaypointState(shared,
-                                                       lambda cur: cur.depth(1.75)))
+                                                       lambda cur: cur.depth(1.5)))
         smach.Sequence.add('HYDROPHONES_TRAVEL',
                            hydrophone_states.HydrophoneTravelState(shared, FREQ, FREQ_RANGE),
-                           transitions={'failed', 'HYDROPHONES_TRAVEL'})
+                           transitions={'failed': 'HYDROPHONES_TRAVEL'})
         smach.Sequence.add('HYDROPHONES_APPROACH',
                            hydrophone_states.HydrophoneApproachState(shared, FREQ, FREQ_RANGE),
                            transitions={'failed': 'succeeded'}) # Ensure we drop

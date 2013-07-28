@@ -5,7 +5,7 @@ import numpy
 import smach
 
 CENTER_DEPTH = .4
-DROP_ORDER = ['10', '37']
+DROP_ORDER = ['98', '16']
 
 def unit_vector(x):
     return x/numpy.linalg.norm(x)

@@ -13,7 +13,12 @@ import smach_ros
 def main():
     rospy.init_node('mission_planner')
 
-    missionserver = missions.MissionServer(['main', 'timeout'], master_timeout=12*60)
+    if len(sys.argv) > 1:
+        master_timeout = int(sys.argv[1])*60
+    else:
+        master_timeout = 15*60
+    
+    missionserver = missions.MissionServer(['main', 'timeout'], master_timeout=master_timeout)
     missionserver.get_plan('main').extend([
             missions.PlanEntry('starting_gate', 120, None, None, 0),
             missions.PlanEntry('buoy', 120, 'timeout', 'any', 0),

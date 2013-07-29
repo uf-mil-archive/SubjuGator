@@ -28,7 +28,6 @@
   <depend package="thruster_driver"/>
   <depend package="leaksensor_driver"/>
 
-  <depend package="camera1394"/>
   <depend package="image_proc"/>
 </package>
 

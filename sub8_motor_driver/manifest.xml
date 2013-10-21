@@ -1,0 +1,16 @@
+<package>
+  <description brief="sub8_motor_driver">
+
+     sub8_motor_driver
+
+  </description>
+  <author>Forrest Voight</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/sub8_motor_driver</url>
+  <depend package="libopencm3"/>
+  <depend package="arm_bootloader"/>
+
+</package>
+
+

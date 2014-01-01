@@ -11,6 +11,8 @@
   <depend package="libopencm3"/>
   <depend package="arm_bootloader"/>
 
+  <depend package="odom_estimator"/>
+
 </package>
 
 

@@ -15,7 +15,6 @@
   <depend package="depth_driver"/>
   <depend package="rdi_explorer_dvl"/>
   <depend package="tf"/>
-  <depend package="legacy_ukf"/>
   <depend package="c3_trajectory_generator"/>
   <depend package="rise_6dof"/>
   <depend package="thruster_mapper"/>
@@ -23,6 +22,7 @@
   <depend package="odometry_utils"/>
   <depend package="imagenex_852"/>
   <depend package="uf_common"/>
+  <depend package="indirect_kalman_6dof"/>
 
   <depend package="merge_driver"/>
   <depend package="thruster_driver"/>

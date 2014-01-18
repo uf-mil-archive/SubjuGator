@@ -61,17 +61,16 @@ catkin_package(
 
 include_directories( ${Boost_INCLUDE_DIR} ${catkin_INCLUDE_DIRS})
 add_custom_command(
-    WORKING_DIRECTORY ../firmware
-    COMMAND $(MAKE) BUILD_DIR=../build/firmware_out TOOLCHAIN_DIR=${libopencm3_PACKAGE_PATH}/build/libopencm3 ARM_BOOTLOADER_DIR=${arm_bootloader_PACKAGE_PATH}
-    OUTPUT firmware_out/firmware.bin.dummy
+    COMMAND $(MAKE) -C ${PROJECT_SOURCE_DIR}/firmware BUILD_DIR=${CMAKE_CURRENT_BINARY_DIR}/firmware_out TOOLCHAIN_DIR=${libopencm3_TOOLCHAIN_DIR} UF_SUBBUS_PROTOCOL_DIR=${uf_subbus_protocol_PACKAGE_PATH} ARM_BOOTLOADER_DIR=${arm_bootloader_PACKAGE_PATH}
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/firmware_out/firmware.bin.dummy
 )
 add_custom_command(OUTPUT ../firmware APPEND DEPENDS ${catkin_EXPORTED_TARGETS})
 add_custom_command(
-    DEPENDS firmware_out/firmware.bin.dummy
-    WORKING_DIRECTORY firmware_out
+    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/firmware_out/firmware.bin.dummy
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/firmware_out
     COMMAND xxd -i firmware.bin > ../firmware_bin.cpp.tmp
     COMMAND cmp -s ../firmware_bin.cpp.tmp ../firmware_bin.cpp || cp ../firmware_bin.cpp.tmp ../firmware_bin.cpp
-    OUTPUT firmware_bin.cpp
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/firmware_bin.cpp
 )
 add_custom_command(OUTPUT firmware_out/firmware.bin.dummy APPEND DEPENDS ${catkin_EXPORTED_TARGETS})
 
@@ -81,7 +80,7 @@ add_custom_command(OUTPUT firmware_out/firmware.bin.dummy APPEND DEPENDS ${catki
 
 # CATKIN_MIGRATION: removed during catkin migration
 # rosbuild_add_boost_directories()
-add_executable(sub8_motor_driver src/sub8_motor_driver.cpp build/firmware_bin.cpp)
+add_executable(sub8_motor_driver src/sub8_motor_driver.cpp ${CMAKE_CURRENT_BINARY_DIR}/firmware_bin.cpp)
 target_link_libraries(sub8_motor_driver ${catkin_LIBRARIES})
 add_dependencies(sub8_motor_driver ${catkin_EXPORTED_TARGETS})
 find_package(Boost REQUIRED COMPONENTS system)

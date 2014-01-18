@@ -65,9 +65,7 @@ include_directories( ${Boost_INCLUDE_DIR} ${catkin_INCLUDE_DIRS})
 # CATKIN_MIGRATION: removed during catkin migration
 # rosbuild_find_ros_package(libopencm3)
 
-add_custom_target(arm_bootloader ALL
-    WORKING_DIRECTORY ../firmware
-    COMMAND $(MAKE) BUILD_DIR=../build/firmware_out TOOLCHAIN_DIR=${libopencm3_PACKAGE_PATH}/build/libopencm3
+add_custom_target(battery_driver_firmware ALL
+    COMMAND $(MAKE) -C ${PROJECT_SOURCE_DIR}/firmware BUILD_DIR=${CMAKE_CURRENT_BINARY_DIR}/firmware_out TOOLCHAIN_DIR=${libopencm3_TOOLCHAIN_DIR}
 )
-add_dependencies(arm_bootloader ${catkin_EXPORTED_TARGETS})
-
+add_dependencies(battery_driver_firmware ${catkin_EXPORTED_TARGETS})

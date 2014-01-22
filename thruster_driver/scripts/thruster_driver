@@ -59,6 +59,7 @@ thruster_broadcaster = ThrusterBroadcaster(
     direction=direction,
     min_force=-rev_force,
     max_force=+fwd_force,
+    torque_per_force=[0, 0, 0],
     command_callback=thrustercommand_callback,
 )
 rospy.Timer(info_period, lambda timerevent: thruster_broadcaster.send())

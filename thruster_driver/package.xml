@@ -1,0 +1,48 @@
+<package>
+  <name>thruster_driver</name>
+  <version>1.0.0</version>
+  <description>thruster_driver</description>
+  <maintainer email="forrest@forre.st">Forrest Voight</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://ros.org/wiki/thruster_driver</url>
+  <!-- <url type="bugtracker"></url> -->
+
+  <author>Forrest Voight</author>
+
+  <!-- Dependencies which this package needs to build itself. -->
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- Dependencies needed to compile this package. -->
+  <build_depend>magnetic_dynamic_compensation</build_depend>
+  <build_depend>thruster_handling</build_depend>
+  <build_depend>message_runtime</build_depend>
+  <build_depend>rospy</build_depend>
+  <build_depend>embedded_protocol</build_depend>
+  <build_depend>kill_handling</build_depend>
+  <build_depend>message_generation</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+
+  <!-- Dependencies needed after this package is compiled. -->
+  <run_depend>magnetic_dynamic_compensation</run_depend>
+  <run_depend>thruster_handling</run_depend>
+  <run_depend>message_runtime</run_depend>
+  <run_depend>rospy</run_depend>
+  <run_depend>embedded_protocol</run_depend>
+  <run_depend>kill_handling</run_depend>
+  <run_depend>message_generation</run_depend>
+  <run_depend>std_msgs</run_depend>
+  <run_depend>geometry_msgs</run_depend>
+
+  <!-- Dependencies needed only for running tests. -->
+  <!-- <test_depend>magnetic_dynamic_compensation</test_depend> -->
+  <!-- <test_depend>embedded_protocol</test_depend> -->
+  <!-- <test_depend>std_msgs</test_depend> -->
+  <!-- <test_depend>rospy</test_depend> -->
+  <!-- <test_depend>kill_handling</test_depend> -->
+  <!-- <test_depend>thruster_handling</test_depend> -->
+  <!-- <test_depend>geometry_msgs</test_depend> -->
+
+</package>

@@ -1,0 +1,35 @@
+<package>
+  <name>merge_driver</name>
+  <version>1.0.0</version>
+  <description>merge_driver</description>
+  <maintainer email="forrest@forre.st">Forrest Voight</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://ros.org/wiki/merge_driver</url>
+  <!-- <url type="bugtracker"></url> -->
+
+  <author>Forrest Voight</author>
+
+  <!-- Dependencies which this package needs to build itself. -->
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- Dependencies needed to compile this package. -->
+  <build_depend>embedded_protocol</build_depend>
+  <build_depend>rospy</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>kill_handling</build_depend>
+
+  <!-- Dependencies needed after this package is compiled. -->
+  <run_depend>embedded_protocol</run_depend>
+  <run_depend>rospy</run_depend>
+  <run_depend>std_msgs</run_depend>
+  <run_depend>kill_handling</run_depend>
+
+  <!-- Dependencies needed only for running tests. -->
+  <!-- <test_depend>embedded_protocol</test_depend> -->
+  <!-- <test_depend>std_msgs</test_depend> -->
+  <!-- <test_depend>rospy</test_depend> -->
+  <!-- <test_depend>kill_handling</test_depend> -->
+
+</package>

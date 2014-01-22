@@ -1,0 +1,77 @@
+<package>
+  <name>sub_launch</name>
+  <version>1.0.0</version>
+  <description>sub_launch</description>
+  <maintainer email="forrest@forre.st">Forrest Voight</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://ros.org/wiki/sub_launch</url>
+  <!-- <url type="bugtracker"></url> -->
+
+  <author>Forrest Voight</author>
+
+  <!-- Dependencies which this package needs to build itself. -->
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- Dependencies needed to compile this package. -->
+  <build_depend>leaksensor_driver</build_depend>
+  <build_depend>rise_6dof</build_depend>
+  <build_depend>rdi_explorer_dvl</build_depend>
+  <build_depend>thruster_driver</build_depend>
+  <build_depend>image_proc</build_depend>
+  <build_depend>c3_trajectory_generator</build_depend>
+  <build_depend>depth_driver</build_depend>
+  <build_depend>magnetic_dynamic_compensation</build_depend>
+  <build_depend>adis16400_imu</build_depend>
+  <build_depend>thruster_mapper</build_depend>
+  <build_depend>imagenex_852</build_depend>
+  <build_depend>odometry_utils</build_depend>
+  <build_depend>object_finder</build_depend>
+  <build_depend>magnetic_hardsoft_compensation</build_depend>
+  <build_depend>uf_common</build_depend>
+  <build_depend>tf</build_depend>
+  <build_depend>indirect_kalman_6dof</build_depend>
+  <build_depend>merge_driver</build_depend>
+
+  <!-- Dependencies needed after this package is compiled. -->
+  <run_depend>leaksensor_driver</run_depend>
+  <run_depend>rise_6dof</run_depend>
+  <run_depend>rdi_explorer_dvl</run_depend>
+  <run_depend>thruster_driver</run_depend>
+  <run_depend>image_proc</run_depend>
+  <run_depend>c3_trajectory_generator</run_depend>
+  <run_depend>depth_driver</run_depend>
+  <run_depend>magnetic_dynamic_compensation</run_depend>
+  <run_depend>adis16400_imu</run_depend>
+  <run_depend>thruster_mapper</run_depend>
+  <run_depend>imagenex_852</run_depend>
+  <run_depend>odometry_utils</run_depend>
+  <run_depend>object_finder</run_depend>
+  <run_depend>magnetic_hardsoft_compensation</run_depend>
+  <run_depend>uf_common</run_depend>
+  <run_depend>tf</run_depend>
+  <run_depend>indirect_kalman_6dof</run_depend>
+  <run_depend>merge_driver</run_depend>
+
+  <!-- Dependencies needed only for running tests. -->
+  <!-- <test_depend>magnetic_dynamic_compensation</test_depend> -->
+  <!-- <test_depend>adis16400_imu</test_depend> -->
+  <!-- <test_depend>thruster_mapper</test_depend> -->
+  <!-- <test_depend>imagenex_852</test_depend> -->
+  <!-- <test_depend>leaksensor_driver</test_depend> -->
+  <!-- <test_depend>rise_6dof</test_depend> -->
+  <!-- <test_depend>odometry_utils</test_depend> -->
+  <!-- <test_depend>indirect_kalman_6dof</test_depend> -->
+  <!-- <test_depend>tf</test_depend> -->
+  <!-- <test_depend>magnetic_hardsoft_compensation</test_depend> -->
+  <!-- <test_depend>uf_common</test_depend> -->
+  <!-- <test_depend>thruster_driver</test_depend> -->
+  <!-- <test_depend>rdi_explorer_dvl</test_depend> -->
+  <!-- <test_depend>image_proc</test_depend> -->
+  <!-- <test_depend>c3_trajectory_generator</test_depend> -->
+  <!-- <test_depend>depth_driver</test_depend> -->
+  <!-- <test_depend>object_finder</test_depend> -->
+  <!-- <test_depend>merge_driver</test_depend> -->
+
+</package>

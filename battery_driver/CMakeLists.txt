@@ -1,5 +1,15 @@
-cmake_minimum_required(VERSION 2.4.6)
-include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
+# Catkin User Guide: http://www.ros.org/doc/groovy/api/catkin/html/user_guide/user_guide.html
+# Catkin CMake Standard: http://www.ros.org/doc/groovy/api/catkin/html/user_guide/standards.html
+cmake_minimum_required(VERSION 2.8.3)
+project(battery_driver)
+# Load catkin and all dependencies required for this package
+# TODO: remove all from COMPONENTS that are not catkin packages.
+find_package(catkin REQUIRED COMPONENTS libopencm3)
+# CATKIN_MIGRATION: removed during catkin migration
+# cmake_minimum_required(VERSION 2.4.6)
+
+# CATKIN_MIGRATION: removed during catkin migration
+# include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 
 # Set the build type.  Options are:
 #  Coverage       : w/ debug symbols, w/o optimization, w/ code-coverage
@@ -9,12 +19,34 @@ include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 #  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
 #set(ROS_BUILD_TYPE RelWithDebInfo)
 
-rosbuild_init()
+
+# CATKIN_MIGRATION: removed during catkin migration
+# rosbuild_init()
 
 #set the default path for built executables to the "bin" directory
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
+
+# CATKIN_MIGRATION: removed during catkin migration
+# set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 #set the default path for built libraries to the "lib" directory
-set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
+
+# CATKIN_MIGRATION: removed during catkin migration
+# set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
+## Generate added messages and services with any dependencies listed here
+#generate_messages(
+#    DEPENDENCIES 
+#)
+
+# catkin_package parameters: http://ros.org/doc/groovy/api/catkin/html/dev_guide/generated_cmake_api.html#catkin-package
+# TODO: fill in what other packages will need to use this package
+catkin_package(
+    DEPENDS  # TODO
+    CATKIN_DEPENDS libopencm3
+    INCLUDE_DIRS # TODO include
+    LIBRARIES # TODO
+)
+
+include_directories( ${Boost_INCLUDE_DIR} ${catkin_INCLUDE_DIRS})
+
 
 #uncomment if you have defined messages
 #rosbuild_genmsg()
@@ -29,10 +61,13 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #rosbuild_add_executable(example examples/example.cpp)
 #target_link_libraries(example ${PROJECT_NAME})
 
-rosbuild_find_ros_package(libopencm3)
+
+# CATKIN_MIGRATION: removed during catkin migration
+# rosbuild_find_ros_package(libopencm3)
 
 add_custom_target(arm_bootloader ALL
     WORKING_DIRECTORY ../firmware
     COMMAND $(MAKE) BUILD_DIR=../build/firmware_out TOOLCHAIN_DIR=${libopencm3_PACKAGE_PATH}/build/libopencm3
 )
+add_dependencies(arm_bootloader ${catkin_EXPORTED_TARGETS})
 

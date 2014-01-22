@@ -1,5 +1,15 @@
-cmake_minimum_required(VERSION 2.4.6)
-include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
+# Catkin User Guide: http://www.ros.org/doc/groovy/api/catkin/html/user_guide/user_guide.html
+# Catkin CMake Standard: http://www.ros.org/doc/groovy/api/catkin/html/user_guide/standards.html
+cmake_minimum_required(VERSION 2.8.3)
+project(sub8_motor_driver)
+# Load catkin and all dependencies required for this package
+# TODO: remove all from COMPONENTS that are not catkin packages.
+find_package(catkin REQUIRED COMPONENTS odom_estimator arm_bootloader libopencm3)
+# CATKIN_MIGRATION: removed during catkin migration
+# cmake_minimum_required(VERSION 2.4.6)
+
+# CATKIN_MIGRATION: removed during catkin migration
+# include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 
 # Set the build type.  Options are:
 #  Coverage       : w/ debug symbols, w/o optimization, w/ code-coverage
@@ -9,26 +19,53 @@ include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 #  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
 #set(ROS_BUILD_TYPE Debug)
 
-rosbuild_init()
+
+# CATKIN_MIGRATION: removed during catkin migration
+# rosbuild_init()
 
 #set the default path for built executables to the "bin" directory
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
+
+# CATKIN_MIGRATION: removed during catkin migration
+# set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 #set the default path for built libraries to the "lib" directory
-set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
+
+# CATKIN_MIGRATION: removed during catkin migration
+# set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 #uncomment if you have defined messages
 #rosbuild_genmsg()
 #uncomment if you have defined services
 #rosbuild_gensrv()
 
-rosbuild_find_ros_package(libopencm3)
-rosbuild_find_ros_package(arm_bootloader)
 
+# CATKIN_MIGRATION: removed during catkin migration
+# rosbuild_find_ros_package(libopencm3)
+
+# CATKIN_MIGRATION: removed during catkin migration
+# rosbuild_find_ros_package(arm_bootloader)
+
+
+## Generate added messages and services with any dependencies listed here
+#generate_messages(
+#    DEPENDENCIES 
+#)
+
+# catkin_package parameters: http://ros.org/doc/groovy/api/catkin/html/dev_guide/generated_cmake_api.html#catkin-package
+# TODO: fill in what other packages will need to use this package
+catkin_package(
+    DEPENDS  # TODO
+    CATKIN_DEPENDS odom_estimator arm_bootloader libopencm3
+    INCLUDE_DIRS # TODO include
+    LIBRARIES # TODO
+)
+
+include_directories( ${Boost_INCLUDE_DIR} ${catkin_INCLUDE_DIRS})
 add_custom_command(
     WORKING_DIRECTORY ../firmware
     COMMAND $(MAKE) BUILD_DIR=../build/firmware_out TOOLCHAIN_DIR=${libopencm3_PACKAGE_PATH}/build/libopencm3 ARM_BOOTLOADER_DIR=${arm_bootloader_PACKAGE_PATH}
     OUTPUT firmware_out/firmware.bin.dummy
 )
+add_custom_command(OUTPUT ../firmware APPEND DEPENDS ${catkin_EXPORTED_TARGETS})
 add_custom_command(
     DEPENDS firmware_out/firmware.bin.dummy
     WORKING_DIRECTORY firmware_out
@@ -36,14 +73,23 @@ add_custom_command(
     COMMAND cmp -s ../firmware_bin.cpp.tmp ../firmware_bin.cpp || cp ../firmware_bin.cpp.tmp ../firmware_bin.cpp
     OUTPUT firmware_bin.cpp
 )
+add_custom_command(OUTPUT firmware_out/firmware.bin.dummy APPEND DEPENDS ${catkin_EXPORTED_TARGETS})
 
 #common commands for building c++ executables and libraries
 #rosbuild_add_library(${PROJECT_NAME} src/example.cpp)
 #target_link_libraries(${PROJECT_NAME} another_library)
-rosbuild_add_boost_directories()
-rosbuild_add_executable(sub8_motor_driver src/sub8_motor_driver.cpp build/firmware_bin.cpp)
-rosbuild_link_boost(${PROJECT_NAME} system)
-rosbuild_add_compile_flags(sub8_motor_driver -std=c++11)
-rosbuild_add_executable(test_kalman src/test_kalman.cpp)
-rosbuild_add_compile_flags(test_kalman -std=c++11)
+
+# CATKIN_MIGRATION: removed during catkin migration
+# rosbuild_add_boost_directories()
+add_executable(sub8_motor_driver src/sub8_motor_driver.cpp build/firmware_bin.cpp)
+target_link_libraries(sub8_motor_driver ${catkin_LIBRARIES})
+add_dependencies(sub8_motor_driver ${catkin_EXPORTED_TARGETS})
+find_package(Boost REQUIRED COMPONENTS system)
+include_directories(${Boost_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
+set_target_properties(sub8_motor_driver PROPERTIES COMPILE_FLAGS -std=c++11)
+add_executable(test_kalman src/test_kalman.cpp)
+target_link_libraries(test_kalman ${catkin_LIBRARIES})
+add_dependencies(test_kalman ${catkin_EXPORTED_TARGETS})
+set_target_properties(test_kalman PROPERTIES COMPILE_FLAGS -std=c++11)
 #target_link_libraries(example ${PROJECT_NAME})

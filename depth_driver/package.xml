@@ -1,0 +1,36 @@
+<package>
+  <name>depth_driver</name>
+  <version>1.0.0</version>
+  <description>depth_driver</description>
+  <maintainer email="forrest@forre.st">Forrest Voight</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://ros.org/wiki/depth_driver</url>
+  <!-- <url type="bugtracker"></url> -->
+
+  <author>Forrest Voight</author>
+
+  <!-- Dependencies which this package needs to build itself. -->
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- Dependencies needed to compile this package. -->
+  <build_depend>nodelet</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>uf_common</build_depend>
+
+  <!-- Dependencies needed after this package is compiled. -->
+  <run_depend>nodelet</run_depend>
+  <run_depend>roscpp</run_depend>
+  <run_depend>uf_common</run_depend>
+
+  <!-- Dependencies needed only for running tests. -->
+  <!-- <test_depend>nodelet</test_depend> -->
+  <!-- <test_depend>roscpp</test_depend> -->
+  <!-- <test_depend>uf_common</test_depend> -->
+
+<export>
+    <nodelet plugin="${prefix}/nodelet.xml"/>
+</export>
+
+</package>

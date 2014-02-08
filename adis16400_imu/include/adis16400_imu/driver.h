@@ -5,7 +5,7 @@
 #include <fstream>
 
 #include <sensor_msgs/Imu.h>
-#include <geometry_msgs/Vector3Stamped.h>
+#include <sensor_msgs/MagneticField.h>
 
 
 namespace adis16400_imu {
@@ -38,7 +38,7 @@ namespace adis16400_imu {
                 is.exceptions(std::ifstream::eofbit | std::ifstream::failbit | std::ifstream::badbit);
             }
 
-            bool read(const std::string frame_id, sensor_msgs::Imu &result, geometry_msgs::Vector3Stamped &mag_result) {
+            bool read(const std::string frame_id, sensor_msgs::Imu &result, sensor_msgs::MagneticField &mag_result) {
                 char data[32];
                 try {
                     is.read(data, 32);
@@ -73,9 +73,11 @@ namespace adis16400_imu {
                 mag_result.header.stamp = result.header.stamp;
 
                 static const double MAG_CONVERSION = 0.5e-3 * 0.0001; // convert to gauss and then to tesla
-                mag_result.vector.x = get16(data + 16 + 2*0) * MAG_CONVERSION;
-                mag_result.vector.y = get16(data + 16 + 2*1) * MAG_CONVERSION;
-                mag_result.vector.z = get16(data + 16 + 2*2) * MAG_CONVERSION;
+                mag_result.magnetic_field.x = get16(data + 16 + 2*0) * MAG_CONVERSION;
+                mag_result.magnetic_field.y = get16(data + 16 + 2*1) * MAG_CONVERSION;
+                mag_result.magnetic_field.z = get16(data + 16 + 2*2) * MAG_CONVERSION;
+                mag_result.magnetic_field_covariance[0] = mag_result.magnetic_field_covariance[4] = mag_result.magnetic_field_covariance[8] =
+                    pow(1.25e-3 * 0.0001, 2); // 1.25 mgauss converted to tesla and then squared
 
 
                 getu16(data + 0); // flags unused

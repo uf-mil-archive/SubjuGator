@@ -11,7 +11,8 @@ import roslib
 roslib.load_manifest('thruster_driver')
 import rospy
 from std_msgs.msg import Header
-from geometry_msgs.msg import Point, Vector3, Vector3Stamped
+from geometry_msgs.msg import Point, Vector3
+from sensor_msgs.msg import MagneticField
 
 from thruster_handling.broadcaster import ThrusterBroadcaster
 from magnetic_dynamic_compensation.msg import FieldInfo
@@ -74,7 +75,7 @@ def do_magnetic_calibration(req):
     _mag_holder = [None]
     def _got_mag(msg):
         _mag_holder[:] = [numpy.array([msg.vector.x, msg.vector.y, msg.vector.z]), msg.header.frame_id]
-    mag_sub = rospy.Subscriber('/imu/mag_raw', Vector3Stamped, _got_mag)
+    mag_sub = rospy.Subscriber('/imu/mag_raw', MagneticField, _got_mag)
     def wait_for_mag():
         _mag_holder[0] = None
         while _mag_holder[0] is None:

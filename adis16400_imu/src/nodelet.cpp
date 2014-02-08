@@ -25,7 +25,7 @@ namespace adis16400_imu {
                 
                 ros::NodeHandle& nh = getNodeHandle();
                 pub = nh.advertise<sensor_msgs::Imu>("imu/data_raw", 10);
-                mag_pub = nh.advertise<geometry_msgs::Vector3Stamped>("imu/mag_raw", 10);
+                mag_pub = nh.advertise<sensor_msgs::MagneticField>("imu/mag_raw", 10);
                 
                 running = true;
                 device = boost::make_shared<Device>(port);
@@ -36,7 +36,7 @@ namespace adis16400_imu {
             void polling_thread() {
                 while(running) {
                     sensor_msgs::Imu imu;
-                    geometry_msgs::Vector3Stamped mag;
+                    sensor_msgs::MagneticField mag;
                     if(device->read(frame_id, imu, mag)) {
                         pub.publish(imu);
                         mag_pub.publish(mag);

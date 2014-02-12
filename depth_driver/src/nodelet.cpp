@@ -5,9 +5,10 @@
 #include <pluginlib/class_list_macros.h>
 #include <ros/ros.h>
 
-#include "uf_common/Float64Stamped.h"
+#include <uf_common/param_helpers.h>
+#include <uf_common/Float64Stamped.h>
 
-#include "depth_driver/driver.h"
+#include <depth_driver/driver.h>
 
 
 namespace depth_driver {
@@ -23,11 +24,12 @@ namespace depth_driver {
             }
             
             virtual void onInit() {
-                std::string port; ROS_ASSERT_MSG(getPrivateNodeHandle().getParam("port", port),
-                    "\"port\" param missing");
-                int baudrate = 115200; getPrivateNodeHandle().getParam("baudrate", baudrate);
-                ROS_ASSERT_MSG(getPrivateNodeHandle().getParam("frame_id", frame_id),
-                    "\"frame_id\" param missing");
+                std::string port = uf_common::getParam<std::string>(
+                  getPrivateNodeHandle(), "port");
+                int baudrate = uf_common::getParam<int>(
+                  getPrivateNodeHandle(), "baudrate", 115200);
+                std::string frame_id = uf_common::getParam<std::string>(
+                  getPrivateNodeHandle(), "frame_id");
                 
                 pub = getNodeHandle().advertise<uf_common::Float64Stamped>("depth", 10);
                 

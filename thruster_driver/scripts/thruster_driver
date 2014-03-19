@@ -74,7 +74,7 @@ rospy.Timer(rospy.Duration(.1), lambda _: heartbeat())
 def do_magnetic_calibration(req):
     _mag_holder = [None]
     def _got_mag(msg):
-        _mag_holder[:] = [numpy.array([msg.vector.x, msg.vector.y, msg.vector.z]), msg.header.frame_id]
+        _mag_holder[:] = [numpy.array([msg.magnetic_field.x, msg.magnetic_field.y, msg.magnetic_field.z]), msg.header.frame_id]
     mag_sub = rospy.Subscriber('/imu/mag_raw', MagneticField, _got_mag)
     def wait_for_mag():
         _mag_holder[0] = None

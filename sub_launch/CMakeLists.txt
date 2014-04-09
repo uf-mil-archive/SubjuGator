@@ -23,6 +23,8 @@ find_package(catkin REQUIRED COMPONENTS magnetic_dynamic_compensation adis16400_
 # CATKIN_MIGRATION: removed during catkin migration
 # rosbuild_init()
 
+catkin_python_setup()
+
 #set the default path for built executables to the "bin" directory
 
 # CATKIN_MIGRATION: removed during catkin migration

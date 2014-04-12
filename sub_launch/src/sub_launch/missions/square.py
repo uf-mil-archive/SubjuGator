@@ -11,5 +11,5 @@ def main(nh):
     
     for i in xrange(4):
         print 'Side', i
-        yield sub.move.forward(2)
-        yield sub.move.turn_left_deg(90)
+        yield sub.move.forward(2).go()
+        yield sub.move.turn_left_deg(90).go()

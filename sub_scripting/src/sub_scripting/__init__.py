@@ -13,16 +13,19 @@ from legacy_vision.msg import FindAction, FindGoal
 from uf_common import orientation_helpers
 
 
-class _MoveProxy(object):
-    def __init__(self, sub):
+class _PoseProxy(object):
+    def __init__(self, sub, pose):
         self._sub = sub
+        self._pose = pose
     
     def __getattr__(self, name):
         def _(*args, **kwargs):
-            new_pose = getattr(self._sub._pose, name)(*args, **kwargs)
-            return self._sub._moveto_action_client.send_goal(
-                new_pose.as_MoveToGoal()).get_result()
+            return _PoseProxy(self._sub, getattr(self._pose, name)(*args, **kwargs))
         return _
+    
+    def go(self, *args, **kwargs):
+        return self._sub._moveto_action_client.send_goal(
+            self._pose.as_MoveToGoal(*args, **kwargs)).get_result()
 
 class _Sub(object):
     def __init__(self, node_handle):
@@ -48,7 +51,7 @@ class _Sub(object):
     
     @property
     def move(self):
-        return _MoveProxy(self)
+        return _PoseProxy(self, self._pose)
     
     @util.cancellableInlineCallbacks
     def visual_align(self, camera, object_name):
@@ -91,7 +94,7 @@ class _Sub(object):
                 angle -= dangle
             
             print 'a'
-            yield self.move.yaw_left(angle)
+            yield self.move.yaw_left(angle).go()
             print 'b'
         finally:
             print 1

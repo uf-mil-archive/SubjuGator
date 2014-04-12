@@ -11,4 +11,4 @@ def main(nh):
     
     yield sub.visual_align('down', 'pipe')
     
-    yield sub.move.forward(1)
+    yield sub.move.forward(1).go()

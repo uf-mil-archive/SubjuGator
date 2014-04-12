@@ -73,12 +73,12 @@ class _Sub(object):
                     -float(obj['direction'][0]),
                     -float(obj['direction'][1]))
                 
-                forward_vel = -float(obj['center'][1]) * 0.5
-                left_vel = -float(obj['center'][0]) * 0.5
+                forward_vel = -float(obj['center'][1]) * 1
+                left_vel = -float(obj['center'][0]) * 1
                 
                 print angle, forward_vel, left_vel
                 
-                if center.dot([0, 0, 1]) > math.cos(math.radians(1)):
+                if center.dot([0, 0, 1]) > math.cos(math.radians(2)):
                     break
                 
                 self._moveto_action_client.send_goal(

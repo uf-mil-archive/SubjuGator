@@ -9,6 +9,8 @@ import sub_scripting
 def main(nh):
     sub = yield sub_scripting.get_sub(nh)
     
+    sub.move.go(linear=[0.25, 0, 0])
+    
     yield sub.visual_align('down', 'pipe')
     
-    yield sub.move.forward(1).go()
+    yield sub.move.forward(2).go()

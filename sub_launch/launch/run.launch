@@ -7,9 +7,9 @@
 
   <node pkg="merge_driver" type="merge_driver" name="merge_driver"><rosparam>{address: 192.168.1.60, port: 50000, local_address: 21, remote_address: 60}</rosparam></node>
 
-  <node pkg="actuator_driver" type="actuator_driver" name="actuator_driver">
+  <!-- <node pkg="actuator_driver" type="actuator_driver" name="actuator_driver">
     <param name="port" value="/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_A601SF02-if00-port0"/>
-  </node>
+  </node> -->
 
   <node pkg="thruster_driver" type="thruster_driver" name="thruster_driver_FRV"><rosparam>{address: 192.168.1.30, port: 50000, local_address: 21, remote_address: 30,
     thruster_id: FRV, frame_id: /base_link, position: [0.297, -0.137, 0.050], direction: [0, 0, -1], rev_force: 17.98, fwd_force: 21.57}</rosparam>

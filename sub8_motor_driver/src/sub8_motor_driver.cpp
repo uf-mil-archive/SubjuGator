@@ -4,7 +4,7 @@
 
 #include <arm_bootloader/arm_bootloader.h>
 
-#include "../firmware/protocol.h"
+#include <sub8_motor_driver/protocol.h>
 
 extern unsigned char firmware_bin[];
 extern int firmware_bin_len;
@@ -27,15 +27,16 @@ double cur(double voltage) {
 
 int main(int argc, char **argv) {
   Dest dest = 0x3ca93415;
+  std::string port = "/dev/ttyUSB0";
 
   boost::asio::io_service io;
 
   boost::asio::serial_port sp(io);
-  sp.open("/dev/ttyUSB0");
+  sp.open(port);
   sp.set_option(boost::asio::serial_port::baud_rate(115200));
 
   if(argc <= 1) {
-    if(!arm_bootloader::attempt_bootload(sp, dest, firmware_bin, firmware_bin_len)) {
+    if(!arm_bootloader::attempt_bootload(port, sp, dest, firmware_bin, firmware_bin_len)) {
       std::cout << "bootloading failed" << std::endl;
       return EXIT_FAILURE;
     }
@@ -47,9 +48,10 @@ int main(int argc, char **argv) {
   
   arm_bootloader::Reader<Response> reader(sp, 2000);
   
-  arm_bootloader::Packetizer<boost::function<void (uint8_t)> >
-    packetizer(boost::bind(arm_bootloader::write_byte, &sp, _1));
-  arm_bootloader::ChecksumAdder<arm_bootloader::Packetizer<boost::function<void (uint8_t)> > >
+  arm_bootloader::SerialPortSink sps(port, sp);
+  uf_subbus_protocol::Packetizer<arm_bootloader::SerialPortSink>
+    packetizer(sps);
+  uf_subbus_protocol::ChecksumAdder<uf_subbus_protocol::Packetizer<arm_bootloader::SerialPortSink> >
     checksumadder(packetizer);
   
   

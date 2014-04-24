@@ -5,7 +5,7 @@ static uint64_t rollovers;
 
 void time_init() {
   systick_set_reload(0xffffff);
-  systick_set_clocksource(STK_CTRL_CLKSOURCE_AHB);
+  systick_set_clocksource(STK_CSR_CLKSOURCE_AHB);
   rollovers = 0;
   systick_interrupt_enable();
   systick_counter_enable();

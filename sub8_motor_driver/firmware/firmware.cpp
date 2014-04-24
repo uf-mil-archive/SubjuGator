@@ -7,79 +7,93 @@
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/usart.h>
 
-#include "sha256.h"
-#include <arm_bootloader/subbus_protocol.h>
-#include "uniqueid.h"
+#include <uf_subbus_protocol/sha256.h>
+#include <uf_subbus_protocol/protocol.h>
+#include <arm_bootloader/uniqueid.h>
 
-#include "protocol.h"
+#include <sub8_motor_driver/protocol.h>
 #include "hbridge.h"
 #include "temperature.h"
 #include "time.h"
 
 using namespace sub8_motor_driver;
 
-Dest dest = arm_bootloader::get_unique_dest();
-arm_bootloader::ChecksumAdder<arm_bootloader::Packetizer<void (*)(uint8_t byte)> > *p_checksumadder;
 
-void messageReceived(const Command &msg) {
-  if(msg.dest != dest) return;
+class Handler {
+  class GotMessageFunctor {
+    Handler &handler;
+  public:
+    GotMessageFunctor(Handler &handler) :
+      handler(handler) {
+    }
+    void operator()(const Command &command) {
+      handler.handle_message(command);
+    }
+  };
   
-  Response resp; memset(&resp, 0, sizeof(resp));
-  resp.id = msg.id;
-  
-  switch(msg.command) {
-  
-    case CommandID::Reset: {
-      // action happens later, after response is sent
-    } break;
-  
-    case CommandID::GetStatus: {
-      resp.resp.GetStatus.magic = GetStatusResponse::MAGIC_VALUE;
-      resp.resp.GetStatus.uptime_ns = time_get_ns();
-    } break;
-    
-    case CommandID::SetMotorDutyCycle: {
-      hbridge_set_duty_cycle(msg.args.SetMotorDutyCycle.duty_cycle);
-    } break;
-    
-    case CommandID::GetTemperatures: {
-      temperature_read(resp.resp.GetTemperatures);
-    } break;
-    
-    case CommandID::GetCurrentLog: {
-      current_read(resp.resp.GetCurrentLog);
-    } break;
-    
-    default: {
-      return; // send nothing back if command is invalid
-    } break;
+  GotMessageFunctor gmf;
+  uf_subbus_protocol::SimpleReceiver<Command, GotMessageFunctor> receiver;
+  uf_subbus_protocol::SimpleSender<Response, uf_subbus_protocol::ISink> sender;
+  arm_bootloader::Dest dest;
 
+public:
+  Handler(uf_subbus_protocol::ISink &sink) :
+    gmf(*this), receiver(gmf), sender(sink), dest(arm_bootloader::get_unique_dest()) {
   }
   
-  if(resp.id) {
-    gpio_set(GPIOB, GPIO5);
-    write_object(resp, *p_checksumadder);
-    // make sure write finishes
-    usart_send_blocking(USART1, 0);
-    usart_wait_send_ready(USART1);
-    //while ((USART_SR(USART1) & USART_SR_TC) == 0);
-    gpio_clear(GPIOB, GPIO5);
+  void handleByte(uint8_t byte) {
+    receiver.handleRawByte(byte);
   }
   
-  switch(msg.command) {
-    case CommandID::Reset: {
-      // make sure write finishes
-      usart_send_blocking(USART1, 0);
-      usart_wait_send_ready(USART1);
+  void handle_message(const Command &msg) {
+    if(msg.dest != dest) return;
+    
+    Response resp; memset(&resp, 0, sizeof(resp));
+    resp.id = msg.id;
+    
+    switch(msg.command) {
+    
+      case CommandID::Reset: {
+        // action happens later, after response is sent
+      } break;
+    
+      case CommandID::GetStatus: {
+        resp.resp.GetStatus.magic = GetStatusResponse::MAGIC_VALUE;
+        resp.resp.GetStatus.uptime_ns = time_get_ns();
+      } break;
       
-      scb_reset_system();
-    } break;
-    
-    default: {
-    } break;
-  }
-}
+      case CommandID::SetMotorDutyCycle: {
+        hbridge_set_duty_cycle(msg.args.SetMotorDutyCycle.duty_cycle);
+      } break;
+      
+      case CommandID::GetTemperatures: {
+        temperature_read(resp.resp.GetTemperatures);
+      } break;
+      
+      case CommandID::GetCurrentLog: {
+        current_read(resp.resp.GetCurrentLog);
+      } break;
+      
+      default: {
+        return; // send nothing back if command is invalid
+      } break;
 
+    }
+    
+    if(resp.id) {
+      sender.write_object(resp);
+    }
+
+    switch(msg.command) {
+      case CommandID::Reset: {
+        scb_reset_system();
+      } break;
+      
+      default: {
+      } break;
+    }
+  }
+};
 
 
 void usart_setup(void) {
@@ -111,13 +125,22 @@ void usart_setup(void) {
   usart_enable(USART1);
 }
 
-void write_byte(uint8_t byte) {
-  usart_send_blocking(USART1, byte);
-}
-
-uint8_t read_byte() {
-  return usart_recv_blocking(USART1);
-}
+class UARTSink : public uf_subbus_protocol::ISink {
+public:
+  void handleStart() {
+    gpio_set(GPIOB, GPIO5);
+  }
+  void handleByte(uint8_t byte) {
+    usart_send_blocking(USART1, byte);
+  }
+  void handleEnd() {
+    // make sure write finishes
+    usart_send_blocking(USART1, 0);
+    usart_wait_send_ready(USART1);
+    
+    gpio_clear(GPIOB, GPIO5);
+  }
+};
 
 int main() {
   rcc_clock_setup_in_hse_8mhz_out_72mhz();
@@ -126,38 +149,10 @@ int main() {
   temperature_setup();
   time_init();
   
-  arm_bootloader::Packetizer<void (*)(uint8_t byte)>
-    packetizer(write_byte);
-  arm_bootloader::ChecksumAdder<arm_bootloader::Packetizer<void (*)(uint8_t byte)> >
-    checksumadder(packetizer);
-  p_checksumadder = &checksumadder;
-  
-  arm_bootloader::ObjectReceiver<Command, void(const Command &)>
-    objectreceiver(messageReceived);
-  arm_bootloader::ChecksumChecker<arm_bootloader::ObjectReceiver<Command, void(const Command &)> >
-    cc(objectreceiver);
-  arm_bootloader::Depacketizer<arm_bootloader::ChecksumChecker<arm_bootloader::ObjectReceiver<Command, void(const Command &)> > >
-    depacketizer(cc);
+  UARTSink sink;
+  Handler handler(sink);
   
   while(true) {
-    depacketizer.handleRawByte(read_byte());
+    handler.handleByte(usart_recv_blocking(USART1));
   }
-}
-
-
-
-extern "C" {
-
-void _exit(int) {
-  while(true);
-}
-
-void _kill(int) {
-  ;
-}
-
-int _getpid() {
-  return 0;
-}
-
 }

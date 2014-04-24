@@ -17,7 +17,7 @@
 ## along with this library.  If not, see <http://www.gnu.org/licenses/>.
 ##
 
-BINARY = firmware
+BINARY = bootloader
 
 LDSCRIPT = script.ld
 
@@ -46,7 +46,7 @@ LDFLAGS		+= --static -Wl,-start -lc -lnosys -L$(TOOLCHAIN_DIR)/lib \
 			 -L$(TOOLCHAIN_DIR)/lib/stm32/f1 \
 		   -T$(LDSCRIPT) -nostartfiles -Wl,--gc-sections \
 		   -mthumb -mcpu=cortex-m3 -mthumb -msoft-float
-OBJS		+= $(BUILD_DIR)/$(BINARY).o $(BUILD_DIR)/temperature.o $(BUILD_DIR)/hbridge.o $(BUILD_DIR)/time.o
+OBJS		+= $(BUILD_DIR)/$(BINARY).o
 
 OOCD		?= openocd
 OOCD_INTERFACE	?= stlink-v2

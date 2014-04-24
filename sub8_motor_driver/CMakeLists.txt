@@ -55,24 +55,31 @@ find_package(catkin REQUIRED COMPONENTS odom_estimator arm_bootloader libopencm3
 catkin_package(
     DEPENDS  # TODO
     CATKIN_DEPENDS odom_estimator arm_bootloader libopencm3
-    INCLUDE_DIRS # TODO include
+    INCLUDE_DIRS include
     LIBRARIES # TODO
 )
 
-include_directories( ${Boost_INCLUDE_DIR} ${catkin_INCLUDE_DIRS})
-add_custom_command(
-    COMMAND $(MAKE) -C ${PROJECT_SOURCE_DIR}/firmware BUILD_DIR=${CMAKE_CURRENT_BINARY_DIR}/firmware_out TOOLCHAIN_DIR=${libopencm3_TOOLCHAIN_DIR} UF_SUBBUS_PROTOCOL_DIR=${uf_subbus_protocol_PACKAGE_PATH} ARM_BOOTLOADER_DIR=${arm_bootloader_PACKAGE_PATH}
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/firmware_out/firmware.bin.dummy
+include_directories(include ${Boost_INCLUDE_DIR} ${catkin_INCLUDE_DIRS})
+
+
+add_custom_target(sub8_motor_driver_bootloader ALL
+    COMMAND $(MAKE) -C ${PROJECT_SOURCE_DIR}/bootloader BUILD_DIR=${CMAKE_CURRENT_BINARY_DIR}/bootloader_out TOOLCHAIN_DIR=${libopencm3_TOOLCHAIN_DIR} UF_SUBBUS_PROTOCOL_DIR=${uf_subbus_protocol_PACKAGE_PATH} ARM_BOOTLOADER_DIR=${arm_bootloader_PACKAGE_PATH}
 )
-add_custom_command(OUTPUT ../firmware APPEND DEPENDS ${catkin_EXPORTED_TARGETS})
+add_dependencies(sub8_motor_driver_bootloader ${catkin_EXPORTED_TARGETS})
+
 add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/firmware_out/firmware.bin.dummy
+    COMMAND $(MAKE) -C ${PROJECT_SOURCE_DIR}/firmware BUILD_DIR=${CMAKE_CURRENT_BINARY_DIR}/firmware_out TOOLCHAIN_DIR=${libopencm3_TOOLCHAIN_DIR} UF_SUBBUS_PROTOCOL_DIR=${uf_subbus_protocol_PACKAGE_PATH} ARM_BOOTLOADER_DIR=${arm_bootloader_PACKAGE_PATH}
+)
+add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/firmware_out/firmware.bin.dummy APPEND DEPENDS ${catkin_EXPORTED_TARGETS})
+add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/firmware_bin.cpp
     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/firmware_out/firmware.bin.dummy
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/firmware_out
     COMMAND xxd -i firmware.bin > ../firmware_bin.cpp.tmp
     COMMAND cmp -s ../firmware_bin.cpp.tmp ../firmware_bin.cpp || cp ../firmware_bin.cpp.tmp ../firmware_bin.cpp
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/firmware_bin.cpp
 )
-add_custom_command(OUTPUT firmware_out/firmware.bin.dummy APPEND DEPENDS ${catkin_EXPORTED_TARGETS})
+add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/firmware_bin.cpp APPEND DEPENDS ${catkin_EXPORTED_TARGETS})
 
 #common commands for building c++ executables and libraries
 #rosbuild_add_library(${PROJECT_NAME} src/example.cpp)

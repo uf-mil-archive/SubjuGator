@@ -49,23 +49,25 @@ class _Sub(object):
         defer.returnValue(self)
     
     @property
-    def _pose(self):
+    def pose(self):
         return orientation_helpers.PoseEditor.from_PoseTwistStamped(
             self._trajectory_sub.get_last_message())
     
     @property
     def move(self):
-        return _PoseProxy(self, self._pose)
+        return _PoseProxy(self, self.pose)
     
+    @util.cancellableInlineCallbacks
     def get_dvl_range(self):
-        return self._dvl_range_sub.get_next_message()
+        msg = yield self._dvl_range_sub.get_next_message()
+        defer.returnValue(msg.data)
     
     @util.cancellableInlineCallbacks
     def visual_align(self, camera, object_name, distance_estimate):
         goal_mgr = self._camera_action_clients[camera].send_goal(FindGoal(
             object_names=[object_name],
         ))
-        start_pose = self._pose
+        start_pose = self.pose
         start_map_transform = tf.Transform(
             start_pose.position, start_pose.orientation)
         try:

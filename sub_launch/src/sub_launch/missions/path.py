@@ -9,7 +9,7 @@ import sub_scripting
 def main(nh):
     sub = yield sub_scripting.get_sub(nh)
     
-    dist = (yield sub.get_dvl_range()).data
+    dist = yield sub.get_dvl_range()
     
     print dist
     

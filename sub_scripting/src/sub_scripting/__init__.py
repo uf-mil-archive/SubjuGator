@@ -9,8 +9,11 @@ from twisted.internet import defer
 
 from txros import action, util, tf
 
+from std_msgs.msg import Header
 from uf_common.msg import MoveToAction, MoveToGoal, PoseTwistStamped, Float64Stamped
-from legacy_vision.msg import FindAction, FindGoal
+from legacy_vision import msg as legacy_vision_msg
+from object_finder import msg as object_finder_msg
+from geometry_msgs.msg import PoseWithCovariance, Quaternion, Pose
 from uf_common import orientation_helpers
 from tf import transformations
 
@@ -37,9 +40,13 @@ class _Sub(object):
     def _init(self):
         self._trajectory_sub = self._node_handle.subscribe('trajectory', PoseTwistStamped)
         self._moveto_action_client = action.ActionClient(self._node_handle, 'moveto', MoveToAction)
-        self._camera_action_clients = dict(
-            forward=action.ActionClient(self._node_handle, 'find2_forward_camera', FindAction),
-            down=action.ActionClient(self._node_handle, 'find2_down_camera', FindAction),
+        self._camera_2d_action_clients = dict(
+            forward=action.ActionClient(self._node_handle, 'find2_forward_camera', legacy_vision_msg.FindAction),
+            down=action.ActionClient(self._node_handle, 'find2_down_camera', legacy_vision_msg.FindAction),
+        )
+        self._camera_3d_action_clients = dict(
+            forward=action.ActionClient(self._node_handle, 'find_forward', object_finder_msg.FindAction),
+            down=action.ActionClient(self._node_handle, 'find_down', object_finder_msg.FindAction),
         )
         self._tf_listener = tf.TransformListener(self._node_handle)
         self._dvl_range_sub = self._node_handle.subscribe('dvl/range', Float64Stamped)
@@ -64,7 +71,7 @@ class _Sub(object):
     
     @util.cancellableInlineCallbacks
     def visual_align(self, camera, object_name, distance_estimate):
-        goal_mgr = self._camera_action_clients[camera].send_goal(FindGoal(
+        goal_mgr = self._camera_2d_action_clients[camera].send_goal(legacy_vision_msg.FindGoal(
             object_names=[object_name],
         ))
         start_pose = self.pose
@@ -141,6 +148,55 @@ class _Sub(object):
                 # go towards desired position
                 self._moveto_action_client.send_goal(
                     start_pose.set_position(desired_pos).as_MoveToGoal()).forget()
+        finally:
+            goal_mgr.cancel()
+    
+    @util.cancellableInlineCallbacks
+    def visual_approach_3d(self, camera, distance):
+        start_pose = self.pose
+        goal_mgr = self._camera_3d_action_clients[camera].send_goal(object_finder_msg.FindGoal(
+            header=Header(
+                frame_id='/map',
+            ),
+            targetdescs=[object_finder_msg.TargetDesc(
+                type=object_finder_msg.TargetDesc.TYPE_SPHERE,
+                sphere_radius=4*.0254, # 4 in
+                prior_distribution=PoseWithCovariance(
+                    pose=Pose(
+                        orientation=Quaternion(x=0, y=0, z=0, w=1),
+                    ),
+                ),
+                min_dist=1,
+                max_dist=8,
+                sphere_color=object_finder_msg.Color(r=1, g=0, b=0),
+                sphere_background_color=object_finder_msg.Color(r=0, g=1, b=1),
+            )],
+        ))
+        
+        try:
+            last_good_pos = None
+            
+            while True:
+                feedback = yield goal_mgr.get_feedback()
+                targ = feedback.targetreses[0]
+                
+                if targ.P > 0.4:
+                    last_good_pos = orientation_helpers.xyz_array(targ.pose.position)
+                
+                print targ.P
+                
+                if last_good_pos is not None:
+                    desired_pos = start_pose.set_position(last_good_pos).backward(distance).position
+                    
+                    print ' '*20, numpy.linalg.norm(desired_pos - self.pose.position)
+                    
+                    if numpy.linalg.norm(desired_pos - self.pose.position) < 0.5:
+                        yield self._moveto_action_client.send_goal(
+                            start_pose.set_position(desired_pos).as_MoveToGoal()).get_result()
+                        return
+                    
+                    self._moveto_action_client.send_goal(
+                        start_pose.set_position(desired_pos).as_MoveToGoal()).forget()
         finally:
             goal_mgr.cancel()
 

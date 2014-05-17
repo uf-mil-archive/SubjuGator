@@ -201,8 +201,10 @@ class _Sub(object):
             goal_mgr.cancel()
 
 _subs = {}
+@util.cancellableInlineCallbacks
 def get_sub(node_handle):
     if node_handle not in _subs:
-        _subs[node_handle] = _Sub(node_handle)._init()
+        _subs[node_handle] = None # placeholder to prevent this from happening reentrantly
+        _subs[node_handle] = yield _Sub(node_handle)._init()
         # XXX remove on nodehandle shutdown
-    return _subs[node_handle]
+    defer.returnValue(_subs[node_handle])

@@ -19,8 +19,9 @@ def publish():
 	global trajUpdated
 	msg = pose_diff()
 	msg.diff_x = traj.diff_x - odom.diff_x
-	msg.diff_y = traj.diff_x - odom.diff_y
-	msg.diff_z = traj.diff_x - odom.diff_z
+	msg.diff_y = traj.diff_y - odom.diff_y
+	msg.diff_z = traj.diff_z - odom.diff_z
+	msg.diff_yaw = traj.diff_yaw - odom.diff_yaw
 	pub.publish(msg)
 	odomUpdated = 0
 	trajUpdated = 0
@@ -32,6 +33,7 @@ def callback(data):
 	odom.diff_x = data.pose.pose.position.x
 	odom.diff_y = data.pose.pose.position.y
 	odom.diff_z = data.pose.pose.position.z
+	odom.diff_yaw = odom_yaw
 	odomUpdated = 1
 	if((odomUpdated == 1) and (trajUpdated == 1)):
 		publish()
@@ -43,6 +45,7 @@ def trajCallback(data):
 	traj.diff_x = data.posetwist.pose.position.x
 	traj.diff_y = data.posetwist.pose.position.y
 	traj.diff_z = data.posetwist.pose.position.z
+	traj.diff_yaw = traj_yaw.data
 	trajUpdated = 1
 	if(odomUpdated and trajUpdated):
 		publish()

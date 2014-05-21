@@ -491,8 +491,14 @@ for x in xrange(2):
             roslib.packages.resource_file('legacy_vision', 'data', 'bins/%s.png' % (names[x*2+y],))
         ))))
 
-
+"""
 shooter_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2013/shooter_with_holes.obj'))
+w.objs.append(shooter_mesh
+    .rotate(q_from_yaw(-120))
+    .translate(world_from_px(912, 347, -1.5)))
+"""
+
+shooter_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2014/shooter2014.obj'))
 w.objs.append(shooter_mesh
     .rotate(q_from_yaw(-120))
     .translate(world_from_px(912, 347, -1.5)))

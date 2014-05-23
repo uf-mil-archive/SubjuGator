@@ -1,0 +1,16 @@
+long axis: 90.52 m (water), 89.27 deg cw from N. said to be 300 ft
+R of curvature of edges: 49.7 m
+short axis: 61.56 m. said to be 200 ft
+dia of bowl edge: 49.2
+
+max depth: 38 ft
+14 ft at rim
+
+
+sphere radius: 45 m
+sphere height: 45 m - 38 ft
+
+edge is 2.25 m
+	to get to 16 ft, grade is 2.167
+outside edge is 0.63 m
+	estimated height from grade is 1.36 m

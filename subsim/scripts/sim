@@ -321,7 +321,9 @@ class Sub(object):
             glEnable(GL_DEPTH_TEST)
 
 class Buoy(object):
-    def __init__(self, pos, color, radius=4*.0254, mass=2):
+    def __init__(self, anchor_pos, cable_length, color, radius=4*.0254, mass=2):
+        pos = anchor_pos + v(0, 0, cable_length)
+        
         self.body = ode.Body(world)
         self.body.setPosition(pos)
         m = ode.Mass()
@@ -334,7 +336,7 @@ class Buoy(object):
         self.color = color
         self.radius = radius
         
-        self.anchor_point = v(pos[0], pos[1], -4)
+        self.anchor_point = anchor_pos
         self.joint = ode.BallJoint(world)
         self.joint.attach(self.body, None)
         self.joint.setAnchor(self.anchor_point)
@@ -358,11 +360,6 @@ class Buoy(object):
         glVertex3f(*self.pos)
         glVertex3f(*self.anchor_point)
         glEnd()
-
-def Buoys(center):
-    for j, color in enumerate([(1, 0, 0)]):
-        j += 1
-        w.objs.append(Buoy(center + [1-.5*j,.5*j-1,0] + [random.gauss(0, .2) for i in xrange(3)], color))
 
 class Pinger(object):
     def __init__(self, pos, freq, phase):
@@ -402,9 +399,6 @@ class CrazyPinger(Pinger):
         pos = (random.gauss(0, 1), random.gauss(0, 1), random.gauss(2, 1))
         send_ping(pos, self.freq)
             
-def world_from_2013_px(x, y, Z):
-    # refer to doc/layout.png
-    return v(91*(x-(45+956/2))/956, -61*(y-(56+542/2))/542, Z)
 def world_from_2014_px(x, y, Z):
     # refer to auvsi_robosub/doc/2014_layout.png
     pool_size = 90.52, 61.56 # m
@@ -418,13 +412,8 @@ def q_from_yaw(yaw_deg):
     return vector.axisangle_to_quat(v(0, 0, 1), math.radians(yaw_deg))
 
 w = threed.World()
-w.objs.append(pool_mesh)
-sub_model = Sub(body, lambda: killed)
-w.objs.append(sub_model)
-#i.objs.append(threed.VectorField(get_water_vel))
-#Buoys(v(3, 3, -2))
-body.setPosition(world_from_2013_px(610, 552, -0.5))
-body.setQuaternion(q_from_yaw(10))
+body.setPosition(world_from_2014_px(610, 628, -0.5))
+body.setQuaternion(q_from_yaw(25))
 
 pygame.display.set_icon(pygame.image.load(roslib.packages.resource_file('subsim', 'icons', 'subsim.png')))
 pygame.display.set_caption("subsim")
@@ -432,41 +421,46 @@ i = threed.Interface()
 i.init(w, V(body.getPosition()) + (0,-2,2+random.gauss(0, 1)))
 
 
+
 # objects begin
 
+w.objs.append(pool_mesh)
+
+sub_model = Sub(body, lambda: killed)
+w.objs.append(sub_model)
+
+#i.objs.append(threed.VectorField(get_water_vel))
+
+
+# Gate
 m_from_in = .0254
-w.objs.append(threed.Capsules(world, space, world_from_2013_px(667, 533, -1), (1, 0, 0), [(m_from_in*s, m_from_in*e) for s, e in [
+w.objs.append(threed.Capsules(world, space, world_from_2014_px(657+21/2, 574+52/2, -1), (1, 0, 0), [(m_from_in*s, m_from_in*e) for s, e in [
     (v(0, -5*12, -2.5*12), v(0, -5*12, 2.5*12)),
     (v(0, -5*12, 2.5*12), v(0, 5*12, 2.5*12)),
     (v(0, 5*12, -2.5*12), v(0, 5*12, 2.5*12)),
 ]], m_from_in*3/2, fixed=True, orientation=q_from_yaw(-170)))
 
+# Control Panel
+w.objs.append(Buoy(world_from_2014_px(691+20/2, 578+19/2, FLOOR), -FLOOR-1.5, (1, 0, 0), radius=9/2*m_from_in))
+
+# Flight Path
 path_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2013/path.obj'))
-
-w.objs.append(path_mesh
-    .rotate(q_from_yaw(3))
-    .translate(world_from_2013_px(690, 531, FLOOR+random.uniform(0.3, 0.6))))
-
-w.objs.append(Buoy(world_from_2013_px(771, 519, -1), (1, 0, 0), radius=9/2*.0254))
-
-
-w.objs.append(path_mesh
-    .rotate(q_from_yaw(90))
-    .translate(world_from_2013_px(787, 498, FLOOR+random.uniform(0.3, 0.6))))
-
-gate_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2013/gate.obj'))
-w.objs.append(gate_mesh
-    .rotate(q_from_yaw(-100))
-    .translate(world_from_2013_px(791, 454, FLOOR + random.uniform(1.2, 1.8))))
-
-
-w.objs.append(path_mesh
-    .rotate(q_from_yaw(135))
-    .translate(world_from_2013_px(790, 430, FLOOR+random.uniform(0.3, 0.6))))
 w.objs.append(path_mesh
     .rotate(q_from_yaw(45))
-    .translate(world_from_2013_px(813, 435, FLOOR+random.uniform(0.3, 0.6))))
+    .translate(world_from_2014_px(718+24/2, 553+24/2, FLOOR+random.uniform(0.3, 0.6))))
 
+# Maneuvering
+maneuvering_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2014/maneuvering.obj'))
+w.objs.append(maneuvering_mesh
+    .rotate(q_from_yaw(-110))
+    .translate(world_from_2014_px(791+47/2, 502+23/2, FLOOR + random.uniform(1.2, 1.8))))
+
+#
+w.objs.append(path_mesh
+    .rotate(q_from_yaw(60))
+    .translate(world_from_2014_px(816+23/2, 480+24/2, FLOOR+random.uniform(0.3, 0.6))))
+
+# Landing Site XXX
 class Bin(object):
     def __init__(self, pos, q, tex):
         self.pos = pos
@@ -498,61 +492,29 @@ random.shuffle(names)
 height = FLOOR + random.uniform(.3, .6)
 for x in xrange(2):
     for y in xrange(2):
-        w.objs.append(Bin(world_from_2013_px(850, 381, height) + (-(y-.5)/1.5, -(x-.5), 0), q_from_yaw(80),threed.Texture(pygame.image.load(
+        w.objs.append(Bin(world_from_2014_px(830+59/2, 385+57/2, height) + (-(y-.5)/1.5, -(x-.5), 0), q_from_yaw(80),threed.Texture(pygame.image.load(
             roslib.packages.resource_file('legacy_vision', 'data', 'bins/%s.png' % (names[x*2+y],))
         ))))
 
 
-
-
+# Brunch w/ Alien XXX
 shooter_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2013/shooter_with_holes.obj'))
 w.objs.append(shooter_mesh
     .rotate(q_from_yaw(-120))
-    .translate(world_from_2013_px(912, 347, -1.5)))
+    .translate(world_from_2014_px(887+57/2, 375+31/2, -1.5)))
 
 
-
+#
 w.objs.append(path_mesh
-    .rotate(q_from_yaw(180))
-    .translate(world_from_2013_px(828, 330, FLOOR+random.uniform(0.3, 0.6))))
+    .rotate(q_from_yaw(182))
+    .translate(world_from_2014_px(829+26/2, 366+10/2, FLOOR+random.uniform(0.3, 0.6))))
 w.objs.append(path_mesh
-    .rotate(q_from_yaw(110))
-    .translate(world_from_2013_px(849, 319, FLOOR+random.uniform(0.3, 0.6))))
+    .rotate(q_from_yaw(120))
+    .translate(world_from_2014_px(853+19/2, 349+27/2, FLOOR+random.uniform(0.3, 0.6))))
 
 
-w.objs.append(gate_mesh
-    .rotate(q_from_yaw(-85))
-    .translate(world_from_2013_px(829, 271, FLOOR + random.uniform(1.2, 1.8))))
-
-m_from_in = .0254
-w.objs.append(threed.Capsules(world, space, world_from_2013_px(848, 196, -2), (1, 0, 0), [(m_from_in*s, m_from_in*e) for s, e in [
-    (v(-6, -6, 3), v(+6, -6, 3)),
-    (v(+6, -6, 3), v(+6, +6, 3)),
-    (v(+6, +6, 3), v(-6, +6, 3)),
-    (v(-6, +6, 3), v(-6, -6, 3)),
-    (v(-6, -6, -3), v(+6, -6, -3)),
-    (v(+6, -6, -3), v(+6, +6, -3)),
-    (v(+6, +6, -3), v(-6, +6, -3)),
-    (v(-6, +6, -3), v(-6, -6, -3)),
-    (v(-6, 0, 3), v(-6, 0, -3)),
-    (v(+6, 0, 3), v(+6, 0, -3)),
-    (v(0, -6, 3), v(0, -6, -3)),
-    (v(0, +6, 3), v(0, +6, -3)),
-]], m_from_in*.875/2, fixed=True))
-
-
-w.objs.append(Pinger(world_from_2013_px(755, 181, -3.5), 24e3, .4))
-w.objs.append(Pinger(world_from_2013_px(848, 196, -3.5), 25e3, 0))
-w.objs.append(CrazyPinger(world_from_2013_px(1000, 196, -3.5), 27e3, .7))
-
-collection_site_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2014/collectionSite.obj'))
-w.objs.append(collection_site_mesh
-    .rotate(q_from_yaw(0))
-    .translate(world_from_2014_px(762+44/2, 213+45/2, -2)))
-
-h = random.uniform(-1.8, -2.4)
-
-reroute_pos = world_from_2014_px(610+15/2, 360+51/2, h)
+# Reroute Power
+reroute_pos = world_from_2014_px(610+15/2, 360+51/2, random.uniform(-1.8, -2.4))
 reroute_power_board_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2014/reroutePowerBoard.obj'))
 w.objs.append(reroute_power_board_mesh
     .rotate(q_from_yaw(0))
@@ -564,6 +526,37 @@ for a in [-1, 1]:
             .rotate(q_from_yaw(0))
             .translate(reroute_pos)
             .translate((0, 1*FT * a, 1*FT * b)))
+
+# Collection Site
+collection_site_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2014/collectionSite.obj'))
+w.objs.append(collection_site_mesh
+    .rotate(q_from_yaw(0))
+    .translate(world_from_2014_px(762+44/2, 213+45/2, -2)))
+# XXX needs moon rocks
+
+
+#
+w.objs.append(path_mesh
+    .rotate(q_from_yaw(145))
+    .translate(world_from_2014_px(724+26/2, 203+22/2, FLOOR+random.uniform(0.3, 0.6))))
+w.objs.append(path_mesh
+    .rotate(q_from_yaw(-35))
+    .translate(world_from_2014_px(824+26/2, 248+20/2, FLOOR+random.uniform(0.3, 0.6))))
+
+# pingers XXX
+w.objs.append(Pinger(world_from_2014_px(705+11/2, 201+11/2, -3.5), 24e3, .4))
+w.objs.append(Pinger(world_from_2014_px(856+11/2, 261+12/2, -3.5), 25e3, 0))
+
+w.objs.append(CrazyPinger(world_from_2014_px(1000, 196, -3.5), 27e3, .7))
+
+# XXX need two octogons here
+
+
+
+
+
+
+
 
 # objects end
 

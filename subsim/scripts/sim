@@ -76,7 +76,8 @@ body_geoms.append(ode.GeomTransform(space))
 body_geoms[-1].setGeom(body_geoms[-2])
 body_geoms[-1].setBody(body)
 
-FLOOR = -16 * 12*.0254 # 16ft
+FT = 12*.0254
+FLOOR = -16 * FT
 
 pool_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', 'transdec.obj'))
 pool_geom = ode.GeomTriMesh(pool_mesh.ode_trimeshdata, space)
@@ -551,10 +552,18 @@ w.objs.append(collection_site_mesh
 
 h = random.uniform(-1.8, -2.4)
 
+reroute_pos = world_from_2014_px(610+15/2, 360+51/2, h)
 reroute_power_board_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2014/reroutePowerBoard.obj'))
 w.objs.append(reroute_power_board_mesh
     .rotate(q_from_yaw(0))
-    .translate(world_from_2014_px(610+15/2, 360+51/2, h)))
+    .translate(reroute_pos))
+peg_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2014/PowerPeg.obj'))
+for a in [-1, 1]:
+    for b in [-1, 1]:
+        w.objs.append(peg_mesh
+            .rotate(q_from_yaw(0))
+            .translate(reroute_pos)
+            .translate((0, 1*FT * a, 1*FT * b)))
 
 # objects end
 

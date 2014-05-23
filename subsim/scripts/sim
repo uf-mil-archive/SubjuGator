@@ -422,6 +422,7 @@ i = threed.Interface()
 i.init(w, V(body.getPosition()) + (0,-2,2+random.gauss(0, 1)))
 
 
+# objects begin
 
 m_from_in = .0254
 w.objs.append(threed.Capsules(world, space, world_from_px(667, 533, -1), (1, 0, 0), [(m_from_in*s, m_from_in*e) for s, e in [
@@ -492,6 +493,8 @@ for x in xrange(2):
         ))))
 
 
+
+
 shooter_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2013/shooter_with_holes.obj'))
 w.objs.append(shooter_mesh
     .rotate(q_from_yaw(-120))
@@ -532,21 +535,19 @@ w.objs.append(Pinger(world_from_px(755, 181, -3.5), 24e3, .4))
 w.objs.append(Pinger(world_from_px(848, 196, -3.5), 25e3, 0))
 w.objs.append(CrazyPinger(world_from_px(1000, 196, -3.5), 27e3, .7))
 
+collection_site_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2014/collectionSite.obj'))
+w.objs.append(collection_site_mesh
+    .rotate(q_from_yaw(0))
+    .translate(world_from_px(762+44/2, 213+45/2, -2)))
+
 h = random.uniform(-1.8, -2.4)
-manipulation_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2013/manipulation.obj'))
-w.objs.append(manipulation_mesh
+
+reroute_power_board_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2014/reroutePowerBoard.obj'))
+w.objs.append(reroute_power_board_mesh
     .rotate(q_from_yaw(0))
-    .translate(world_from_px(618, 323, h)))
-manipulation_mesh2 = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2013/manipulation_wheel.obj'))
-w.objs.append(manipulation_mesh2
-    .translate([.1, -.3, 0])
-    .rotate(q_from_yaw(0))
-    .translate(world_from_px(618, 323, h)))
-manipulation_mesh3 = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2013/manipulation_lever.obj'))
-w.objs.append(manipulation_mesh3
-    .translate([.1, .3, -.15 if random.randrange(2) else .15])
-    .rotate(q_from_yaw(0))
-    .translate(world_from_px(618, 323, h)))
+    .translate(world_from_px(610+15/2, 360+51/2, h)))
+
+# objects end
 
 def set_forward_view():
     glTranslate(-.7, 0, 0)

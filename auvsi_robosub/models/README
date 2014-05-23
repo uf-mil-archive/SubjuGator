@@ -4,9 +4,13 @@ solid_* - regions that have solid colors
 marker_* - special points on the object
     (the average is taken of all the points that compose the marker)
 
+== .blend files ==
+
+Make sure to select "Compress" option when saving to minimize size.
 
 == Exporting to OBJ in blender ==
 
+* Select "Include Normals"
 * Select "Triangulate Faces"
 * Set "Forward:" to "Y forward"
 ** Doing this should set "Up:" to "Z up"

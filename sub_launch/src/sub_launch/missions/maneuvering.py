@@ -70,7 +70,7 @@ def main(nh):
     
     print 2
     
-    yield sub.visual_approach_3d('forward', 2.5, maneuvering_targetdesc)
+    yield sub.visual_approach_3d('forward', 2, maneuvering_targetdesc)
     
     r = 1
     

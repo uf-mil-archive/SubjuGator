@@ -42,9 +42,9 @@ def from_obj(filename):
     
     return object_finder_msg.Mesh(components=components)
 
-manuvering_targetdesc = object_finder_msg.TargetDesc(
+maneuvering_targetdesc = object_finder_msg.TargetDesc(
     type=object_finder_msg.TargetDesc.TYPE_MESH,
-    mesh=from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2014/manuvering_vision.obj')),
+    mesh=from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2014/maneuvering_vision.obj')),
     prior_distribution=PoseWithCovariance(
         pose=Pose(
             orientation=Quaternion(x=0, y=0, z=0, w=1),
@@ -72,7 +72,7 @@ def main(nh):
     
     r = 1.5
     
-    yield sub.visual_approach_3d('forward', r, manuvering_targetdesc)
+    yield sub.visual_approach_3d('forward', r, maneuvering_targetdesc)
     
     start_cmd = sub.move
     

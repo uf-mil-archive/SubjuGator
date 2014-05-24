@@ -498,10 +498,11 @@ for x in xrange(2):
 
 
 # Brunch w/ Alien XXX
-shooter_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2013/shooter_with_holes.obj'))
+shooter_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2014/shooter2014.obj'))
 w.objs.append(shooter_mesh
     .rotate(q_from_yaw(-120))
     .translate(world_from_2014_px(887+57/2, 375+31/2, -1.5)))
+
 
 
 #

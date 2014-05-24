@@ -59,7 +59,7 @@ maneuvering_targetdesc = object_finder_msg.TargetDesc(
         ],
     ),
     min_dist=0,
-    max_dist=8,
+    max_dist=5,
 )
 
 @util.cancellableInlineCallbacks
@@ -70,9 +70,9 @@ def main(nh):
     
     print 2
     
-    r = 1.5
+    yield sub.visual_approach_3d('forward', 2.5, maneuvering_targetdesc)
     
-    yield sub.visual_approach_3d('forward', r, maneuvering_targetdesc)
+    r = 1
     
     start_cmd = sub.move
     
@@ -83,7 +83,7 @@ def main(nh):
         
         start = time.time()
         
-        strafe_vel = 0.7
+        strafe_vel = 0.3
         total_time = 2*math.pi*r / strafe_vel
         angvel = 2*math.pi / total_time
         while True:
@@ -110,4 +110,6 @@ def main(nh):
     finally:
         yield sub.set_trajectory_generator_enable(True)
     
+    print 10
     yield start_cmd.forward(r).right(r).forward(2).go()
+    print 11

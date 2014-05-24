@@ -3,6 +3,7 @@ from __future__ import division
 import json
 import math
 import traceback
+import time
 
 import numpy
 from twisted.internet import defer
@@ -10,12 +11,12 @@ from twisted.internet import defer
 from txros import action, util, tf
 
 from std_msgs.msg import Header
-from uf_common.msg import MoveToAction, MoveToGoal, PoseTwistStamped, Float64Stamped
+from uf_common.msg import MoveToAction, PoseTwistStamped, Float64Stamped
 from legacy_vision import msg as legacy_vision_msg
 from object_finder import msg as object_finder_msg
-from geometry_msgs.msg import PoseWithCovariance, Quaternion, Pose
 from uf_common import orientation_helpers
 from tf import transformations
+from c3_trajectory_generator.srv import SetDisabled, SetDisabledRequest
 
 
 class _PoseProxy(object):
@@ -31,6 +32,10 @@ class _PoseProxy(object):
     def go(self, *args, **kwargs):
         return self._sub._moveto_action_client.send_goal(
             self._pose.as_MoveToGoal(*args, **kwargs)).get_result()
+    
+    def go_trajectory(self, *args, **kwargs):
+        self._sub._trajectory_pub.publish(
+            self._pose.as_PoseTwistStamped(*args, **kwargs))
 
 class _Sub(object):
     def __init__(self, node_handle):
@@ -39,6 +44,8 @@ class _Sub(object):
     @util.cancellableInlineCallbacks
     def _init(self):
         self._trajectory_sub = self._node_handle.subscribe('trajectory', PoseTwistStamped)
+        self._trajectory_pub = self._node_handle.advertise('trajectory', PoseTwistStamped)
+        self._trajectory_generator_set_disabled_service = self._node_handle.get_service_client('c3_trajectory_generator/set_disabled', SetDisabled)
         self._moveto_action_client = action.ActionClient(self._node_handle, 'moveto', MoveToAction)
         self._camera_2d_action_clients = dict(
             forward=action.ActionClient(self._node_handle, 'find2_forward_camera', legacy_vision_msg.FindAction),
@@ -152,35 +159,24 @@ class _Sub(object):
             goal_mgr.cancel()
     
     @util.cancellableInlineCallbacks
-    def visual_approach_3d(self, camera, distance):
+    def visual_approach_3d(self, camera, distance, targetdesc, loiter_time=0):
         start_pose = self.pose
         goal_mgr = self._camera_3d_action_clients[camera].send_goal(object_finder_msg.FindGoal(
             header=Header(
                 frame_id='/map',
             ),
-            targetdescs=[object_finder_msg.TargetDesc(
-                type=object_finder_msg.TargetDesc.TYPE_SPHERE,
-                sphere_radius=4*.0254, # 4 in
-                prior_distribution=PoseWithCovariance(
-                    pose=Pose(
-                        orientation=Quaternion(x=0, y=0, z=0, w=1),
-                    ),
-                ),
-                min_dist=1,
-                max_dist=8,
-                sphere_color=object_finder_msg.Color(r=1, g=0, b=0),
-                sphere_background_color=object_finder_msg.Color(r=0, g=1, b=1),
-            )],
+            targetdescs=[targetdesc],
         ))
         
         try:
             last_good_pos = None
+            loiter_start = None
             
             while True:
                 feedback = yield goal_mgr.get_feedback()
                 targ = feedback.targetreses[0]
                 
-                if targ.P > 0.4:
+                if targ.P > 0.5:
                     last_good_pos = orientation_helpers.xyz_array(targ.pose.position)
                 
                 print targ.P
@@ -191,14 +187,24 @@ class _Sub(object):
                     print ' '*20, numpy.linalg.norm(desired_pos - self.pose.position)
                     
                     if numpy.linalg.norm(desired_pos - self.pose.position) < 0.5:
-                        yield self._moveto_action_client.send_goal(
-                            start_pose.set_position(desired_pos).as_MoveToGoal()).get_result()
-                        return
+                        if loiter_start is None:
+                            loiter_start = time.time()
+                        
+                        if time.time() > loiter_start + loiter_time:
+                            yield self._moveto_action_client.send_goal(
+                                start_pose.set_position(desired_pos).as_MoveToGoal()).get_result()
+                            return
                     
                     self._moveto_action_client.send_goal(
                         start_pose.set_position(desired_pos).as_MoveToGoal()).forget()
         finally:
             goal_mgr.cancel()
+    
+    @util.cancellableInlineCallbacks
+    def set_trajectory_generator_enable(self, enabled):
+        yield self._trajectory_generator_set_disabled_service(SetDisabledRequest(
+            disabled=not enabled,
+        ))
 
 _subs = {}
 @util.cancellableInlineCallbacks

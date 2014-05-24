@@ -154,7 +154,7 @@ class _Sub(object):
                 
                 # go towards desired position
                 self._moveto_action_client.send_goal(
-                    start_pose.set_position(desired_pos).as_MoveToGoal()).forget()
+                    start_pose.set_position(desired_pos).as_MoveToGoal(speed=0.1)).forget()
         finally:
             goal_mgr.cancel()
     
@@ -196,7 +196,7 @@ class _Sub(object):
                             return
                     
                     self._moveto_action_client.send_goal(
-                        start_pose.set_position(desired_pos).as_MoveToGoal()).forget()
+                        start_pose.set_position(desired_pos).as_MoveToGoal(speed=0.1)).forget()
         finally:
             goal_mgr.cancel()
     

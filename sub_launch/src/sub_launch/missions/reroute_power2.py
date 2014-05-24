@@ -65,6 +65,7 @@ peg_targetdesc = object_finder_msg.TargetDesc(
 @util.cancellableInlineCallbacks
 def main(nh):
     sub = yield sub_scripting.get_sub(nh)
+    peg_targetdesc.prior_distribution.pose.orientation = Quaternion(*sub.pose.turn_left_deg(180).orientation)
     
     yield sub.visual_approach_3d('forward', 1.5, peg_targetdesc)
     

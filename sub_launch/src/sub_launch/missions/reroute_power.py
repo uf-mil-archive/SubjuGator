@@ -65,10 +65,11 @@ print buoy_targetdesc
 @util.cancellableInlineCallbacks
 def main(nh):
     sub = yield sub_scripting.get_sub(nh)
+    buoy_targetdesc.prior_distribution.pose.orientation = Quaternion(*sub.pose.orientation)
     
     yield sub.visual_approach_3d('forward', 1.5, buoy_targetdesc)
     
-    yield sub.move.forward(1.5).go()
+    #yield sub.move.forward(1).go()
     #yield sub.move.backward(1.5).go()
     
     #yield sub.move.depth(0.5).go()

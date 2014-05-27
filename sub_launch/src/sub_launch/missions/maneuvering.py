@@ -10,7 +10,7 @@ def main(nh):
     
     sub.move.go(linear=[0.25, 0, 0])
     
-    yield sub.visual_approach('forward', 'hedge', size_estimate=4*12*.0254, desired_distance=4)
+    yield sub.visual_approach('forward', 'hedge', size_estimate=4*12*.0254, desired_distance=2)
     
     yield sub.move.right(.6).go()
     yield sub.move.forward(3.5).go()

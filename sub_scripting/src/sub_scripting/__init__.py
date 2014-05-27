@@ -198,7 +198,7 @@ class _Sub(object):
                 axis_body = transform.transform_vector(axis_camera)
                 axis_world = start_map_transform.transform_vector(axis_body)
                 
-                distance_estimate = size_estimate / numpy.linalg.norm(obj_dir_camera)
+                distance_estimate = size_estimate / (2 * numpy.linalg.norm(obj_dir_camera))
                 print distance_estimate
                 
                 object_pos = ray_start_world + ray_dir_world * distance_estimate

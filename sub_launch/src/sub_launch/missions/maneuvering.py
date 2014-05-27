@@ -64,13 +64,12 @@ maneuvering_targetdesc = object_finder_msg.TargetDesc(
 
 @util.cancellableInlineCallbacks
 def main(nh):
-    print 1
-    
     sub = yield sub_scripting.get_sub(nh)
     
-    print 2
+    yield sub.visual_approach('forward', 'hedge', size_estimate=4*12*.0254, desired_distance=2)
     
-    yield sub.visual_approach_3d('forward', 2, maneuvering_targetdesc)
+    
+    yield sub.move.forward(1).go()
     
     r = 1
     

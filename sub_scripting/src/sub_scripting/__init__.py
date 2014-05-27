@@ -77,7 +77,7 @@ class _Sub(object):
         defer.returnValue(msg.data)
     
     @util.cancellableInlineCallbacks
-    def visual_align(self, camera, object_name, distance_estimate):
+    def visual_align(self, camera, object_name, distance_estimate, selector=lambda items, body_tf: items[0]):
         goal_mgr = self._camera_2d_action_clients[camera].send_goal(legacy_vision_msg.FindGoal(
             object_names=[object_name],
         ))
@@ -99,7 +99,7 @@ class _Sub(object):
                     continue
                 
                 if not res: continue
-                obj = res[0]
+                obj = selector(res, transform)
                 
                 ray_start_camera = numpy.array([0, 0, 0])
                 ray_dir_camera = numpy.array(map(float, obj['center']))
@@ -208,9 +208,9 @@ class _Sub(object):
                 
                 error_pos = desired_pos - map_transform.transform_point([0, 0, 0])
                 
-                print desired_pos, numpy.linalg.norm(error_pos)/3e-2
+                print desired_pos, numpy.linalg.norm(error_pos)/6e-2
                 
-                if numpy.linalg.norm(error_pos) < 3e-2: # 3 cm
+                if numpy.linalg.norm(error_pos) < 6e-2: # 6 cm
                     yield (self.move
                         .set_position(desired_pos)
                         .go())

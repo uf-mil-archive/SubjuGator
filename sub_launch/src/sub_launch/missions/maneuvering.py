@@ -66,10 +66,24 @@ maneuvering_targetdesc = object_finder_msg.TargetDesc(
 def main(nh):
     sub = yield sub_scripting.get_sub(nh)
     
-    yield sub.visual_approach('forward', 'hedge', size_estimate=4*12*.0254, desired_distance=2)
+    print 1
+    sub.move.go(linear=[0.25, 0, 0])
     
+    yield sub.visual_approach('forward', 'hedge', size_estimate=4*12*.0254, desired_distance=4)
+    yield sub.move.forward(2).go()
+    return
+    yield sub.move.right(.6).go()
+    yield sub.move.forward(3.5).go()
+    yield sub.move.left(1.2).go()
+    yield sub.move.backward(3.5).go()
+    yield sub.move.right(1.2).go()
+    yield sub.move.forward(5).go()
+    return
     
-    yield sub.move.forward(1).go()
+    print 2
+    
+    yield sub.move.forward(2).go()
+    print 3
     
     r = 1
     

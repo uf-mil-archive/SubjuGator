@@ -231,6 +231,7 @@ class _Sub(object):
             ),
             targetdescs=[targetdesc],
         ))
+        start_pose = self.pose
         
         try:
             last_good_pos = None

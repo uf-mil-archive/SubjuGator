@@ -278,14 +278,29 @@ class _Sub(object):
         ))
     
     @util.cancellableInlineCallbacks
-    def fire_left_torpedo(self):
-        yield self._pulse_valve_service(5, genpy.Duration(.3))
+    def raise_impaler(self):
+        yield self._set_valve_service(1, False)
+        yield util.sleep(0.1)
+        yield self._set_valve_service(0, True)
     @util.cancellableInlineCallbacks
-    def fire_right_torpedo(self):
-        yield self._pulse_valve_service(3, genpy.Duration(.3))
+    def lower_impaler(self):
+        yield self._set_valve_service(0, False)
+        yield util.sleep(0.1)
+        yield self._set_valve_service(1, True)
+    @util.cancellableInlineCallbacks
+    def inflate_impaler(self):
+        yield self._pulse_valve_service(3, genpy.Duration(1)) # ???
+    
     @util.cancellableInlineCallbacks
     def drop_ball(self):
-        yield self._pulse_valve_service(0, genpy.Duration(1))
+        yield self._pulse_valve_service(2, genpy.Duration(1))
+    
+    @util.cancellableInlineCallbacks
+    def fire_left_torpedo(self):
+        yield self._pulse_valve_service(4, genpy.Duration(.3))
+    @util.cancellableInlineCallbacks
+    def fire_right_torpedo(self):
+        yield self._pulse_valve_service(5, genpy.Duration(.3))
 
 _subs = {}
 @util.cancellableInlineCallbacks

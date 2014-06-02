@@ -10,10 +10,12 @@ from twisted.internet import defer
 
 from txros import action, util, tf
 
+import genpy
 from std_msgs.msg import Header
 from uf_common.msg import MoveToAction, PoseTwistStamped, Float64Stamped
 from legacy_vision import msg as legacy_vision_msg
 from object_finder import msg as object_finder_msg
+from actuator_driver.srv import PulseValve, SetValve
 from uf_common import orientation_helpers
 from tf import transformations
 from c3_trajectory_generator.srv import SetDisabled, SetDisabledRequest
@@ -57,6 +59,10 @@ class _Sub(object):
         )
         self._tf_listener = tf.TransformListener(self._node_handle)
         self._dvl_range_sub = self._node_handle.subscribe('dvl/range', Float64Stamped)
+        self._pulse_valve_service = self._node_handle.get_service_client(
+            'actuator_driver/pulse_valve', PulseValve)
+        self._set_valve_service = self._node_handle.get_service_client(
+            'actuator_driver/set_valve', SetValve)
         
         yield self._trajectory_sub.get_next_message()
         
@@ -270,6 +276,16 @@ class _Sub(object):
         yield self._trajectory_generator_set_disabled_service(SetDisabledRequest(
             disabled=not enabled,
         ))
+    
+    @util.cancellableInlineCallbacks
+    def fire_left_torpedo(self):
+        yield self._pulse_valve_service(5, genpy.Duration(.3))
+    @util.cancellableInlineCallbacks
+    def fire_right_torpedo(self):
+        yield self._pulse_valve_service(3, genpy.Duration(.3))
+    @util.cancellableInlineCallbacks
+    def drop_ball(self):
+        yield self._pulse_valve_service(0, genpy.Duration(1))
 
 _subs = {}
 @util.cancellableInlineCallbacks

@@ -307,7 +307,7 @@ class _Sub(object):
     
     @util.cancellableInlineCallbacks
     def set_ignore_magnetometer(self, ignore):
-        yield self._set_ignore_magnetometer_service(ignore)
+        yield self._set_ignore_magnetometer_service(SetIgnoreMagnetometerRequest(ignore=ignore))
 
 _subs = {}
 @util.cancellableInlineCallbacks

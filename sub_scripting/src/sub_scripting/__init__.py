@@ -59,10 +59,10 @@ class _Sub(object):
         )
         self._tf_listener = tf.TransformListener(self._node_handle)
         self._dvl_range_sub = self._node_handle.subscribe('dvl/range', Float64Stamped)
-        self._pulse_valve_service = self._node_handle.get_service_client(
+        """self._pulse_valve_service = self._node_handle.get_service_client(
             'actuator_driver/pulse_valve', PulseValve)
         self._set_valve_service = self._node_handle.get_service_client(
-            'actuator_driver/set_valve', SetValve)
+            'actuator_driver/set_valve', SetValve)"""
         
         yield self._trajectory_sub.get_next_message()
         
@@ -165,7 +165,7 @@ class _Sub(object):
             goal_mgr.cancel()
     
     @util.cancellableInlineCallbacks
-    def visual_approach(self, camera, object_name, size_estimate, desired_distance):
+    def visual_approach(self, camera, object_name, size_estimate, desired_distance, selector=lambda items, body_tf: items[0]):
         goal_mgr = self._camera_2d_action_clients[camera].send_goal(legacy_vision_msg.FindGoal(
             object_names=[object_name],
         ))
@@ -187,7 +187,7 @@ class _Sub(object):
                     continue
                 
                 if not res: continue
-                obj = res[0]
+                obj = selector(res, transform)
                 
                 ray_start_camera = numpy.array([0, 0, 0])
                 ray_dir_camera = numpy.array(map(float, obj['center']))

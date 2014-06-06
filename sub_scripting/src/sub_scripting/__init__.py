@@ -19,6 +19,7 @@ from actuator_driver.srv import PulseValve, SetValve
 from uf_common import orientation_helpers
 from tf import transformations
 from c3_trajectory_generator.srv import SetDisabled, SetDisabledRequest
+from indirect_kalman_6dof.srv import SetIgnoreMagnetometer, SetIgnoreMagnetometerRequest
 
 
 class _PoseProxy(object):
@@ -63,6 +64,8 @@ class _Sub(object):
             'actuator_driver/pulse_valve', PulseValve)
         self._set_valve_service = self._node_handle.get_service_client(
             'actuator_driver/set_valve', SetValve)"""
+        self._set_ignore_magnetometer_service = self._node_handle.get_service_client(
+            'indirect_kalman_6dof/set_ignore_magnetometer', SetIgnoreMagnetometer)
         
         yield self._trajectory_sub.get_next_message()
         
@@ -278,14 +281,33 @@ class _Sub(object):
         ))
     
     @util.cancellableInlineCallbacks
-    def fire_left_torpedo(self):
-        yield self._pulse_valve_service(5, genpy.Duration(.3))
+    def raise_impaler(self):
+        yield self._set_valve_service(1, False)
+        yield util.sleep(0.1)
+        yield self._set_valve_service(0, True)
     @util.cancellableInlineCallbacks
-    def fire_right_torpedo(self):
-        yield self._pulse_valve_service(3, genpy.Duration(.3))
+    def lower_impaler(self):
+        yield self._set_valve_service(0, False)
+        yield util.sleep(0.1)
+        yield self._set_valve_service(1, True)
+    @util.cancellableInlineCallbacks
+    def inflate_impaler(self):
+        yield self._pulse_valve_service(3, genpy.Duration(1)) # ???
+    
     @util.cancellableInlineCallbacks
     def drop_ball(self):
-        yield self._pulse_valve_service(0, genpy.Duration(1))
+        yield self._pulse_valve_service(2, genpy.Duration(1))
+    
+    @util.cancellableInlineCallbacks
+    def fire_left_torpedo(self):
+        yield self._pulse_valve_service(4, genpy.Duration(.3))
+    @util.cancellableInlineCallbacks
+    def fire_right_torpedo(self):
+        yield self._pulse_valve_service(5, genpy.Duration(.3))
+    
+    @util.cancellableInlineCallbacks
+    def set_ignore_magnetometer(self, ignore):
+        yield self._set_ignore_magnetometer_service(SetIgnoreMagnetometerRequest(ignore=ignore))
 
 _subs = {}
 @util.cancellableInlineCallbacks

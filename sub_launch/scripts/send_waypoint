@@ -22,12 +22,16 @@ if len(sys.argv) < 2:
 posargs = []
 kwargs = {}
 orig = list(sys.argv[1:])
+current_kwarg = None
 while orig:
     this = orig.pop(0)
     if this.startswith('--'):
-        kwargs[this[2:]] = orig.pop(0)
-    else:
+        current_kwarg = this[2:]
+        kwargs[this[2:]] = [eval(orig.pop(0))]
+    elif current_kwarg is None:
         posargs.append(this)
+    else:
+        kwargs[current_kwarg] += [eval(this)]
 
 rospy.init_node('send_waypoint', disable_signals=True)
 
@@ -42,8 +46,7 @@ p = orientation_helpers.PoseEditor.from_PoseTwistStamped_topic('/trajectory')
 args = [eval(x, orientation_helpers.__dict__) for x in posargs[1:]] # lets you do "set_orientation NORTH"
 if len(args) >= 2:
     args = [args]
-p = getattr(p, posargs[0])(*args).as_MoveToGoal(
-    **dict((k, eval(v)) for k, v in kwargs.iteritems()))
+p = getattr(p, posargs[0])(*args).as_MoveToGoal(**kwargs)
 
 print 'Sending goal...'
 def done(goal_status, result):

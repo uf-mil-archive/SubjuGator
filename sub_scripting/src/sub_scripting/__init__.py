@@ -60,10 +60,10 @@ class _Sub(object):
         )
         self._tf_listener = tf.TransformListener(self._node_handle)
         self._dvl_range_sub = self._node_handle.subscribe('dvl/range', Float64Stamped)
-        """self._pulse_valve_service = self._node_handle.get_service_client(
+        self._pulse_valve_service = self._node_handle.get_service_client(
             'actuator_driver/pulse_valve', PulseValve)
         self._set_valve_service = self._node_handle.get_service_client(
-            'actuator_driver/set_valve', SetValve)"""
+            'actuator_driver/set_valve', SetValve)
         self._set_ignore_magnetometer_service = self._node_handle.get_service_client(
             'indirect_kalman_6dof/set_ignore_magnetometer', SetIgnoreMagnetometer)
         

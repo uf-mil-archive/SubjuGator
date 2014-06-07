@@ -82,16 +82,18 @@ def main(nh):
     
     select_centered = lambda objs, body_tf: min(objs, key=lambda obj: math.sqrt(float(obj['center'][0])**2 + float(obj['center'][1])**2))
     
+        
     for a,b in plan:
         print 'going to', a
         #yield storedpose.relative([0,-a[0]*12*.0254, -a[1]*12*.0254]).go(speed=.1)
+        
         yield storedpose.relative([0,-float(res[coords.index(a)]['center'][0])*1.5, -float(res[coords.index(a)]['center'][1])*1.5]).go(speed=.1)
         print 'going to', b
         yield storedpose.relative([0,-float(res[coords.index(b)]['center'][0])*1.5, -float(res[coords.index(b)]['center'][1])*1.5]).go(speed=.1)
         print 'centering on', b
         
+        yield sub.set_ignore_magnetometer(True)        
         yield sub.visual_approach('forward', 'grapes/empty_cell', size_estimate=6*.0254, desired_distance=1, selector=select_centered)
-        yield sub.move.forward(.75).go
-        yield sub.move.backward(.75).go
-
+        yield sub.move.backward(.75).go()
+        yield sub.set_ignore_magnetometer(False)
 

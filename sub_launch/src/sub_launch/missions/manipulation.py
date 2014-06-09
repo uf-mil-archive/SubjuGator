@@ -8,6 +8,8 @@ from txros import util
 from legacy_vision import msg as legacy_vision_msg
 import sub_scripting
 import json
+import itertools
+from scipy.stats.stats import pearsonr
 
 @util.cancellableInlineCallbacks
 def main(nh):
@@ -15,7 +17,7 @@ def main(nh):
     
     sub.move.go(linear=[0.25, 0, 0])
     
-    yield sub.visual_approach('forward', 'grapes/board', size_estimate=math.sqrt(2)*3*12*.0254, desired_distance=3)
+    yield sub.visual_approach('forward', 'grapes/board', size_estimate=math.sqrt(2)*3*12*.0254, desired_distance=2)
     
     goal_mgr = sub._camera_2d_action_clients['forward'].send_goal(legacy_vision_msg.FindGoal(
         object_names=['grapes/empty_cell'],
@@ -24,47 +26,35 @@ def main(nh):
     res = map(json.loads, feedback.targetreses[0].object_results)
     
     res.sort(key=lambda x: float(x['redness']))
+    
+    all_possible_coords=set((X,Y) for X in [-1, 0, 1] for Y in [-1, 0, 1] if X != 0 or Y != 0)
+    coords = max(itertools.permutations(all_possible_coords, len(res)),
+        key=lambda positions: min(
+            pearsonr(*zip(*((pos[0], float(obj['center'][0])) for pos, obj in zip(positions, res)))),
+            pearsonr(*zip(*((pos[1], float(obj['center'][1])) for pos, obj in zip(positions, res)))),
+        )
+    )
+        
     empty = res[:4]
     filled = res[4:8]
     
-    empty_coords = set()
-    filled_coords = set()
+    for x in res:
+        print x['redness'], x['center']
+
     
-    for obj in filled:
-        x = float(obj['center'][0])
-        y = float(obj['center'][1])
-        if x < -.06:
-            X = -1
-        elif x > .06:
-            X = 1
-        else:
-            X = 0
-        if y < -.06:
-            Y = -1
-        elif y > .06:
-            Y = 1
-        else:
-            Y = 0    
-        filled_coords.add((X,Y))
-        
-    for obj in empty:
-        x = float(obj['center'][0])
-        y = float(obj['center'][1])
-        if x < -.06:
-            X = -1
-        elif x > .06:
-            X = 1
-        else:
-            X = 0
-        if y < -.06:
-            Y = -1
-        elif y > .06:
-            Y = 1
-        else:
-            Y = 0    
-        empty_coords.add((X,Y))
+    '''empty_coords = min(itertools.permutations(all_possible_coords, 4),
+        key=lambda positions: sum(math.sqrt(
+            (float(obj['center'][0]) - .12*pos[0])**2 +
+            (float(obj['center'][1]) - .12*pos[1])**2
+        ) for pos, obj in zip(positions, empty)),
+    )'''
+    empty_coords = coords[:4]
     print empty_coords
-    print filled_coords
+    
+    empty_coords = set(empty_coords)
+    
+    filled_coords = all_possible_coords - empty_coords
+    print empty_coords, filled_coords
     
     def gen_paths(unmoved_peg_coords, empty_coords):
         if not unmoved_peg_coords:
@@ -84,12 +74,26 @@ def main(nh):
 
     plan=min(gen_paths(filled_coords, empty_coords), key=cost)
     
+    
+    
     storedpose=sub.move
     
-    for a,b in plan:
-        yield storedpose.relative([2,-a[0]*12*.0254, -a[1]*12*.0254]).go()
-        yield storedpose.relative([2,-b[0]*12*.0254, -b[1]*12*.0254]).go()
+    print plan
+    
+    select_centered = lambda objs, body_tf: min(objs, key=lambda obj: math.sqrt(float(obj['center'][0])**2 + float(obj['center'][1])**2))
+    
         
-        yield sub.visual_approach('forward', 'grapes/empty_cell', size_estimate=6*.0254, desired_distance=1)
-
+    for a,b in plan:
+        print 'going to', a
+        #yield storedpose.relative([0,-a[0]*12*.0254, -a[1]*12*.0254]).go(speed=.1)
+        
+        yield storedpose.relative([0,-float(res[coords.index(a)]['center'][0])*1.5, -float(res[coords.index(a)]['center'][1])*1.5]).go(speed=.1)
+        print 'going to', b
+        yield storedpose.relative([0,-float(res[coords.index(b)]['center'][0])*1.5, -float(res[coords.index(b)]['center'][1])*1.5]).go(speed=.1)
+        print 'centering on', b
+        
+        yield sub.set_ignore_magnetometer(True)        
+        yield sub.visual_approach('forward', 'grapes/empty_cell', size_estimate=6*.0254, desired_distance=1, selector=select_centered)
+        yield sub.move.backward(.75).go()
+        yield sub.set_ignore_magnetometer(False)
 

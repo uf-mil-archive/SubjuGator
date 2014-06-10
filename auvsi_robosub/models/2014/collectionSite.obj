@@ -1,6 +1,6 @@
 # Blender v2.70 (sub 0) OBJ File: ''
 # www.blender.org
-mtllib untitled.mtl
+mtllib collectionSite.mtl
 o Cube
 v 0.609600 0.609600 -0.038100
 v 0.609600 -0.609600 -0.038100

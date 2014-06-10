@@ -529,10 +529,9 @@ for a in [-1, 1]:
             .translate((0, 1*FT * a, 1*FT * b)))
 
 # Collection Site
-collection_site_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2014/collectionSite.obj'))
-w.objs.append(collection_site_mesh
-    .rotate(q_from_yaw(0))
-    .translate(world_from_2014_px(762+44/2, 213+45/2, -2)))
+collection_site_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2014/collectionSite.obj')).rotate(q_from_yaw(0)).translate(world_from_2014_px(762+44/2, 213+45/2, -2))
+w.objs.append(collection_site_mesh)
+collection_site_geom = ode.GeomTriMesh(collection_site_mesh.ode_trimeshdata, space)
 # XXX needs moon rocks
 
 

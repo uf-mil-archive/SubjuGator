@@ -282,17 +282,20 @@ class _Sub(object):
     
     @util.cancellableInlineCallbacks
     def raise_impaler(self):
-        yield self._set_valve_service(1, False)
-        yield util.sleep(0.1)
-        yield self._set_valve_service(0, True)
+        yield self._set_valve_service(0, False)
     @util.cancellableInlineCallbacks
     def lower_impaler(self):
-        yield self._set_valve_service(0, False)
-        yield util.sleep(0.1)
-        yield self._set_valve_service(1, True)
+        yield self._set_valve_service(0, True)
     @util.cancellableInlineCallbacks
     def inflate_impaler(self):
         yield self._pulse_valve_service(3, genpy.Duration(1)) # ???
+    
+    @util.cancellableInlineCallbacks
+    def open_gripper(self):
+        yield self._set_valve_service(1, False)
+    @util.cancellableInlineCallbacks
+    def close_gripper(self):
+        yield self._set_valve_service(1, True)
     
     @util.cancellableInlineCallbacks
     def drop_ball(self):

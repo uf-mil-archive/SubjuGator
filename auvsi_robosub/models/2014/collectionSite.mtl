@@ -1,10 +1,19 @@
-# Blender MTL File: 'collectionSite.blend'
-# Material Count: 1
+# Blender MTL File: 'None'
+# Material Count: 2
 
 newmtl Material
 Ns 96.078431
 Ka 0.000000 0.000000 0.000000
-Kd 0.785888 0.800000 0.155571
+Kd 0.640000 0.597459 0.168809
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+
+newmtl Material.001
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.640000 0.640000 0.640000
 Ks 0.500000 0.500000 0.500000
 Ni 1.000000
 d 1.000000

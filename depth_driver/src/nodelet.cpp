@@ -28,7 +28,7 @@ namespace depth_driver {
                   getPrivateNodeHandle(), "port");
                 int baudrate = uf_common::getParam<int>(
                   getPrivateNodeHandle(), "baudrate", 115200);
-                std::string frame_id = uf_common::getParam<std::string>(
+                frame_id = uf_common::getParam<std::string>(
                   getPrivateNodeHandle(), "frame_id");
                 
                 pub = getNodeHandle().advertise<uf_common::Float64Stamped>("depth", 10);

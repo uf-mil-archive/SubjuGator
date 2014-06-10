@@ -303,10 +303,7 @@ class _Sub(object):
     
     @util.cancellableInlineCallbacks
     def fire_left_torpedo(self):
-        print 'a'
-        print self._pulse_valve_service
-        res = yield self._pulse_valve_service(PulseValveRequest(valve=4, duration=genpy.Duration(.3)))
-        #print res
+        yield self._pulse_valve_service(PulseValveRequest(valve=4, duration=genpy.Duration(.3)))
     @util.cancellableInlineCallbacks
     def fire_right_torpedo(self):
         yield self._pulse_valve_service(PulseValveRequest(valve=5, duration=genpy.Duration(.3)))

@@ -282,31 +282,31 @@ class _Sub(object):
     
     @util.cancellableInlineCallbacks
     def raise_impaler(self):
-        yield self._set_valve_service(0, False)
+        yield self._set_valve_service(SetValve(valve=0, opened=False))
     @util.cancellableInlineCallbacks
     def lower_impaler(self):
-        yield self._set_valve_service(0, True)
+        yield self._set_valve_service(SetValve(valve=0, opened=True))
     @util.cancellableInlineCallbacks
     def inflate_impaler(self):
-        yield self._pulse_valve_service(3, genpy.Duration(1)) # ???
+        yield self._pulse_valve_service(PulseValve(valve=3, duration=genpy.Duration(1))) # ???
     
     @util.cancellableInlineCallbacks
     def open_gripper(self):
-        yield self._set_valve_service(1, False)
+        yield self._set_valve_service(SetValve(valve=1, opened=False))
     @util.cancellableInlineCallbacks
     def close_gripper(self):
-        yield self._set_valve_service(1, True)
+        yield self._set_valve_service(SetValve(valve=1, opened=True))
     
     @util.cancellableInlineCallbacks
     def drop_ball(self):
-        yield self._pulse_valve_service(2, genpy.Duration(1))
+        yield self._pulse_valve_service(PulseValve(valve=2, duration=genpy.Duration(1)))
     
     @util.cancellableInlineCallbacks
     def fire_left_torpedo(self):
-        yield self._pulse_valve_service(4, genpy.Duration(.3))
+        yield self._pulse_valve_service(PulseValve(valve=4, duration=genpy.Duration(.3)))
     @util.cancellableInlineCallbacks
     def fire_right_torpedo(self):
-        yield self._pulse_valve_service(5, genpy.Duration(.3))
+        yield self._pulse_valve_service(PulseValve(valve=5, duration=genpy.Duration(.3)))
     
     @util.cancellableInlineCallbacks
     def set_ignore_magnetometer(self, ignore):

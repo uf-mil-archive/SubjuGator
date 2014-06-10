@@ -290,10 +290,10 @@ class _Sub(object):
     def inflate_impaler(self):
         yield self._pulse_valve_service(3, genpy.Duration(1)) # ???
     
-    @util.callableInlineCallbacks
+    @util.cancellableInlineCallbacks
     def open_gripper(self):
         yield self._set_valve_service(1, False)
-    @util.callableInlineCallbacks
+    @util.cancellableInlineCallbacks
     def close_gripper(self):
         yield self._set_valve_service(1, True)
     

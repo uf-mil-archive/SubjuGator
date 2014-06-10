@@ -487,13 +487,21 @@ class Bin(object):
                 glTexCoord2f(1, 1);glVertex3f(-1, -0.5, .1/12)
                 glTexCoord2f(0, 1);glVertex3f(+1, -0.5, .1/12)
                 glEnd()
-names = '10 16 37 98'.split(' ')
+col1 = '01a 01b'.split(' ')
+col2 = '02a 02b'.split(' ')
+col3 = '03a 03b'.split(' ')
+col4 = '04a'
+random.shuffle(col1)
+random.shuffle(col2)
+random.shuffle(col3)
+
+names = [col1[0], col2[0], col3[0], col4]
 random.shuffle(names)
 height = FLOOR + random.uniform(.3, .6)
 for x in xrange(2):
     for y in xrange(2):
         w.objs.append(Bin(world_from_2014_px(830+59/2, 385+57/2, height) + (-(y-.5)/1.5, -(x-.5), 0), q_from_yaw(80),threed.Texture(pygame.image.load(
-            roslib.packages.resource_file('legacy_vision', 'data', 'bins/%s.png' % (names[x*2+y],))
+            roslib.packages.resource_file('legacy_vision', 'data', 'bins/space_invader_mod_%s.png' % (names[x*2+y],))
         ))))
 
 

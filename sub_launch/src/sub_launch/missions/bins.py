@@ -7,7 +7,24 @@ import sub_scripting
 #the robot carries two markers and one bin is marked primary and one bin is marked secondary
 #the most points are awarded for dropping in primary and secondary, dropping in any gives partial
 
+def selectPrimary(results, body_tf):
+  print results
+  for result in results:
+    print result['image_text']
+    if result['image_text'] == '02a':
+      return result
+  
+
+
 @util.cancellableInlineCallbacks
 def main(nh):
   sub = yield sub_scripting.get_sub(nh)
-  sub.move.forward(3)
+
+  yield sub.move.forward(3).go()
+
+  yield sub.visual_align('down', 'bins/all', distance_estimate=1.5, desired_distance=2)
+   
+  #yield sub.move.up(1).go()
+  
+  yield sub.visual_align('down', 'bins/single', distance_estimate=1.5, selector=selectPrimary)
+  

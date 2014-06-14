@@ -489,6 +489,7 @@ class Bin(object):
                 glEnd()
 names = '10 16 37 98'.split(' ')
 random.shuffle(names)
+print("%s", names)
 height = FLOOR + random.uniform(.3, .6)
 for x in xrange(2):
     for y in xrange(2):

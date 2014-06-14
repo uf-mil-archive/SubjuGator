@@ -22,9 +22,11 @@ def select_by_body_direction(body_vector):
 def main(nh):
     sub = yield sub_scripting.get_sub(nh)
     
-    sub.move.go(linear=[0.25, 0, 0])
-    
-    yield sub.visual_approach('forward', 'shooter', size_estimate=7*.0254, desired_distance=1.5, selector=select_by_body_direction([0,1,0]))
+    fwd_move = sub.move.go(linear=[0.25, 0, 0])
+    try:
+        yield sub.visual_approach('forward', 'shooter', size_estimate=7*.0254, desired_distance=1.5, selector=select_by_body_direction([0,1,0]))
+    finally:
+        yield fwd_move.cancel()
     yield util.sleep(5)
     yield sub.move.forward(.5).go()
     

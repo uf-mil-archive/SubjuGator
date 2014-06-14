@@ -9,12 +9,13 @@ import sub_scripting
 def main(nh):
     sub = yield sub_scripting.get_sub(nh)
     
-    sub.move.go(linear=[0.25, 0, 0])
-
-    dist = yield sub.get_dvl_range()
-
-    
-    yield sub.visual_align('down', 'wreath', dist)
+    fwd_move = sub.move.go(linear=[0.25, 0, 0])
+    try:
+        dist = yield sub.get_dvl_range()
+        
+        yield sub.visual_align('down', 'wreath', dist)
+    finally:
+        yield fwd_move.cancel()
     
     orig_depth = -sub.pose.position[2]
     yield sub.move.down(1).go()

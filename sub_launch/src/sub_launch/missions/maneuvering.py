@@ -8,9 +8,11 @@ import sub_scripting
 def main(nh):
     sub = yield sub_scripting.get_sub(nh)
     
-    sub.move.go(linear=[0.25, 0, 0])
-    
-    yield sub.visual_approach('forward', 'hedge', size_estimate=4*12*.0254, desired_distance=2)
+    fwd_move = sub.move.go(linear=[0.25, 0, 0])
+    try:
+        yield sub.visual_approach('forward', 'hedge', size_estimate=4*12*.0254, desired_distance=2)
+    finally:
+        yield fwd_move.cancel()
     
     yield sub.move.right(.6).go()
     yield sub.move.forward(3.5).go()

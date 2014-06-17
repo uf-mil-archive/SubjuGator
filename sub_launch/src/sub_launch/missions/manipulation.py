@@ -15,9 +15,11 @@ from scipy.stats.stats import pearsonr
 def main(nh):
     sub = yield sub_scripting.get_sub(nh)
     
-    sub.move.go(linear=[0.25, 0, 0])
-    
-    yield sub.visual_approach('forward', 'grapes/board', size_estimate=math.sqrt(2)*3*12*.0254, desired_distance=2)
+    fwd_move = sub.move.go(linear=[0.25, 0, 0])
+    try:
+        yield sub.visual_approach('forward', 'grapes/board', size_estimate=math.sqrt(2)*3*12*.0254, desired_distance=2)
+    finally:
+        yield fwd_move.cancel()
     
     goal_mgr = sub._camera_2d_action_clients['forward'].send_goal(legacy_vision_msg.FindGoal(
         object_names=['grapes/empty_cell'],
@@ -92,10 +94,10 @@ def main(nh):
         yield storedpose.relative([0,-float(res[coords.index(b)]['center'][0])*1.5, -float(res[coords.index(b)]['center'][1])*1.5]).go(speed=.1)
         print 'centering on', b
         
-        yield sub.set_ignore_magnetometer(True) 
+        #yield sub.set_ignore_magnetometer(True) 
         try:       
             yield sub.visual_approach('forward', 'grapes/empty_cell', size_estimate=6*.0254, desired_distance=1, selector=select_centered)
             yield sub.move.backward(.75).go()
         finally:
-            yield sub.set_ignore_magnetometer(False)
+            pass#yield sub.set_ignore_magnetometer(False)
 

@@ -7,14 +7,13 @@ import sub_scripting
 def select_by_body_direction(body_vector):
     body_vector = numpy.array(body_vector)
     def _(results, body_tf):
-	min_radius = min(numpy.linalg.norm(map(float, result['direction'])) for result in results)
-	results = [result for result in results if numpy.linalg.norm(map(float, result['direction'])) < 1.5 * min_radius]
-	print numpy.linalg.norm(map(float, result['direction'])), "This is the recorded circle size!"
+        min_radius = min(numpy.linalg.norm(map(float, result['direction'])) for result in results)
+        results = [result for result in results if numpy.linalg.norm(map(float, result['direction'])) < 1.5 * min_radius]
         def get_wantedness(result):
             pos_vec = numpy.array(map(float, result['center']))
             pos_vec_body = body_tf.transform_vector(pos_vec)
             return pos_vec_body.dot(body_vector)
-	
+        
         return max(results, key=get_wantedness)
     return _
 
@@ -22,17 +21,16 @@ def select_by_body_direction(body_vector):
 def main(nh):
     sub = yield sub_scripting.get_sub(nh)
     
-    sub.move.go(linear=[0.25, 0, 0])
-    
-    yield sub.visual_approach('forward', 'shooter', size_estimate=7*.0254, desired_distance=1.5, selector=select_by_body_direction([0,1,0]))
+    fwd_move = sub.move.go(linear=[0.25, 0, 0])
+    try:
+        yield sub.visual_approach('forward', 'shooter', size_estimate=7*.0254, desired_distance=1.5, selector=select_by_body_direction([0,1,0]))
+    finally:
+        yield fwd_move.cancel()
     yield util.sleep(5)
     yield sub.move.forward(.5).go()
     
     yield sub.move.up(5*.0254).go()
     yield sub.move.right(1.5*.0254).go()
-
-    yield util.sleep(5)
-    
     yield sub.fire_left_torpedo()
     yield sub.move.backward(2).go()
     
@@ -42,7 +40,6 @@ def main(nh):
     
     yield sub.move.up(5*.0254).go()
     yield sub.move.left(1.5*.0254).go()
-    yield util.sleep(5)
     yield sub.fire_right_torpedo()
     yield sub.move.backward(2).go()
     """yield sub.move.right(.6).go()

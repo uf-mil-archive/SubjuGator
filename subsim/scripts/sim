@@ -532,8 +532,12 @@ for a in [-1, 1]:
 collection_site_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2014/collectionSite.obj')).rotate(q_from_yaw(0)).translate(world_from_2014_px(762+44/2, 213+45/2, -2))
 w.objs.append(collection_site_mesh)
 collection_site_geom = ode.GeomTriMesh(collection_site_mesh.ode_trimeshdata, space)
-# XXX needs moon rocks
 
+# Moon Rock
+moon_rock_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 'models', '2014/moonRock.obj')).rotate(q_from_yaw(0)).translate(world_from_2014_px(762+44/2, 213+45/2, -1.9))
+w.objs.append(moon_rock_mesh)
+moon_rock_geom = ode.GeomTriMesh(moon_rock_mesh.ode_trimeshdata, space)
+# XXX needs green cheese
 
 #
 w.objs.append(path_mesh

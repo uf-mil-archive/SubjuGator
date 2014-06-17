@@ -16,12 +16,13 @@ def main(nh):
         orig_depth = -sub.pose.position[2]
         
         dist = yield sub.get_dvl_range()
-        yield sub.move.down(dist-1.75).go()
-        
+        yield sub.move.down(dist-1.75).go()       
         yield sub.visual_align('down', 'wreath/cheese', dist)
     finally:
         yield fwd_move.cancel()
     
+    yield sub.move.down(dist-1.75).go()
+    yield sub.visual_align('down', 'wreath/cheese', dist)
     yield sub.lower_impaler()
     yield sub.move.relative([-.1,-.1,0])
     yield sub.move.down(1).go()

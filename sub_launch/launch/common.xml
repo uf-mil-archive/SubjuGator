@@ -50,32 +50,14 @@ shift: [1.8266060470689045e-05, -5.266451315444063e-06, 5.987404697539948e-05]
     <param name="v_sound" type="double" value="1500"/>
   </node> -->
 
-  <node pkg="indirect_kalman_6dof" type="indirect_kalman_6dof" name="indirect_kalman_6dof"><rosparam>
-      f_imu: 204
-      f_kalman: 50
-      y_a_max_norm_error: .002
-      y_a_log_size: 5
-
-      R_g: [5.0e-5, 5.0e-5, 5.0e-5]
-      R_a: [3.0e-3, 3.0e-3, 3.0e-3]
-      R_m: [4.0e-14, 4.0e-14, 4.0e-14]
-      R_d: 0.0004
-      R_z: 0.000004
-      Q_b_g: [1.0e-10, 1.0e-10, 1.0e-10]
-      Q_b_a: [1.0e-10, 1.0e-10, 1.0e-10]
-
-      init_accel_samples: 30
-      init_mag_samples: 30
-      init_dvl_samples: 5
-      init_depth_samples: 10
-
-      g_nav: [0, 0, -9.6898]
-      m_nav: [5143.8e-9, 24304.8e-9, -39559.3e-9]
-
-      verify_timestamps: false
+  <node pkg="nodelet" type="nodelet" args="standalone odom_estimator/nodelet" name="odom_estimator" respawn="true"><rosparam>
+      have_gps: false
+      local_frame: /map
+      start_x_ecef:   740883 <!-- gainesville -->
+      start_y_ecef: -5497747
+      start_z_ecef:  3136908
     </rosparam>
     <remap from="odom" to="imu_odom"/>
-    <remap from="debug" to="indirect_kalman_6dof/debug"/>
   </node>
   <node pkg="nodelet" type="nodelet" name="transform_odometry" args="standalone odometry_utils/transform_odometry"><rosparam>
     frame_id: /map

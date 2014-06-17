@@ -20,11 +20,11 @@ def selectPrimary(results, body_tf):
 def main(nh):
   sub = yield sub_scripting.get_sub(nh)
 
-  yield sub.move.forward(3).go()
-
-  yield sub.visual_align('down', 'bins/all', distance_estimate=1.5, desired_distance=2)
-   
+  #yield sub.move.forward(1).go()
+  print "aligning down"
+  yield sub.visual_align('down', 'bins/all', distance_estimate=1.5)
+  print "aligned down"   
   #yield sub.move.up(1).go()
-  
+  print "aligning single"
   yield sub.visual_align('down', 'bins/single', distance_estimate=1.5, selector=selectPrimary)
   

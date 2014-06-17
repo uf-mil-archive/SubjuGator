@@ -26,12 +26,14 @@ def main(nh, direction=None):
     
     print dist
     
-    sub.move.go(linear=[0.25, 0, 0])
-    
-    yield sub.visual_align('down', 'pipe', dist, selector={
-        'left' : select_by_body_direction([0, +1, 0]),
-        'right': select_by_body_direction([0, -1, 0]),
-        None   : lambda objs: objs[0],
-    }[direction])
+    fwd_move = sub.move.go(linear=[0.25, 0, 0])
+    try:
+        yield sub.visual_align('down', 'pipe', dist, selector={
+            'left' : select_by_body_direction([0, +1, 0]),
+            'right': select_by_body_direction([0, -1, 0]),
+            None   : lambda objs: objs[0],
+        }[direction])
+    finally:
+        yield fwd_move.cancel()
     
     yield sub.move.forward(2).go()

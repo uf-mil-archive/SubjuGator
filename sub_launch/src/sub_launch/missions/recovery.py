@@ -17,7 +17,10 @@ def main(nh):
     finally:
         yield fwd_move.cancel()
     
-    orig_depth = -sub.pose.position[2]
     yield sub.move.down(1).go()
+    yield sub.visual_align('down', 'wreath', dist)
+    yield sub.move.down(0.2).go()
+    
+    orig_depth = -sub.pose.position[2]
     yield sub.move.depth(-0.1).go()
     yield sub.move.depth(orig_depth).go()

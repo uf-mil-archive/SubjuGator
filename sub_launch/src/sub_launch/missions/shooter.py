@@ -7,14 +7,14 @@ import sub_scripting
 def select_by_body_direction(body_vector):
     body_vector = numpy.array(body_vector)
     def _(results, body_tf):
-	min_radius = min(numpy.linalg.norm(map(float, result['direction'])) for result in results)
-	results = [result for result in results if numpy.linalg.norm(map(float, result['direction'])) < 1.5 * min_radius]
-	print numpy.linalg.norm(map(float, result['direction'])), "This is the recorded circle size!"
+        min_radius = min(numpy.linalg.norm(map(float, result['direction'])) for result in results)
+        results = [result for result in results if numpy.linalg.norm(map(float, result['direction'])) < 1.5 * min_radius]
+        print numpy.linalg.norm(map(float, result['direction'])), "This is the recorded circle size!"
         def get_wantedness(result):
             pos_vec = numpy.array(map(float, result['center']))
             pos_vec_body = body_tf.transform_vector(pos_vec)
             return pos_vec_body.dot(body_vector)
-	
+        
         return max(results, key=get_wantedness)
     return _
 

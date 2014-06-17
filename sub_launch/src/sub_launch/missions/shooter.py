@@ -29,22 +29,22 @@ def main(nh):
     yield sub.move.forward(.5).go()
     
     yield sub.move.up(5*.0254).go()
-    yield sub.move.right(3.5*.0254).go()
+    yield sub.move.right(1.5*.0254).go()
 
     yield util.sleep(5)
-    yield sub.move.backward(2).go()
-
+    
     yield sub.fire_left_torpedo()
-
+    yield sub.move.backward(2).go()
+    
     yield sub.visual_approach('forward', 'shooter', size_estimate=7*.0254, desired_distance=1.5, selector=select_by_body_direction([0,-1,0]))
     yield util.sleep(5)
     yield sub.move.forward(.5).go()
     
     yield sub.move.up(5*.0254).go()
-    yield sub.move.left(3.5*.0254).go()
+    yield sub.move.left(1.5*.0254).go()
     yield util.sleep(5)
-    yield sub.move.backward(2).go()
     yield sub.fire_right_torpedo()
+    yield sub.move.backward(2).go()
     """yield sub.move.right(.6).go()
     yield sub.move.forward(3.5).go()
     yield sub.move.left(1.2).go()

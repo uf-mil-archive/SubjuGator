@@ -15,7 +15,7 @@ def select(image_text):
         #print results
         for result in results:
             #print result['image_text']
-            if 'image_text' in result and result['image_text'] == image_text:
+            if 'image_text' in result and result['image_text'].startswith(image_text):
                 return result
         return None
         #return select_centered(results, body_tf)
@@ -37,7 +37,7 @@ def main(nh):
     print "aligned down"
     centered = sub.move
     
-    for x in ["01b", "02a", "03b", "04a"]:
+    for x in ["1", "2", "3", "4"]:
         print 'going to', x
         yield centered.go()
         print "aligning single", x

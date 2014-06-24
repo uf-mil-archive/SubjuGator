@@ -27,6 +27,7 @@ namespace adis16400_imu {
                 pub = nh.advertise<sensor_msgs::Imu>("imu/data_raw", 10);
                 mag_pub = nh.advertise<sensor_msgs::MagneticField>("imu/mag_raw", 10);
                 
+                count = 0;
                 running = true;
                 device = boost::make_shared<Device>(port);
                 polling_thread_inst = boost::thread(boost::bind(&Nodelet::polling_thread, this));
@@ -38,6 +39,7 @@ namespace adis16400_imu {
                     sensor_msgs::Imu imu;
                     sensor_msgs::MagneticField mag;
                     if(device->read(frame_id, imu, mag)) {
+                        if(count++ % 4 != 0) continue;
                         pub.publish(imu);
                         mag_pub.publish(mag);
                     }
@@ -50,6 +52,7 @@ namespace adis16400_imu {
             ros::Publisher mag_pub;
             bool running;
             boost::thread polling_thread_inst;
+            int count;
     };
     
     PLUGINLIB_DECLARE_CLASS(adis16400_imu, nodelet, adis16400_imu::Nodelet, nodelet::Nodelet);

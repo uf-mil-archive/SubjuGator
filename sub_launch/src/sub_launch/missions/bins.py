@@ -6,10 +6,11 @@ import math
 #the goal of this mission
 #there are four bins. Bins 1 - 3 have options of two pictures, Bin 4 is always the same picture
 #the robot carries two markers and one bin is marked primary and one bin is marked secondary
-#the most points are awarded for dropping in primary and secondary, dropping in any gives partial
+#the most points are awarded for dropping in primary and secondary, dropping in any other gives partial
   
 select_centered = lambda objs, body_tf: min(objs, key=lambda obj: math.sqrt(float(obj['center'][0])**2 + float(obj['center'][1])**2))
-
+primary = '2'
+secondary = '4'
 def select(image_text):
     def _(results, body_tf):
         #print results

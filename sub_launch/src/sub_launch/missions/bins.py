@@ -9,15 +9,18 @@ import math
 #the most points are awarded for dropping in primary and secondary, dropping in any other gives partial
   
 select_centered = lambda objs, body_tf: min(objs, key=lambda obj: math.sqrt(float(obj['center'][0])**2 + float(obj['center'][1])**2))
-primary = '2'
-secondary = '4'
+primary_secondary = ['2', '4']
+
 def select(image_text):
+    #global primaryDropped
+    #global primary, secondary, primaryDropped, secondaryDropped
     def _(results, body_tf):
+	global primaryDropped
         #print results
         for result in results:
             #print result['image_text']
             if 'image_text' in result and result['image_text'].startswith(image_text):
-                return result
+   		return result
         return None
         #return select_centered(results, body_tf)
     return _
@@ -38,7 +41,7 @@ def main(nh):
     print "aligned down"
     centered = sub.move
     
-    for x in ["1", "2", "3", "4"]:
+    for x in ["2", "4"]:
         print 'going to', x
         yield centered.go()
         print "aligning single", x
@@ -47,6 +50,7 @@ def main(nh):
         print 'done'
         yield sub.move.down(dist - 1).go()
         print 'dropping'
+        yield sub.drop_ball()
         yield util.sleep(5)
         print 'done dropping'
     

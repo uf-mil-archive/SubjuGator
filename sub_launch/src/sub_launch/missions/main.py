@@ -8,6 +8,11 @@ from twisted.protocols import basic
 
 import sub_scripting
 
+from sub_launch.missions import shooter
+from sub_launch.missions import buoy
+from sub_launch.missions import path
+from sub_launch.missions import manipulation
+from sub_launch.missions import bins
 
 class P(basic.LineOnlyReceiver):
     delimiter = '\n'
@@ -35,9 +40,26 @@ def nonblocking_raw_input(prompt):
 
 
 @util.cancellableInlineCallbacks
-def main_list(sub):
+def main_list(sub, nh):
     try:
         print 'main start'
+	print "starting manipulation"
+	#yield manipulation.main(nh)
+	print "done manipulation, moving backward"
+	#yield sub.move.backward(1).go()
+	print "done moving backward, going to path"
+	#yield path.main(nh, "right")
+	print "done path, going to bins"
+	#yield sub.move.forward(2.5).go()
+	#yield sub.move.depth(1).go()
+	print "at bins, doing bins"
+	#yield bins.main(nh)
+	print "done bins, going to brunch"
+	#yield sub.move.turn_right_deg(90).go()
+	#yield sub.move.forward(1.5).go()
+	#yield path.main(nh, "right")
+	#yield sub.move.forward(3)
+	yield path.main(nh, "left")
         yield util.sleep(10)
         print 'main end'
     finally:
@@ -74,7 +96,7 @@ def wrap_timeout(df, duration):
 
 @util.cancellableInlineCallbacks
 def main(nh):
-    sub = None # yield sub_scripting.get_sub(nh)
+    sub = yield sub_scripting.get_sub(nh) #None
     
     while True:
         time_left_str = yield nonblocking_raw_input('Enter time left: (e.g. 5:40) ')
@@ -85,10 +107,13 @@ def main(nh):
             traceback.print_exc()
         else:
             break
-    
-    
+    """try:
+    	wrap_timeout(get_time_left(time_left), 5)
+    except Exception:
+        time_left =  60*5+40
+    """
     try:
-        yield wrap_timeout(main_list(sub), 3)
+        yield wrap_timeout(main_list(sub, nh), time_left)
     except Exception:
         import traceback
         traceback.print_exc()

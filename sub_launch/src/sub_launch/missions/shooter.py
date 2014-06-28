@@ -19,6 +19,7 @@ def select_by_body_direction(body_vector):
 
 @util.cancellableInlineCallbacks
 def main(nh):
+    print "starting shooter"
     sub = yield sub_scripting.get_sub(nh)
     
     fwd_move = sub.move.go(linear=[0.25, 0, 0])

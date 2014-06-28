@@ -297,14 +297,14 @@ class _Sub(object):
     
     @util.cancellableInlineCallbacks
     def open_gripper(self):
-        yield self._set_valve_service(SetValveRequest(valve=1, opened=False))
+        yield self._set_valve_service(SetValveRequest(valve=2, opened=False))
     @util.cancellableInlineCallbacks
     def close_gripper(self):
-        yield self._set_valve_service(SetValveRequest(valve=1, opened=True))
+        yield self._set_valve_service(SetValveRequest(valve=2, opened=True))
     
     @util.cancellableInlineCallbacks
     def drop_ball(self):
-        yield self._pulse_valve_service(PulseValveRequest(valve=2, duration=genpy.Duration(1)))
+        yield self._pulse_valve_service(PulseValveRequest(valve=1, duration=genpy.Duration(1)))
     
     @util.cancellableInlineCallbacks
     def fire_left_torpedo(self):

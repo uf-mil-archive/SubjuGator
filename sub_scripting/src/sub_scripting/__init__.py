@@ -141,7 +141,7 @@ class _Sub(object):
                 error_pos = desired_pos - map_transform.transform_point([0, 0, 0])
                 error_pos = error_pos - axis_world * axis_world.dot(error_pos)
                 
-                print "aaa", desired_pos, numpy.linalg.norm(error_pos)/3e-2
+                print desired_pos, numpy.linalg.norm(error_pos)/3e-2
                 
                 if numpy.linalg.norm(error_pos) < 3e-2: # 3 cm
                     if turn:

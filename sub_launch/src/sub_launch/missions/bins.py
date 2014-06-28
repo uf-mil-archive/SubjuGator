@@ -12,15 +12,12 @@ select_centered = lambda objs, body_tf: min(objs, key=lambda obj: math.sqrt(floa
 primary_secondary = ['2', '4']
 
 def select(image_text):
-    #global primaryDropped
-    #global primary, secondary, primaryDropped, secondaryDropped
     def _(results, body_tf):
-	global primaryDropped
         #print results
         for result in results:
-            #print result['image_text']
             if 'image_text' in result and result['image_text'].startswith(image_text):
-   		return result
+   		print result
+		return result
         return None
         #return select_centered(results, body_tf)
     return _
@@ -37,7 +34,7 @@ def main(nh):
     yield sub.visual_align('down', 'bins/all', distance_estimate=dist-.3, turn=True)
     yield sub.move.turn_left_deg(45).go()
     yield sub.visual_align('down', 'bins/all', distance_estimate=dist-.3, turn=False)
-    yield sub.move.down(dist-.3 - 2.5).go()
+    #yield sub.move.down(dist-.3 - 2.5).go()
     print "aligned down"
     centered = sub.move
     

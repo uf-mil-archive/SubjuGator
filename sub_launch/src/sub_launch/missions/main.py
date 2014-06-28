@@ -101,6 +101,9 @@ def main(nh):
     while True:
         time_left_str = yield nonblocking_raw_input('Enter time left: (e.g. 5:40) ')
         try:
+	    if not time_left_str:
+		time_left = 60 * 10
+		break
             m, s = time_left_str.split(':')
             time_left = 60 * int(m) + int(s)
         except Exception:

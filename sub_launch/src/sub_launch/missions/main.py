@@ -71,7 +71,7 @@ def main_list(sub, nh):
 def fail_list(sub):
     try:
         print 'fail start'
-        yield util.sleep(10)
+        yield sub.move.depth(0).go()
         print 'fail end'
     finally:
         print 'fail finally'
@@ -96,7 +96,7 @@ def wrap_timeout(df, duration):
 
 @util.cancellableInlineCallbacks
 def main(nh):
-    sub = yield sub_scripting.get_sub(nh) #None
+    sub = yield sub_scripting.get_sub(nh)
     
     while True:
         time_left_str = yield nonblocking_raw_input('Enter time left: (e.g. 5:40) ')
@@ -116,7 +116,7 @@ def main(nh):
         time_left =  60*5+40
     """
     try:
-        yield wrap_timeout(main_list(sub, nh), time_left)
+        yield wrap_timeout(main_list(sub), time_left-60)
     except Exception:
         import traceback
         traceback.print_exc()

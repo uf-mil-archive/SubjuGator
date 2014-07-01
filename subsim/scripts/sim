@@ -487,8 +487,9 @@ class Bin(object):
                 glTexCoord2f(1, 1);glVertex3f(-1, -0.5, .1/12)
                 glTexCoord2f(0, 1);glVertex3f(+1, -0.5, .1/12)
                 glEnd()
-names = '10 16 37 98'.split(' ')
+names = '01b 02a 03b 04a'.split(' ')
 random.shuffle(names)
+print("%s", names)
 height = FLOOR + random.uniform(.3, .6)
 for x in xrange(2):
     for y in xrange(2):

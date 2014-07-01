@@ -86,7 +86,7 @@ class _Sub(object):
         defer.returnValue(msg.data)
     
     @util.cancellableInlineCallbacks
-    def visual_align(self, camera, object_name, distance_estimate, selector=lambda items, body_tf: items[0]):
+    def visual_align(self, camera, object_name, distance_estimate, selector=lambda items, body_tf: items[0], turn=True):
         goal_mgr = self._camera_2d_action_clients[camera].send_goal(legacy_vision_msg.FindGoal(
             object_names=[object_name],
         ))
@@ -109,6 +109,7 @@ class _Sub(object):
                 
                 if not res: continue
                 obj = selector(res, transform)
+                if obj is None: continue
                 
                 ray_start_camera = numpy.array([0, 0, 0])
                 ray_dir_camera = numpy.array(map(float, obj['center']))
@@ -143,21 +144,24 @@ class _Sub(object):
                 print desired_pos, numpy.linalg.norm(error_pos)/3e-2
                 
                 if numpy.linalg.norm(error_pos) < 3e-2: # 3 cm
-                    # yield go to pos and angle
-                    
-                    direction_symmetry = int(obj['direction_symmetry'])
-                    dangle = 2*math.pi/direction_symmetry
-                    
-                    def rotate(x, angle):
-                        return transformations.rotation_matrix(angle, axis_world)[:3, :3].dot(x)
-                    for sign in [-1, +1]:
-                        while rotate(obj_dir_world, sign*dangle).dot(start_pose.forward_vector) > obj_dir_world.dot(start_pose.forward_vector):
-                            obj_dir_world = rotate(obj_dir_world, sign*dangle)
-                    
-                    yield (self.move
-                        .set_position(desired_pos)
-                        .look_at_rel_without_pitching(obj_dir_world)
-                        .go())
+                    if turn:
+                        direction_symmetry = int(obj['direction_symmetry'])
+                        dangle = 2*math.pi/direction_symmetry
+                        
+                        def rotate(x, angle):
+                            return transformations.rotation_matrix(angle, axis_world)[:3, :3].dot(x)
+                        for sign in [-1, +1]:
+                            while rotate(obj_dir_world, sign*dangle).dot(start_pose.forward_vector) > obj_dir_world.dot(start_pose.forward_vector):
+                                obj_dir_world = rotate(obj_dir_world, sign*dangle)
+                        
+                        yield (self.move
+                            .set_position(desired_pos)
+                            .look_at_rel_without_pitching(obj_dir_world)
+                            .go())
+                    else:
+                        yield (self.move
+                            .set_position(desired_pos)
+                            .go())
                     
                     return
                 
@@ -191,6 +195,7 @@ class _Sub(object):
                 
                 if not res: continue
                 obj = selector(res, transform)
+                if obj is None: continue
                 
                 ray_start_camera = numpy.array([0, 0, 0])
                 ray_dir_camera = numpy.array(map(float, obj['center']))
@@ -320,3 +325,14 @@ def get_sub(node_handle):
         _subs[node_handle] = yield _Sub(node_handle)._init()
         # XXX remove on nodehandle shutdown
     defer.returnValue(_subs[node_handle])
+
+def select_by_body_direction(body_vector):
+    body_vector = numpy.array(body_vector)
+    def _(results, body_tf):
+        def get_wantedness(result):
+            pos_vec = numpy.array(map(float, result['center']))
+            pos_vec_body = body_tf.transform_vector(pos_vec)
+            return pos_vec_body.dot(body_vector)
+
+        return max(results, key=get_wantedness)
+    return _

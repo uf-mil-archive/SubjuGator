@@ -90,6 +90,7 @@ def main(nh):
         #yield storedpose.relative([0,-a[0]*12*.0254, -a[1]*12*.0254]).go(speed=.1)
         
         yield storedpose.relative([0,-float(res[coords.index(a)]['center'][0])*1.5, -float(res[coords.index(a)]['center'][1])*1.5]).go(speed=.1)
+        #center on peg
         print 'going to', b
         yield storedpose.relative([0,-float(res[coords.index(b)]['center'][0])*1.5, -float(res[coords.index(b)]['center'][1])*1.5]).go(speed=.1)
         print 'centering on', b

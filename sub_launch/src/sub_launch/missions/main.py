@@ -38,7 +38,7 @@ def nonblocking_raw_input(prompt):
 def main_list(sub):
     try:
         print 'main start'
-        yield util.sleep(10)
+        yield sub.move.forward(10).go()
         print 'main end'
     finally:
         print 'main finally start'
@@ -49,7 +49,7 @@ def main_list(sub):
 def fail_list(sub):
     try:
         print 'fail start'
-        yield util.sleep(10)
+        yield sub.move.depth(0).go()
         print 'fail end'
     finally:
         print 'fail finally'
@@ -74,7 +74,7 @@ def wrap_timeout(df, duration):
 
 @util.cancellableInlineCallbacks
 def main(nh):
-    sub = None # yield sub_scripting.get_sub(nh)
+    sub = yield sub_scripting.get_sub(nh)
     
     while True:
         time_left_str = yield nonblocking_raw_input('Enter time left: (e.g. 5:40) ')
@@ -88,7 +88,7 @@ def main(nh):
     
     
     try:
-        yield wrap_timeout(main_list(sub), 3)
+        yield wrap_timeout(main_list(sub), time_left-60)
     except Exception:
         import traceback
         traceback.print_exc()

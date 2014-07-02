@@ -46,6 +46,7 @@ def main(nh):
         yield sub.visual_align('down', 'bins/single', distance_estimate=dist-.3, selector=select(x), turn=False)
         print 'done'
         yield sub.move.down(dist - 1).go()
+	yield sub.move.backward(.25).go()
         print 'dropping'
         yield sub.drop_ball()
         yield util.sleep(5)

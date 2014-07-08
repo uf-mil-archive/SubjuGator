@@ -14,30 +14,6 @@ from sub_launch.missions import path
 from sub_launch.missions import manipulation
 from sub_launch.missions import bins
 
-class P(basic.LineOnlyReceiver):
-    delimiter = '\n'
-    
-    def __init__(self, prompt):
-        self._prompt = prompt
-        self.df = defer.Deferred()
-    
-    def connectionMade(self):
-        self.transport.write(self._prompt)
-    
-    def lineReceived(self, line):
-        self.df.callback(line)
-        self.transport.loseConnection()
-
-@util.cancellableInlineCallbacks
-def nonblocking_raw_input(prompt):
-    p = P(prompt)
-    f = stdio.StandardIO(p)
-    try:
-        res = yield p.df
-        defer.returnValue(res)
-    finally:
-        f.loseConnection()
-
 
 @util.cancellableInlineCallbacks
 def main_list(sub, nh):
@@ -99,7 +75,7 @@ def main(nh):
     sub = yield sub_scripting.get_sub(nh)
     
     while True:
-        time_left_str = yield nonblocking_raw_input('Enter time left: (e.g. 5:40) ')
+        time_left_str = yield util.nonblocking_raw_input('Enter time left: (e.g. 5:40) ')
         try:
 	    if not time_left_str:
 		time_left = 60 * 10

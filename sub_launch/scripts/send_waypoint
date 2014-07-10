@@ -46,7 +46,7 @@ p = orientation_helpers.PoseEditor.from_PoseTwistStamped_topic('/trajectory')
 args = [eval(x, orientation_helpers.__dict__) for x in posargs[1:]] # lets you do "set_orientation NORTH"
 if len(args) >= 2:
     args = [args]
-p = getattr(p, posargs[0])(*args).as_MoveToGoal(**kwargs)
+p = getattr(p, posargs[0])(*args).as_MoveToGoal(**dict((k, v if len(v) > 1 else v[0]) for k, v in kwargs.iteritems()))
 
 print 'Sending goal...'
 def done(goal_status, result):

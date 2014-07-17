@@ -304,14 +304,14 @@ class _Sub(object):
     
     @util.cancellableInlineCallbacks
     def open_gripper(self):
-        yield self._set_valve_service(SetValveRequest(valve=3, opened=False))
+        yield self._set_valve_service(SetValveRequest(valve=2, opened=False))
         yield util.sleep(.3)
         yield self._set_valve_service(SetValveRequest(valve=1, opened=True))
     @util.cancellableInlineCallbacks
     def close_gripper(self):
         yield self._set_valve_service(SetValveRequest(valve=1, opened=False))
         yield util.sleep(.3)
-        yield self._set_valve_service(SetValveRequest(valve=3, opened=True))
+        yield self._set_valve_service(SetValveRequest(valve=2, opened=True))
     
     @util.cancellableInlineCallbacks
     def drop_ball(self):

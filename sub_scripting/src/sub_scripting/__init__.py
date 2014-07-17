@@ -229,7 +229,8 @@ class _Sub(object):
                         .set_position(desired_pos)
                         .go())
                     
-                    return
+                    break
+                    # defer.returnValue(obj)
                 
                 # go towards desired position
                 self._moveto_action_client.send_goal(
@@ -307,11 +308,13 @@ class _Sub(object):
         yield self._set_valve_service(SetValveRequest(valve=2, opened=False))
         yield util.sleep(.3)
         yield self._set_valve_service(SetValveRequest(valve=1, opened=True))
+
     @util.cancellableInlineCallbacks
     def close_gripper(self):
         yield self._set_valve_service(SetValveRequest(valve=1, opened=False))
         yield util.sleep(.3)
         yield self._set_valve_service(SetValveRequest(valve=2, opened=True))
+
     
     @util.cancellableInlineCallbacks
     def drop_ball(self):

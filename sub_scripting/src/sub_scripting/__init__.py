@@ -166,10 +166,11 @@ class _Sub(object):
                     return
                 
                 # go towards desired position
-                self._moveto_action_client.send_goal(
-                    start_pose.set_position(desired_pos).as_MoveToGoal(speed=0.1)).forget()
+                move_goal_mgr = self._moveto_action_client.send_goal(
+                    start_pose.set_position(desired_pos).as_MoveToGoal(speed=0.1))
         finally:
-            goal_mgr.cancel()
+            yield goal_mgr.cancel()
+            yield move_goal_mgr.cancel()
     
     @util.cancellableInlineCallbacks
     def visual_approach(self, camera, object_name, size_estimate, desired_distance, selector=lambda items, body_tf: items[0]):
@@ -179,6 +180,7 @@ class _Sub(object):
         start_pose = self.pose
         start_map_transform = tf.Transform(
             start_pose.position, start_pose.orientation)
+        move_goal_mgr = None
         try:
             while True:
                 feedback = yield goal_mgr.get_feedback()
@@ -233,10 +235,11 @@ class _Sub(object):
                     # defer.returnValue(obj)
                 
                 # go towards desired position
-                self._moveto_action_client.send_goal(
-                    start_pose.set_position(desired_pos).as_MoveToGoal(speed=0.1)).forget()
+                move_goal_mgr = self._moveto_action_client.send_goal(
+                    start_pose.set_position(desired_pos).as_MoveToGoal(speed=0.1))
         finally:
-            goal_mgr.cancel()
+            yield goal_mgr.cancel()
+            yield move_goal_mgr.cancel()
     
     @util.cancellableInlineCallbacks
     def visual_approach_3d(self, camera, distance, targetdesc, loiter_time=0):
@@ -275,10 +278,11 @@ class _Sub(object):
                                 start_pose.set_position(desired_pos).as_MoveToGoal()).get_result()
                             return
                     
-                    self._moveto_action_client.send_goal(
-                        start_pose.set_position(desired_pos).as_MoveToGoal(speed=0.1)).forget()
+                    move_goal_mgr = self._moveto_action_client.send_goal(
+                        start_pose.set_position(desired_pos).as_MoveToGoal(speed=0.1))
         finally:
-            goal_mgr.cancel()
+            yield goal_mgr.cancel()
+            yield move_goal_mgr.cancel()
     
     @util.cancellableInlineCallbacks
     def set_trajectory_generator_enable(self, enabled):
@@ -288,27 +292,35 @@ class _Sub(object):
     
     @util.cancellableInlineCallbacks
     def raise_impaler(self):
-        yield self._set_valve_service(SetValveRequest(valve=0, opened=False))
-    @util.cancellableInlineCallbacks
-    def lower_impaler(self):
+        yield self._set_valve_service(SetValveRequest(valve=3, opened=False))
+        yield util.sleep(.3)
         yield self._set_valve_service(SetValveRequest(valve=0, opened=True))
     @util.cancellableInlineCallbacks
-    def expand_impaler(self):
+    def lower_impaler(self):
+        yield self._set_valve_service(SetValveRequest(valve=0, opened=False))
+        yield util.sleep(.3)
+        yield self._set_valve_service(SetValveRequest(valve=3, opened=True))
+    @util.cancellableInlineCallbacks
+    def inflate_impaler(self):
         yield self._set_valve_service(SetValveRequest(valve=1, opened=False))
         yield util.sleep(.3)
         yield self._set_valve_service(SetValveRequest(valve=2, opened=True))
     @util.cancellableInlineCallbacks
-    def expand_impaler(self):
+    def deflate_impaler(self):
         yield self._set_valve_service(SetValveRequest(valve=2, opened=False))
         yield util.sleep(.3)
         yield self._set_valve_service(SetValveRequest(valve=1, opened=True))
     
     @util.cancellableInlineCallbacks
     def open_gripper(self):
-        yield self._set_valve_service(SetValveRequest(valve=2, opened=True))
+        yield self._set_valve_service(SetValveRequest(valve=3, opened=False))
+        yield util.sleep(.3)
+        yield self._set_valve_service(SetValveRequest(valve=1, opened=True))
     @util.cancellableInlineCallbacks
     def close_gripper(self):
-        yield self._set_valve_service(SetValveRequest(valve=2, opened=False))
+        yield self._set_valve_service(SetValveRequest(valve=1, opened=False))
+        yield util.sleep(.3)
+        yield self._set_valve_service(SetValveRequest(valve=3, opened=True))
     
     @util.cancellableInlineCallbacks
     def drop_ball(self):

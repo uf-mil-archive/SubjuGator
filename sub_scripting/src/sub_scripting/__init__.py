@@ -291,20 +291,35 @@ class _Sub(object):
     
     @util.cancellableInlineCallbacks
     def raise_impaler(self):
-        yield self._set_valve_service(SetValveRequest(valve=0, opened=False))
-    @util.cancellableInlineCallbacks
-    def lower_impaler(self):
+        yield self._set_valve_service(SetValveRequest(valve=3, opened=False))
+        yield util.sleep(.3)
         yield self._set_valve_service(SetValveRequest(valve=0, opened=True))
     @util.cancellableInlineCallbacks
+    def lower_impaler(self):
+        yield self._set_valve_service(SetValveRequest(valve=0, opened=False))
+        yield util.sleep(.3)
+        yield self._set_valve_service(SetValveRequest(valve=3, opened=True))
+    @util.cancellableInlineCallbacks
     def inflate_impaler(self):
-        yield self._pulse_valve_service(PulseValveRequest(valve=3, duration=genpy.Duration(1))) # ???
+        yield self._set_valve_service(SetValveRequest(valve=1, opened=False))
+        yield util.sleep(.3)
+        yield self._set_valve_service(SetValveRequest(valve=2, opened=True))
+    @util.cancellableInlineCallbacks
+    def deflate_impaler(self):
+        yield self._set_valve_service(SetValveRequest(valve=2, opened=False))
+        yield util.sleep(.3)
+        yield self._set_valve_service(SetValveRequest(valve=1, opened=True))
     
     @util.cancellableInlineCallbacks
     def open_gripper(self):
-        yield self._set_valve_service(SetValveRequest(valve=2, opened=False))
+        yield self._set_valve_service(SetValveRequest(valve=3, opened=False))
+        yield util.sleep(.3)
+        yield self._set_valve_service(SetValveRequest(valve=1, opened=True))
     @util.cancellableInlineCallbacks
     def close_gripper(self):
-        yield self._set_valve_service(SetValveRequest(valve=2, opened=True))
+        yield self._set_valve_service(SetValveRequest(valve=1, opened=False))
+        yield util.sleep(.3)
+        yield self._set_valve_service(SetValveRequest(valve=3, opened=True))
     
     @util.cancellableInlineCallbacks
     def drop_ball(self):

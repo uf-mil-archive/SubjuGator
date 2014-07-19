@@ -291,7 +291,8 @@ class _Sub(object):
         yield self._trajectory_generator_set_disabled_service(SetDisabledRequest(
             disabled=not enabled,
         ))
-    
+
+
     @util.cancellableInlineCallbacks
     def raise_impaler(self):
         yield self._set_valve_service(SetValveRequest(valve=3, opened=False))

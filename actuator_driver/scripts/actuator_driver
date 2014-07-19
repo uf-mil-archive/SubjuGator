@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
 import threading
-import traceback
 
 import serial
 
@@ -23,30 +22,12 @@ class ActuatorDevice(object):
     SWITCHES = 2
     
     def __init__(self, port):
-        self._port = port
-        self._open()
-    def _open(self):
-        if hasattr(self, '_serial'):
-            self._serial.close()
-        while True:
-            try:
-                self._serial = serial.Serial(self._port, 115200)
-            except Exception:
-                traceback.print_exc()
-            else:
-                break
+        self._serial = serial.Serial(port, 115200)
     
-    def _read_byte(self):
-        while True:
-            try:
-                return ord(self._serial.read(1))
-            except Exception:
-                traceback.print_exc()
-                self._open()
     def _read(self):
-        b1 = self._read_byte()
+        b1 = ord(self._serial.read(1))
         while True:
-            b2 = self._read_byte()
+            b2 = ord(self._serial.read(1))
             if b2 == b1 ^ 0xff:
                 return b1
             print 'invalid checksum', b1, b2
@@ -64,11 +45,7 @@ class ActuatorDevice(object):
             return 'unknown', cmd
     
     def _send_packet(self, val):
-        try:
-            self._serial.write(chr(val) + chr(val ^ 0xff))
-        except Exception:
-            traceback.print_exc()
-            self._open()
+        self._serial.write(chr(val) + chr(val ^ 0xff))
     def send_ping(self):
         self._send_packet(0x40)
     def send_set_valves(self, valves):
@@ -114,15 +91,9 @@ def set_valve(req):
     return SetValveResponse()
 rospy.Service('~set_valve', SetValve, set_valve)
 
-def _poll():
-    with valves_lock:
-        ad.send_read_switches()
-rospy.Timer(rospy.Duration(0.01), lambda timerevent: _poll())
-
+rospy.Timer(rospy.Duration(0.01), lambda timerevent: ad.send_read_switches())
 pub = rospy.Publisher('~switches', Switches)
 while not rospy.is_shutdown():
-    with valves_lock:
-        ad.send_set_valves(valves)
     packet = ad.read()
     if packet[0] == 'switch_values':
         pub.publish(Switches(

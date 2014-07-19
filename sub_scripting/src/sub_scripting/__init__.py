@@ -93,6 +93,7 @@ class _Sub(object):
         start_pose = self.pose
         start_map_transform = tf.Transform(
             start_pose.position, start_pose.orientation)
+        move_goal_mgr = None
         try:
             while True:
                 feedback = yield goal_mgr.get_feedback()
@@ -170,7 +171,7 @@ class _Sub(object):
                     start_pose.set_position(desired_pos).as_MoveToGoal(speed=0.1))
         finally:
             yield goal_mgr.cancel()
-            yield move_goal_mgr.cancel()
+            if move_goal_mgr is not None: yield move_goal_mgr.cancel()
     
     @util.cancellableInlineCallbacks
     def visual_approach(self, camera, object_name, size_estimate, desired_distance, selector=lambda items, body_tf: items[0]):
@@ -239,7 +240,7 @@ class _Sub(object):
                     start_pose.set_position(desired_pos).as_MoveToGoal(speed=0.1))
         finally:
             yield goal_mgr.cancel()
-            yield move_goal_mgr.cancel()
+            if move_goal_mgr is not None: yield move_goal_mgr.cancel()
     
     @util.cancellableInlineCallbacks
     def visual_approach_3d(self, camera, distance, targetdesc, loiter_time=0):
@@ -251,6 +252,7 @@ class _Sub(object):
         ))
         start_pose = self.pose
         
+        move_goal_mgr = None
         try:
             last_good_pos = None
             loiter_start = None
@@ -282,7 +284,7 @@ class _Sub(object):
                         start_pose.set_position(desired_pos).as_MoveToGoal(speed=0.1))
         finally:
             yield goal_mgr.cancel()
-            yield move_goal_mgr.cancel()
+            if move_goal_mgr is not None: yield move_goal_mgr.cancel()
     
     @util.cancellableInlineCallbacks
     def set_trajectory_generator_enable(self, enabled):

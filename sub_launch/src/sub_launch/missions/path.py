@@ -9,6 +9,8 @@ import sub_scripting
 def main(nh, direction=None):
     sub = yield sub_scripting.get_sub(nh)
     
+    yield sub.move.depth(0.75).go()
+    
     dist = yield sub.get_dvl_range()
     
     print dist
@@ -18,9 +20,9 @@ def main(nh, direction=None):
         yield sub.visual_align('down', 'pipe', dist, selector={
             'left' : sub_scripting.select_by_body_direction([0, +1, 0]),
             'right': sub_scripting.select_by_body_direction([0, -1, 0]),
-            None   : lambda objs: objs[0],
+            None   : lambda items, body_tf: items[0],
         }[direction])
     finally:
         yield fwd_move.cancel()
     
-    yield sub.move.forward(2).go()
+    #yield sub.move.forward(2).go()

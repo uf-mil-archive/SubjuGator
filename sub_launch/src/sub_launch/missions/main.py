@@ -12,42 +12,47 @@ from sub_launch.missions import shooter
 from sub_launch.missions import buoy
 from sub_launch.missions import path
 from sub_launch.missions import manipulation
-from sub_launch.missions import bins
+from sub_launch.missions import bins, maneuvering
 
 
 @util.cancellableInlineCallbacks
-def main_list(sub, nh):
+def main_list(nh):
+    sub = yield sub_scripting.get_sub(nh)
     try:
-        print 'main start'
-	print "starting manipulation"
-	#yield manipulation.main(nh)
-	print "done manipulation, moving backward"
-	#yield sub.move.backward(1).go()
-	print "done moving backward, going to path"
-	#yield path.main(nh, "right")
-	print "done path, going to bins"
-	#yield sub.move.forward(2.5).go()
-	#yield sub.move.depth(1).go()
-	print "at bins, doing bins"
-	#yield bins.main(nh)
-	print "done bins, going to brunch"
-	#yield sub.move.turn_right_deg(90).go()
-	#yield sub.move.forward(1.5).go()
-	#yield path.main(nh, "right")
-	#yield sub.move.forward(3)
-	yield path.main(nh, "left")
-        yield util.sleep(10)
-        print 'main end'
+        print 'starting buoy'
+        yield buoy.main(nh)
+        print 'starting path'
+        yield path.main(nh)
+        print 'starting maneuvering'
+        yield maneuvering.main(nh)
+        print 'starting left path'
+        yield path.main(nh, 'left')
+        print 'staring bins'
+        stored_pose1 = sub.pose
+        yield bins.main(nh)
+        stored_pose2 = sub.pose
+        print 'going back'
+        yield sub.move.set_position(stored_pose1.position).set_orientation(stored_pose1.orientation).go()
+        print 'starting shooter'
+        yield shooter.main(nh)
+        print 'starting path'
+        yield sub.move.set_position(stored_pose2.position).set_orientation(stored_pose1.orientation).go()
+        yield sub.move.turn_right_deg(90).go()
+        yield sub.move.forward(3).go()
+        yield path.main(nh)
+        print 'staring manipulation'
+        yield manipulation.main(nh)
     finally:
         print 'main finally start'
-        yield util.sleep(3)
+        #yield util.sleep(3)
         print 'main finally end'
 
 @util.cancellableInlineCallbacks
-def fail_list(sub):
+def fail_list(nh):
+    sub = yield sub_scripting.get_sub(nh)
     try:
         print 'fail start'
-        yield sub.move.depth(0).go()
+        #yield sub.move.depth(0).go()
         print 'fail end'
     finally:
         print 'fail finally'
@@ -77,24 +82,16 @@ def main(nh):
     while True:
         time_left_str = yield util.nonblocking_raw_input('Enter time left: (e.g. 5:40) ')
         try:
-	    if not time_left_str:
-		time_left = 60 * 10
-		break
             m, s = time_left_str.split(':')
             time_left = 60 * int(m) + int(s)
         except Exception:
             traceback.print_exc()
         else:
             break
-    """try:
-    	wrap_timeout(get_time_left(time_left), 5)
-    except Exception:
-        time_left =  60*5+40
-    """
+    
     try:
-        yield wrap_timeout(main_list(sub), time_left-60)
+        yield wrap_timeout(main_list(nh), time_left - 60)
     except Exception:
-        import traceback
         traceback.print_exc()
     
-    yield fail_list(sub)
+    yield fail_list(nh)

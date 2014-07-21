@@ -93,6 +93,7 @@ class _Sub(object):
         start_pose = self.pose
         start_map_transform = tf.Transform(
             start_pose.position, start_pose.orientation)
+        move_goal_mgr = None
         try:
             while True:
                 feedback = yield goal_mgr.get_feedback()
@@ -170,7 +171,7 @@ class _Sub(object):
                     start_pose.set_position(desired_pos).as_MoveToGoal(speed=0.1))
         finally:
             yield goal_mgr.cancel()
-            yield move_goal_mgr.cancel()
+            if move_goal_mgr is not None: yield move_goal_mgr.cancel()
     
     @util.cancellableInlineCallbacks
     def visual_approach(self, camera, object_name, size_estimate, desired_distance, selector=lambda items, body_tf: items[0]):
@@ -231,14 +232,15 @@ class _Sub(object):
                         .set_position(desired_pos)
                         .go())
                     
-                    return
+                    break
+                    # defer.returnValue(obj)
                 
                 # go towards desired position
                 move_goal_mgr = self._moveto_action_client.send_goal(
                     start_pose.set_position(desired_pos).as_MoveToGoal(speed=0.1))
         finally:
             yield goal_mgr.cancel()
-            yield move_goal_mgr.cancel()
+            if move_goal_mgr is not None: yield move_goal_mgr.cancel()
     
     @util.cancellableInlineCallbacks
     def visual_approach_3d(self, camera, distance, targetdesc, loiter_time=0):
@@ -250,6 +252,7 @@ class _Sub(object):
         ))
         start_pose = self.pose
         
+        move_goal_mgr = None
         try:
             last_good_pos = None
             loiter_start = None
@@ -258,7 +261,7 @@ class _Sub(object):
                 feedback = yield goal_mgr.get_feedback()
                 targ = feedback.targetreses[0]
                 
-                if targ.P > 0.55:
+                if targ.P > 0.25:
                     last_good_pos = orientation_helpers.xyz_array(targ.pose.position)
                 
                 print targ.P
@@ -281,21 +284,22 @@ class _Sub(object):
                         start_pose.set_position(desired_pos).as_MoveToGoal(speed=0.1))
         finally:
             yield goal_mgr.cancel()
-            yield move_goal_mgr.cancel()
+            if move_goal_mgr is not None: yield move_goal_mgr.cancel()
     
     @util.cancellableInlineCallbacks
     def set_trajectory_generator_enable(self, enabled):
         yield self._trajectory_generator_set_disabled_service(SetDisabledRequest(
             disabled=not enabled,
         ))
-    
+
+
     @util.cancellableInlineCallbacks
-    def raise_impaler(self):
+    def lower_impaler(self):
         yield self._set_valve_service(SetValveRequest(valve=3, opened=False))
         yield util.sleep(.3)
         yield self._set_valve_service(SetValveRequest(valve=0, opened=True))
     @util.cancellableInlineCallbacks
-    def lower_impaler(self):
+    def raise_impaler(self):
         yield self._set_valve_service(SetValveRequest(valve=0, opened=False))
         yield util.sleep(.3)
         yield self._set_valve_service(SetValveRequest(valve=3, opened=True))
@@ -323,7 +327,7 @@ class _Sub(object):
     
     @util.cancellableInlineCallbacks
     def drop_ball(self):
-        yield self._pulse_valve_service(PulseValveRequest(valve=1, duration=genpy.Duration(1)))
+        yield self._pulse_valve_service(PulseValveRequest(valve=1, duration=genpy.Duration(1.5)))
     
     @util.cancellableInlineCallbacks
     def fire_left_torpedo(self):

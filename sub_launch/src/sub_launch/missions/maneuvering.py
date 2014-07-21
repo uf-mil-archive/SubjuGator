@@ -17,6 +17,6 @@ def main(nh):
     yield sub.move.right(.6).go()
     yield sub.move.forward(3.5).go()
     yield sub.move.left(1.2).go()
-    yield sub.move.backward(3.5).go()
+    yield sub.move.backward(2.25).go()
     yield sub.move.right(1.2).go()
-    yield sub.move.forward(5).go()
+    yield sub.move.forward(3.5).go()

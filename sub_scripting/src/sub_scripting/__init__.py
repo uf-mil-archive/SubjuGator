@@ -261,7 +261,7 @@ class _Sub(object):
                 feedback = yield goal_mgr.get_feedback()
                 targ = feedback.targetreses[0]
                 
-                if targ.P > 0.45:
+                if targ.P > 0.25:
                     last_good_pos = orientation_helpers.xyz_array(targ.pose.position)
                 
                 print targ.P
@@ -327,7 +327,7 @@ class _Sub(object):
     
     @util.cancellableInlineCallbacks
     def drop_ball(self):
-        yield self._pulse_valve_service(PulseValveRequest(valve=1, duration=genpy.Duration(1)))
+        yield self._pulse_valve_service(PulseValveRequest(valve=1, duration=genpy.Duration(1.5)))
     
     @util.cancellableInlineCallbacks
     def fire_left_torpedo(self):

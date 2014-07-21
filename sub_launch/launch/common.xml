@@ -100,7 +100,7 @@ shift: [1.8266060470689045e-05, -5.266451315444063e-06, 5.987404697539948e-05]
 
   <node pkg="kill_handling" type="kill_on_cond" name="height_over_bottom_kill">
     <remap from="topic" to="dvl/range"/>
-    <param name="cond" value="data &lt; .5"/>
+    <param name="cond" value="data &lt; .25"/>
   </node>
   <node pkg="kill_handling" type="kill_on_cond" name="motor_power_kill">
     <remap from="topic" to="voltage32"/>

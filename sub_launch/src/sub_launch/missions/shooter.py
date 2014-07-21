@@ -32,35 +32,6 @@ def main(nh):
     finally:
         yield fwd_move.cancel()
     
-<<<<<<< HEAD
-    goal_mgr = sub._camera_2d_action_clients['forward'].send_goal(legacy_vision_msg.FindGoal(
-        object_names=['shooter/board'],
-    ))
-    feedback = yield goal_mgr.get_feedback()
-    res = map(json.loads, feedback.targetreses[0].object_results)  
-    
-    print 'about to align'  
-    while True:
-        print 'aligning'
-        feedback = yield goal_mgr.get_feedback()
-        res = map(json.loads, feedback.targetreses[0].object_results)
-        if not res:
-            continue
-        if abs(float(res[0]['orientation_error'])) <= 2:
-            break
-        if float(res[0]['orientation_error']) <= 0:
-            yield sub.move.turn_right_deg(2).go()
-            yield sub.move.left(.05).go()
-        else:
-            yield sub.move.turn_left_deg(2).go()
-            yield sub.move.right(.05).go()
-    print 'done aligning'
-    
-    yield sub.visual_approach('forward', 'shooter/hole', size_estimate=5*.0254, desired_distance=1.5, selector=select_by_body_direction([0,1,0])) 
-    yield util.sleep(5)
-    yield sub.move.forward(1.2).go()
-||||||| merged common ancestors
-=======
     goal_mgr = sub._camera_2d_action_clients['forward'].send_goal(legacy_vision_msg.FindGoal(
         object_names=['shooter/board'],
     ))

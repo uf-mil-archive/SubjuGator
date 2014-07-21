@@ -9,7 +9,11 @@ import sub_scripting
 def main(nh):
     sub = yield sub_scripting.get_sub(nh)
     
-    for i in xrange(4):
-        print 'Side', i
-        yield sub.move.forward(2).go()
-        yield sub.move.turn_left_deg(90).go()
+    yield sub.raise_impaler()
+    #yield util.sleep(2)
+    #yield sub.lower_impaler()
+    #yield util.sleep(2)
+    #yield sub.raise_impaler()
+    yield sub.contract_impaler()
+#    for i in xrange(10):
+#        yield sub.contract_impaler()

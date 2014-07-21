@@ -16,8 +16,7 @@ def select(image_text):
         #print results
         for result in results:
             if 'image_text' in result and result['image_text'].startswith(image_text):
-   		print result
-		return result
+                return result
         return None
         #return select_centered(results, body_tf)
     return _
@@ -31,11 +30,18 @@ def main(nh):
     #yield sub.move.forward(1).go()
     print "aligning down"
     dist = yield sub.get_dvl_range()
-    yield sub.visual_align('down', 'bins/all', distance_estimate=dist-.3, turn=True)
+    fwd_move = sub.move.go(linear=[0.25, 0, 0])
+    try:
+        yield sub.visual_align('down', 'bins/all', distance_estimate=dist-.3, turn=True)
+    finally:
+        fwd_move.cancel()
+    dist = yield sub.get_dvl_range()
     yield sub.move.turn_left_deg(45).go()
     yield sub.visual_align('down', 'bins/all', distance_estimate=dist-.3, turn=False)
     #yield sub.move.down(dist-.3 - 2.5).go()
     print "aligned down"
+    yield sub.move.down(dist - 2.5).go()
+    dist = yield sub.get_dvl_range()
     centered = sub.move
     
     for x in ["2", "4"]:
@@ -46,10 +52,10 @@ def main(nh):
         yield sub.visual_align('down', 'bins/single', distance_estimate=dist-.3, selector=select(x), turn=False)
         print 'done'
         yield sub.move.down(dist - 1).go()
-	yield sub.move.backward(.25).go()
+        yield sub.move.backward(.25).go()
         print 'dropping'
         yield sub.drop_ball()
-        yield util.sleep(5)
+        yield util.sleep(3)
         print 'done dropping'
     
     yield sub.move.depth(orig_depth).go()

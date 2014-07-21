@@ -261,7 +261,7 @@ class _Sub(object):
                 feedback = yield goal_mgr.get_feedback()
                 targ = feedback.targetreses[0]
                 
-                if targ.P > 0.55:
+                if targ.P > 0.45:
                     last_good_pos = orientation_helpers.xyz_array(targ.pose.position)
                 
                 print targ.P

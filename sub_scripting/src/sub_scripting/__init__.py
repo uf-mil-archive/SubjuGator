@@ -171,7 +171,7 @@ class _Sub(object):
                     start_pose.set_position(desired_pos).as_MoveToGoal(speed=0.1))
         finally:
             yield goal_mgr.cancel()
-            yield move_goal_mgr.cancel()
+            if move_goal_mgr is not None: yield move_goal_mgr.cancel()
     
     @util.cancellableInlineCallbacks
     def visual_approach(self, camera, object_name, size_estimate, desired_distance, selector=lambda items, body_tf: items[0]):
@@ -232,14 +232,15 @@ class _Sub(object):
                         .set_position(desired_pos)
                         .go())
                     
-                    return
+                    break
+                    # defer.returnValue(obj)
                 
                 # go towards desired position
                 move_goal_mgr = self._moveto_action_client.send_goal(
                     start_pose.set_position(desired_pos).as_MoveToGoal(speed=0.1))
         finally:
             yield goal_mgr.cancel()
-            yield move_goal_mgr.cancel()
+            if move_goal_mgr is not None: yield move_goal_mgr.cancel()
     
     @util.cancellableInlineCallbacks
     def visual_approach_3d(self, camera, distance, targetdesc, loiter_time=0):
@@ -283,14 +284,15 @@ class _Sub(object):
                         start_pose.set_position(desired_pos).as_MoveToGoal(speed=0.1))
         finally:
             yield goal_mgr.cancel()
-            yield move_goal_mgr.cancel()
+            if move_goal_mgr is not None: yield move_goal_mgr.cancel()
     
     @util.cancellableInlineCallbacks
     def set_trajectory_generator_enable(self, enabled):
         yield self._trajectory_generator_set_disabled_service(SetDisabledRequest(
             disabled=not enabled,
         ))
-    
+
+
     @util.cancellableInlineCallbacks
     def raise_impaler(self):
         yield self._set_valve_service(SetValveRequest(valve=3, opened=False))
@@ -302,12 +304,12 @@ class _Sub(object):
         yield util.sleep(.3)
         yield self._set_valve_service(SetValveRequest(valve=3, opened=True))
     @util.cancellableInlineCallbacks
-    def expand_impaler(self):
+    def inflate_impaler(self):
         yield self._set_valve_service(SetValveRequest(valve=1, opened=False))
         yield util.sleep(.3)
         yield self._set_valve_service(SetValveRequest(valve=2, opened=True))
     @util.cancellableInlineCallbacks
-    def contract_impaler(self):
+    def deflate_impaler(self):
         yield self._set_valve_service(SetValveRequest(valve=2, opened=False))
         yield util.sleep(.3)
         yield self._set_valve_service(SetValveRequest(valve=1, opened=True))

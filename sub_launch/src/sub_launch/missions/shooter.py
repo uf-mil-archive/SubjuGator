@@ -1,7 +1,10 @@
 from __future__ import division
 
+from legacy_vision import msg as legacy_vision_msg
+import json
 from txros import util
 import numpy
+import math
 import sub_scripting
 
 def select_by_body_direction(body_vector):
@@ -23,24 +26,81 @@ def main(nh):
     sub = yield sub_scripting.get_sub(nh)
     
     fwd_move = sub.move.go(linear=[0.25, 0, 0])
+    
     try:
-        yield sub.visual_approach('forward', 'shooter', size_estimate=5*.0254, desired_distance=1.5, selector=select_by_body_direction([0,1,0]))
+        obj = yield sub.visual_approach('forward', 'shooter/hole', size_estimate=5*.0254, desired_distance=1.5, selector=select_by_body_direction([0,1,0]))    
     finally:
         yield fwd_move.cancel()
-    yield util.sleep(5)
-    yield sub.move.forward(.8).go()
     
+<<<<<<< HEAD
+    goal_mgr = sub._camera_2d_action_clients['forward'].send_goal(legacy_vision_msg.FindGoal(
+        object_names=['shooter/board'],
+    ))
+    feedback = yield goal_mgr.get_feedback()
+    res = map(json.loads, feedback.targetreses[0].object_results)  
+    
+    print 'about to align'  
+    while True:
+        print 'aligning'
+        feedback = yield goal_mgr.get_feedback()
+        res = map(json.loads, feedback.targetreses[0].object_results)
+        if not res:
+            continue
+        if abs(float(res[0]['orientation_error'])) <= 2:
+            break
+        if float(res[0]['orientation_error']) <= 0:
+            yield sub.move.turn_right_deg(2).go()
+            yield sub.move.left(.05).go()
+        else:
+            yield sub.move.turn_left_deg(2).go()
+            yield sub.move.right(.05).go()
+    print 'done aligning'
+    
+    yield sub.visual_approach('forward', 'shooter/hole', size_estimate=5*.0254, desired_distance=1.5, selector=select_by_body_direction([0,1,0])) 
+    yield util.sleep(5)
+    yield sub.move.forward(1.2).go()
+||||||| merged common ancestors
+=======
+    goal_mgr = sub._camera_2d_action_clients['forward'].send_goal(legacy_vision_msg.FindGoal(
+        object_names=['shooter/board'],
+    ))
+    feedback = yield goal_mgr.get_feedback()
+    res = map(json.loads, feedback.targetreses[0].object_results)  
+    
+    print 'about to align'  
+    while True:
+        print 'aligning'
+        feedback = yield goal_mgr.get_feedback()
+        res = map(json.loads, feedback.targetreses[0].object_results)
+        if not res:
+            continue
+        #goal_mgr.cancel()
+        angle = float(res[0]['orientation_error'])
+        xdist = 1.5 * math.sin(angle/2)
+        print angle, xdist
+        yield sub.move.yaw_left(angle).go()
+        yield sub.move.right(2*xdist).go()
+
+        if abs(angle)<math.radians(5):
+                break
+
+    print 'done aligning'
+    
+    yield sub.visual_approach('forward', 'shooter/hole', size_estimate=5*.0254, desired_distance=1.0, selector=select_by_body_direction([0,1,0])) 
+    yield util.sleep(5)
+    yield sub.move.forward(.5).go()
     yield sub.move.up(5*.0254).go()
-    yield sub.move.right(1.5*.0254).go()
+    yield sub.move.right(3*.0254).go()
     yield sub.fire_left_torpedo()
     yield sub.move.backward(2.5).go()
 
-    yield sub.visual_approach('forward', 'shooter', size_estimate=5*.0254, desired_distance=1.5, selector=select_by_body_direction([0,-1,0]))
+    print 'going to second hole'
+    yield sub.visual_approach('forward', 'shooter/hole', size_estimate=5*.0254, desired_distance=1.0, selector=select_by_body_direction([0,-1,0]))
     yield util.sleep(5)
-    yield sub.move.forward(.8).go()
-    
+    yield sub.move.forward(0.5).go()
+
     yield sub.move.up(5*.0254).go()
-    yield sub.move.left(1.5*.0254).go()
+    yield sub.move.left(3*.0254).go()
     yield sub.fire_right_torpedo()
     yield sub.move.backward(2.5).go()
     """yield sub.move.right(.6).go()

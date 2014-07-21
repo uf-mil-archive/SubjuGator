@@ -38,7 +38,7 @@ def main_list(nh):
         print 'starting path'
         yield sub.move.set_position(stored_pose2.position).set_orientation(stored_pose1.orientation).go()
         yield sub.move.turn_right_deg(90).go()
-        yield sub.move.forward(3).go()
+        yield sub.move.forward(1.75).go()
         yield path.main(nh)
         print 'staring manipulation'
         yield manipulation.main(nh)

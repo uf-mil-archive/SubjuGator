@@ -86,28 +86,28 @@ def main(nh):
         print 'going to', a
         #yield storedpose.relative([0,-a[0]*12*.0254, -a[1]*12*.0254]).go(speed=.1)
         
-        yield storedpose.relative([0,-float(res[coords.index(a)]['center'][0])*1.5, -float(res[coords.index(a)]['center'][1])*1.5]).go(speed=.1)
+        yield storedpose.relative([1,-float(res[coords.index(a)]['center'][0])*1.5, -float(res[coords.index(a)]['center'][1])*1.5]).go(speed=.1)
         #center on peg
         
         yield sub.open_gripper()
         yield sub.visual_approach('forward', 'grapes/peg', size_estimate=6*.0254, desired_distance=1, selector=select_centered)
         yield sub.move.right(.1).go()
         yield sub.move.down(.03).go()
-        yield sub.move.forward(.3).go()
+        yield sub.move.forward(.32).go()
         print 'gripper closing'
         yield sub.close_gripper()
         yield sub.move.backward(.75).go()
         
         print 'going to', b
-        yield storedpose.relative([0,-float(res[coords.index(b)]['center'][0])*1.5, -float(res[coords.index(b)]['center'][1])*1.5]).go(speed=.1)
+        yield storedpose.relative([1,-float(res[coords.index(b)]['center'][0])*1.5, -float(res[coords.index(b)]['center'][1])*1.5]).go(speed=.1)
         print 'centering on', b
         
         #yield sub.set_ignore_magnetometer(True) 
         try:       
             yield sub.visual_approach('forward', 'grapes/empty_cell', size_estimate=6*.0254, desired_distance=1, selector=select_centered)
-            yield sub.move.right(.1).go()
+            yield sub.move.right(.09).go()
             yield sub.move.down(.03).go()
-            yield sub.move.forward(.4).go()
+            yield sub.move.forward(.57).go()
             print 'gripper opening'
             yield sub.open_gripper()
             yield sub.move.backward(.75).go()

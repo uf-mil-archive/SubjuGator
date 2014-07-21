@@ -290,12 +290,12 @@ class _Sub(object):
         ))
     
     @util.cancellableInlineCallbacks
-    def lower_impaler(self):
+    def raise_impaler(self):
         yield self._set_valve_service(SetValveRequest(valve=3, opened=False))
         yield util.sleep(.3)
         yield self._set_valve_service(SetValveRequest(valve=0, opened=True))
     @util.cancellableInlineCallbacks
-    def raise_impaler(self):
+    def lower_impaler(self):
         yield self._set_valve_service(SetValveRequest(valve=0, opened=False))
         yield util.sleep(.3)
         yield self._set_valve_service(SetValveRequest(valve=3, opened=True))

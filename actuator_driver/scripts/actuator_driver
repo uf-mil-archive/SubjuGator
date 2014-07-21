@@ -57,7 +57,7 @@ class ActuatorDevice(object):
 
 ad = ActuatorDevice(rospy.get_param('~port'))
 
-valves = [False]*ActuatorDevice.VALVES
+valves = [True] + [False]*(ActuatorDevice.VALVES-1)
 ad.send_set_valves(valves)
 valves_lock = threading.Lock()
 

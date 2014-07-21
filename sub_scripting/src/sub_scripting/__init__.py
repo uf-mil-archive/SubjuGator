@@ -93,6 +93,7 @@ class _Sub(object):
         start_pose = self.pose
         start_map_transform = tf.Transform(
             start_pose.position, start_pose.orientation)
+        move_goal_mgr = None
         try:
             while True:
                 feedback = yield goal_mgr.get_feedback()
@@ -250,6 +251,7 @@ class _Sub(object):
         ))
         start_pose = self.pose
         
+        move_goal_mgr = None
         try:
             last_good_pos = None
             loiter_start = None

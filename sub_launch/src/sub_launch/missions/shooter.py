@@ -63,19 +63,19 @@ def main(nh):
     
     yield sub.visual_approach('forward', 'shooter/hole', size_estimate=5*.0254, desired_distance=1.0, selector=select_by_body_direction([0,1,0])) 
     yield util.sleep(5)
-    yield sub.move.forward(.5).go()
+    yield sub.move.forward(.3).go()
     yield sub.move.up(5*.0254).go()
-    yield sub.move.right(3*.0254).go()
+    yield sub.move.right(3.5*.0254).go()
     yield sub.fire_left_torpedo()
     yield sub.move.backward(2.5).go()
 
     print 'going to second hole'
     yield sub.visual_approach('forward', 'shooter/hole', size_estimate=5*.0254, desired_distance=1.0, selector=select_by_body_direction([0,-1,0]))
     yield util.sleep(5)
-    yield sub.move.forward(0.5).go()
+    yield sub.move.forward(0.3).go()
 
     yield sub.move.up(5*.0254).go()
-    yield sub.move.left(3*.0254).go()
+    yield sub.move.left(3.5*.0254).go()
     yield sub.fire_right_torpedo()
     yield sub.move.backward(2.5).go()
     """yield sub.move.right(.6).go()

@@ -28,6 +28,7 @@ class ActuatorDevice(object):
     def _open(self):
         if hasattr(self, '_serial'):
             self._serial.close()
+            del self._serial
         while True:
             try:
                 self._serial = serial.Serial(self._port, 115200)
@@ -68,7 +69,6 @@ class ActuatorDevice(object):
             self._serial.write(chr(val) + chr(val ^ 0xff))
         except Exception:
             traceback.print_exc()
-            self._open()
     def send_ping(self):
         self._send_packet(0x40)
     def send_set_valves(self, valves):

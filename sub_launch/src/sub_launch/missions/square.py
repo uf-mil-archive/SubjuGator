@@ -9,11 +9,13 @@ import sub_scripting
 def main(nh):
     sub = yield sub_scripting.get_sub(nh)
     
-    yield sub.raise_impaler()
+    #yield sub.lower_down_grabber()
+    while True:
+        yield util.sleep(2)
+        yield sub.open_down_grabber()
+        yield util.sleep(2)
+        yield sub.close_down_grabber()
     #yield util.sleep(2)
-    #yield sub.lower_impaler()
+    #yield sub.close_down_grabber()
     #yield util.sleep(2)
-    #yield sub.raise_impaler()
-    yield sub.contract_impaler()
-#    for i in xrange(10):
-#        yield sub.contract_impaler()
+    #yield sub.raise_down_grabber()

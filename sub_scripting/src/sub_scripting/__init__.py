@@ -354,13 +354,15 @@ class _Sub(object):
         start_pose = self.pose
         start_map_transform = tf.Transform(
             start_pose.position, start_pose.orientation)
+        orientation = start_pose.orientation
         move_goal_mgr = None
+        good = []
         try:
             while True:
                 feedback = yield self.get_processed_ping(frequency)
                 print feedback
-                bottom_z = self.pose.position[2] - 0.1 - (yield self.get_dvl_range())
-                print bottom_z
+                bottom_z = self.pose.position[2] - (yield self.get_dvl_range())
+                print 'bottom_z:', bottom_z
                 
                 try:
                     transform = yield self._tf_listener.get_transform('/base_link',
@@ -379,7 +381,6 @@ class _Sub(object):
                     transform.transform_point(ray_start_sensor))
                 ray_dir_world = map_transform.transform_vector(
                     transform.transform_vector(ray_dir_sensor))
-                print 'ray_dir_world:', ray_dir_world
                 
                 movement_plane_world = numpy.array([0, 0, 1])
                 
@@ -388,6 +389,7 @@ class _Sub(object):
                 
                 x = plane_vector.dot(ray_start_world - plane_point) / plane_vector.dot(ray_dir_world)
                 object_pos = ray_start_world - ray_dir_world * x
+                print 'object_pos_body:', map_transform.inverse().transform_point(object_pos)
                 
                 desired_pos = object_pos - map_transform.transform_vector(transform.transform_point(ray_start_sensor))
                 desired_pos = desired_pos - movement_plane_world * movement_plane_world.dot(desired_pos - start_pose.position)
@@ -395,23 +397,30 @@ class _Sub(object):
                 error_pos = desired_pos - map_transform.transform_point([0, 0, 0])
                 error_pos = error_pos - movement_plane_world * movement_plane_world.dot(error_pos)
                 
-                threshold = 30e-2 # 30 cm
-                print error_pos, numpy.linalg.norm(error_pos)/threshold
+                threshold = 1 # m
+                angle_error = abs(math.acos((error_pos / numpy.linalg.norm(error_pos)).dot(self.pose.forward_vector)))
+                print 'pos error:', numpy.linalg.norm(error_pos), 'angle error:', math.degrees(angle_error), 'rel pos error:', numpy.linalg.norm(error_pos)/threshold
                 
                 if numpy.linalg.norm(error_pos) < threshold:
-                    yield (self.move
-                        .set_position(desired_pos)
-                        .go())
-                    
-                    return
+                    good.append(desired_pos)
+                    if len(good) > 3:
+                        yield (self.move
+                            .set_orientation(orientation)
+                            .set_position(numpy.mean(good, axis=0))
+                            .go())
+                        
+                        return
+                else:
+                    good = []
                 
                 # go towards desired position
-                if numpy.linalg.norm(error_pos) > 5 and (error_pos / numpy.linalg.norm(error_pos))[0] < .707:
+                if numpy.linalg.norm(error_pos) > 4 and angle_error > math.radians(30):
                     move_goal_mgr = self._moveto_action_client.send_goal(
                         self.pose.look_at_without_pitching(desired_pos).as_MoveToGoal())
+                    orientation = self.pose.look_at_without_pitching(desired_pos).orientation
                 else:
                     move_goal_mgr = self._moveto_action_client.send_goal(
-                        self.pose.set_position(desired_pos).as_MoveToGoal())
+                        self.pose.set_orientation(orientation).set_position((desired_pos+self.pose.position)/2).as_MoveToGoal())
         finally:
             if move_goal_mgr is not None: yield move_goal_mgr.cancel()
 

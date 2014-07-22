@@ -20,6 +20,7 @@ from uf_common import orientation_helpers
 from tf import transformations
 from c3_trajectory_generator.srv import SetDisabled, SetDisabledRequest
 from odom_estimator.srv import SetIgnoreMagnetometer, SetIgnoreMagnetometerRequest
+from hydrophones.msg import ProcessedPing
 
 
 class _PoseProxy(object):
@@ -66,6 +67,7 @@ class _Sub(object):
             'actuator_driver/set_valve', SetValve)
         self._set_ignore_magnetometer_service = self._node_handle.get_service_client(
             'odom_estimator/set_ignore_magnetometer', SetIgnoreMagnetometer)
+        self._hydrophones_processed_sub = self._node_handle.subscribe('hydrophones/processed', ProcessedPing)
         
         yield self._trajectory_sub.get_next_message()
         
@@ -339,6 +341,70 @@ class _Sub(object):
     @util.cancellableInlineCallbacks
     def set_ignore_magnetometer(self, ignore):
         yield self._set_ignore_magnetometer_service(SetIgnoreMagnetometerRequest(ignore=ignore))
+    
+    @util.cancellableInlineCallbacks
+    def get_processed_ping(self, frequency):
+        while True:
+            msg = yield self._hydrophone_ping_sub.get_next_message()
+            if abs(msg.freq - frequency) < 1.5e3:
+                defer.returnValue(msg)
+    
+    @util.cancellableInlineCallbacks
+    def hydrophone_align(self, frequency):
+        start_pose = self.pose
+        start_map_transform = tf.Transform(
+            start_pose.position, start_pose.orientation)
+        move_goal_mgr = None
+        try:
+            while True:
+                feedback = yield self.get_processed_ping(frequency)
+                bottom_z = self.pose.position[2] - 0.1 - (yield self.get_dvl_range())
+                
+                try:
+                    transform = yield self._tf_listener.get_transform('/base_link',
+                        feedback.header.frame_id, feedback.header.stamp)
+                    map_transform = yield self._tf_listener.get_transform('/map',
+                        '/base_link', feedback.header.stamp)
+                except Exception:
+                    traceback.print_exc()
+                    continue
+                
+                ray_start_sensor = numpy.array([0, 0, 0])
+                ray_dir_sensor = numpy.array(map(float, obj['center']))
+                
+                ray_start_world = map_transform.transform_point(
+                    transform.transform_point(ray_start_sensor))
+                ray_dir_world = map_transform.transform_vector(
+                    transform.transform_vector(ray_dir_sensor))
+                
+                axis_world = numpy.array([0, 0, 1])
+                
+                plane_point = numpy.array([0, 0, bottom_z])
+                plane_vector = numpy.array([0, 0, 1])
+                
+                x = plane_vector.dot(ray_start_world - plane_point) / plane_vector.dot(ray_dir_world)
+                object_pos = ray_start_world - ray_dir_world * x
+                
+                desired_pos = object_pos - start_map_transform.transform_vector(transform.transform_point(ray_start_camera))
+                desired_pos = desired_pos - axis_world * axis_world.dot(desired_pos - start_pose.position)
+                
+                error_pos = desired_pos - map_transform.transform_point([0, 0, 0])
+                error_pos = error_pos - axis_world * axis_world.dot(error_pos)
+                
+                print desired_pos, numpy.linalg.norm(error_pos)/3e-2
+                
+                if numpy.linalg.norm(error_pos) < 3e-2: # 3 cm
+                    yield (self.move
+                        .set_position(desired_pos)
+                        .go())
+                    
+                    return
+                
+                # go towards desired position
+                move_goal_mgr = self._moveto_action_client.send_goal(
+                    start_pose.set_position(desired_pos).as_MoveToGoal(speed=0.1))
+        finally:
+            if move_goal_mgr is not None: yield move_goal_mgr.cancel()
 
 _subs = {}
 @util.cancellableInlineCallbacks

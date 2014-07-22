@@ -60,24 +60,6 @@ def fail_list(nh):
     finally:
         print 'fail finally'
 
-class TimeoutError(Exception): pass
-@util.cancellableInlineCallbacks
-def wrap_timeout(df, duration):
-    timeout = util.sleep(duration)
-    
-    try:
-        result, index = yield defer.DeferredList([df, timeout], fireOnOneCallback=True, fireOnOneErrback=True)
-    finally:
-        yield df.cancel()
-        yield timeout.cancel()
-        df.addErrback(lambda fail: fail.trap(defer.CancelledError))
-        timeout.addErrback(lambda fail: fail.trap(defer.CancelledError))
-    
-    if index == 1:
-        raise TimeoutError()
-    else:
-        defer.returnValue(result)
-
 @util.cancellableInlineCallbacks
 def main(nh):
     sub = yield sub_scripting.get_sub(nh)
@@ -93,7 +75,7 @@ def main(nh):
             break
     
     try:
-        yield wrap_timeout(main_list(nh), time_left - 60)
+        yield util.wrap_timeout(main_list(nh), time_left - 60)
     except Exception:
         traceback.print_exc()
     

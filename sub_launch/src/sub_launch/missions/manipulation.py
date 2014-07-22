@@ -116,7 +116,7 @@ def main(nh):
         
         yield sub.open_gripper()
         yield sub.visual_approach('forward', 'grapes/peg', size_estimate=6*.0254, desired_distance=1, selector=select_centered)
-        yield sub.move.right(.1).go()
+        yield sub.move.right(.12).go()
         yield sub.move.down(.03).go()
         yield sub.move.forward(.32).go()
         print 'gripper closing'
@@ -132,7 +132,7 @@ def main(nh):
             yield sub.visual_approach('forward', 'grapes/empty_cell', size_estimate=6*.0254, desired_distance=1, selector=select_centered)
             yield sub.move.right(.09).go()
             yield sub.move.down(.03).go()
-            yield sub.move.forward(.57).go()
+            yield sub.move.forward(.54).go()
             print 'gripper opening'
             yield sub.open_gripper()
             yield sub.move.backward(.75).go()

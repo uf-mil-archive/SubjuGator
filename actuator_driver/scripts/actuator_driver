@@ -57,13 +57,14 @@ class ActuatorDevice(object):
 
 ad = ActuatorDevice(rospy.get_param('~port'))
 
-valves = [False]*ActuatorDevice.VALVES
+default_valves = [True] + [False]*(ActuatorDevice.VALVES-1)
+valves = list(default_valves)
 ad.send_set_valves(valves)
 valves_lock = threading.Lock()
 
 def on_kill():
     with valves_lock:
-        valves[:] = [False for valve in valves]
+        valves[:] = default_valves
         ad.send_set_valves(valves)
 kill_listener = KillListener(on_kill)
 

@@ -33,6 +33,6 @@ def main(nh):
     yield sub.move.backward(1.5).go()
     
     yield sub.move.depth(0.5).go()
-    yield sub.move.forward(2).go()
+    yield sub.move.forward(3).go()
 
-    yield sub.move.depth(orig_depth).go()
+    #yield sub.move.depth(orig_depth).go()

@@ -12,7 +12,7 @@ from sub_launch.missions import shooter
 from sub_launch.missions import buoy
 from sub_launch.missions import path
 from sub_launch.missions import manipulation
-from sub_launch.missions import bins, maneuvering
+from sub_launch.missions import bins, maneuvering, recovery
 
 
 @util.cancellableInlineCallbacks
@@ -42,6 +42,9 @@ def main_list(nh):
         yield path.main(nh)
         print 'staring manipulation'
         yield manipulation.main(nh)
+        yield sub.move.depth(0.75).turn_right_deg(15).go()
+        yield sub.move.forward(7).go()
+        yield recovery.main(nh)
     finally:
         print 'main finally start'
         #yield util.sleep(3)

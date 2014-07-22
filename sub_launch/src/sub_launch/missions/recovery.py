@@ -1,7 +1,6 @@
 from __future__ import division
 
 from txros import util
-from main import wrap_timeout, TimeoutError
 
 import math
 import sub_scripting
@@ -40,8 +39,8 @@ def main(nh):
         yield sub.move.down(dist-1.75).go()
         dist = yield sub.get_dvl_range()
         try:
-            yield wrap_timeout(sub.visual_align('down', 'wreath/cheese', dist-.3, selector=select_by_body_direction([0,1,0]), turn=False), 20)
-        except TimeoutError:
+            yield util.wrap_timeout(sub.visual_align('down', 'wreath/cheese', dist-.3, selector=select_by_body_direction([0,1,0]), turn=False), 20)
+        except util.TimeoutError:
             print 'timed out'
             break
         print 'didnt time out'
@@ -68,8 +67,8 @@ def main(nh):
             yield sub.move.down(dist-1.75).go()
             dist = yield sub.get_dvl_range()
             try:
-                yield wrap_timeout(sub.visual_align('down', 'wreath/cheese', dist-.3, selector=select_centered, turn=False), 20)
-            except TimeoutError:
+                yield util.wrap_timeout(sub.visual_align('down', 'wreath/cheese', dist-.3, selector=select_centered, turn=False), 20)
+            except util.TimeoutError:
                 print 'timed out'
                 break
             print "relative move"

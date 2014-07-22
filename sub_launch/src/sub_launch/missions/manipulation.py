@@ -22,6 +22,31 @@ def main(nh):
         yield fwd_move.cancel()
     
     goal_mgr = sub._camera_2d_action_clients['forward'].send_goal(legacy_vision_msg.FindGoal(
+        object_names=['grapes/board'],
+    ))
+    feedback = yield goal_mgr.get_feedback()
+    res = map(json.loads, feedback.targetreses[0].object_results)  
+    
+    print 'about to align'  
+    while True:
+        print 'aligning'
+        feedback = yield goal_mgr.get_feedback()
+        res = map(json.loads, feedback.targetreses[0].object_results)
+        if not res:
+            continue
+        #goal_mgr.cancel()
+        angle = float(res[0]['orientation_error'])
+        xdist = 1.5 * math.sin(angle/2)
+        print angle, xdist
+        yield sub.move.yaw_left(angle).go()
+        yield sub.move.right(2*xdist).go()
+
+        if abs(angle)<math.radians(5):
+                break
+
+    print 'done aligning'
+    
+    goal_mgr = sub._camera_2d_action_clients['forward'].send_goal(legacy_vision_msg.FindGoal(
         object_names=['grapes/empty_cell'],
     ))
     feedback = yield goal_mgr.get_feedback()

@@ -88,7 +88,7 @@ class _Sub(object):
         defer.returnValue(msg.data)
     
     @util.cancellableInlineCallbacks
-    def visual_align(self, camera, object_name, distance_estimate, selector=lambda items, body_tf: items[0], turn=True):
+    def visual_align(self, camera, object_name, distance_estimate, selector=lambda items, body_tf: items[0], turn=True, angle=0):
         goal_mgr = self._camera_2d_action_clients[camera].send_goal(legacy_vision_msg.FindGoal(
             object_names=[object_name],
         ))
@@ -153,6 +153,7 @@ class _Sub(object):
                         
                         def rotate(x, angle):
                             return transformations.rotation_matrix(angle, axis_world)[:3, :3].dot(x)
+                        obj_dir_world = rotate(obj_dir_world, angle)
                         for sign in [-1, +1]:
                             while rotate(obj_dir_world, sign*dangle).dot(start_pose.forward_vector) > obj_dir_world.dot(start_pose.forward_vector):
                                 obj_dir_world = rotate(obj_dir_world, sign*dangle)
@@ -283,7 +284,7 @@ class _Sub(object):
                             return
                     
                     move_goal_mgr = self._moveto_action_client.send_goal(
-                        start_pose.set_position(desired_pos).as_MoveToGoal(speed=0.1))
+                        start_pose.set_position(desired_pos).as_MoveToGoal(speed=0.5))
         finally:
             yield goal_mgr.cancel()
             if move_goal_mgr is not None: yield move_goal_mgr.cancel()

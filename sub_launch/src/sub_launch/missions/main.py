@@ -42,8 +42,8 @@ def main_list(nh):
         yield path.main(nh)
         print 'staring manipulation'
         yield manipulation.main(nh)
-        yield sub.move.depth(0.75).turn_right_deg(15).go()
-        yield sub.move.forward(7).go()
+        yield sub.move.depth(0.75).turn_right_deg(20).go()
+        yield sub.move.forward(6).go()
         yield recovery.main(nh)
     finally:
         print 'main finally start'

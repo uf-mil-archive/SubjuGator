@@ -12,9 +12,9 @@ def main(nh):
     #yield sub.lower_down_grabber()
     while True:
         yield util.sleep(2)
+        yield sub.lower_down_grabber()
         yield sub.open_down_grabber()
         yield util.sleep(2)
-        yield sub.close_down_grabber()
     #yield util.sleep(2)
     #yield sub.close_down_grabber()
     #yield util.sleep(2)

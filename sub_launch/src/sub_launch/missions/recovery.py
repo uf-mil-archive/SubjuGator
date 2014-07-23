@@ -18,10 +18,10 @@ def select_by_body_direction(body_vector):
         return max(results, key=get_wantedness)
     return _
 
+
 @util.cancellableInlineCallbacks
 def main(nh):
     sub = yield sub_scripting.get_sub(nh)
-    
     fwd_move = sub.move.go(linear=[0.25, 0, 0])
     try:
         dist = yield sub.get_dvl_range()
@@ -34,33 +34,8 @@ def main(nh):
     finally:
         yield fwd_move.cancel()       
     board_pose = sub.pose
-    """while True:
-        dist = yield sub.get_dvl_range()
-        yield sub.move.down(dist-1.75).go()
-        dist = yield sub.get_dvl_range()
-        try:
-            yield util.wrap_timeout(sub.visual_align('down', 'wreath/cheese', dist-.3, selector=select_by_body_direction([0,1,0]), turn=False), 20)
-        except util.TimeoutError:
-            print 'timed out'
-            break
-        print 'didnt time out'
-        try:
-            yield sub.lower_impaler()
-            print 'about to move relative'
-            yield sub.move.relative([-.07,-.08,0]).go()
-            print 'about to move down'
-            yield sub.move.down(1.05).go(speed=.1)
-            try:
-                yield sub.expand_impaler()
-                print 'moving back up'
-                yield sub.move.depth(.5).go()
-                print 'moving to original depth'
-                yield sub.move.depth(orig_depth).go()
-            finally:
-                yield sub.contract_impaler()
-                yield util.sleep(5)
-        finally:
-            yield sub.raise_impaler()"""
+    
+    #cheese
     try:
         while True:
             dist = yield sub.get_dvl_range()
@@ -72,23 +47,28 @@ def main(nh):
                 print 'timed out'
                 break
             print "relative move"
-            yield sub.move.relative([-.07,-.1,0]).go()
+            yield sub.move.relative([-.07,-.095,0]).go()
             print "lower down grabber"
             yield sub.lower_down_grabber()
             print "opening down grabber"
             yield sub.open_down_grabber()
             print "moving down"
-            yield sub.move.down(.95).go(speed=.15)
+            yield sub.move.down(1.15).go(speed=.1)
             print "close down grabber"
             yield sub.close_down_grabber()
             print "moving back to surface"
             yield sub.move.up(.5).go(speed=.1)
-            yield sub.move.depth(.8).go()
+            yield sub.move.up(.5).go()
             print "going to hydrophone"
             yield sub.hydrophone_align(25e3)
-            print "opening down grabber"
+            print "relative move"
+            yield sub.move.relative([-.15,-.2,0]).go()
+            print "going down"
+            yield sub.move.down(.3).go(speed=.2)
             yield sub.open_down_grabber()
             yield util.sleep(1)
+            print "going up"
+            yield sub.move.up(.7).go()
             yield "closing down grabber"
             yield sub.close_down_grabber()
             yield sub.raise_down_grabber()
@@ -96,7 +76,53 @@ def main(nh):
             yield sub.move.look_at_without_pitching(board_pose.position).go()
             yield sub.move.set_position(board_pose.position).go()
     finally:
-        print "finally -> close -> raise -> orig depth"
+        print "finally"
+        yield sub.close_down_grabber()
+        yield sub.raise_down_grabber()
+    yield sub.move.depth(orig_depth).go()
+    
+    #moonrock
+    try:
+        while True:
+            dist = yield sub.get_dvl_range()
+            yield sub.move.down(dist-1.75).go()
+            dist = yield sub.get_dvl_range()
+            try:
+                yield util.wrap_timeout(sub.visual_align('down', 'wreath/moonrock', dist-.3, selector=select_centered, turn=False), 20)
+            except util.TimeoutError:
+                print 'timed out'
+                break
+            print "relative move"
+            yield sub.move.relative([-.07,-.095,0]).go()
+            print "lower down grabber"
+            yield sub.lower_down_grabber()
+            print "opening down grabber"
+            yield sub.open_down_grabber()
+            print "moving down"
+            yield sub.move.down(1.15).go(speed=.1)
+            print "close down grabber"
+            yield sub.close_down_grabber()
+            print "moving back to surface"
+            yield sub.move.up(.5).go(speed=.1)
+            yield sub.move.up(.5).go()
+            print "going to hydrophone"
+            yield sub.hydrophone_align(25e3)
+            print "relative move"
+            yield sub.move.relative([-.15,-.2,0]).go()
+            print "going down"
+            yield sub.move.down(.3).go(speed=.2)
+            yield sub.open_down_grabber()
+            yield util.sleep(1)
+            print "going up"
+            yield sub.move.up(.7).go()
+            yield "closing down grabber"
+            yield sub.close_down_grabber()
+            yield sub.raise_down_grabber()
+            print "going back"
+            yield sub.move.look_at_without_pitching(board_pose.position).go()
+            yield sub.move.set_position(board_pose.position).go()
+    finally:
+        print "finally"
         yield sub.close_down_grabber()
         yield sub.raise_down_grabber()
     yield sub.move.depth(orig_depth).go()

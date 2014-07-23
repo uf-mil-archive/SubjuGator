@@ -20,9 +20,9 @@ def main(nh):
         yield sub.visual_approach('forward', 'grapes/board', size_estimate=math.sqrt(2)*3*12*.0254, desired_distance=2)
     finally:
         yield fwd_move.cancel()
-    
+    """
     goal_mgr = sub._camera_2d_action_clients['forward'].send_goal(legacy_vision_msg.FindGoal(
-        object_names=['grapes/board'],
+        object_names=['grapes/board2'],
     ))
     feedback = yield goal_mgr.get_feedback()
     res = map(json.loads, feedback.targetreses[0].object_results)  
@@ -45,7 +45,7 @@ def main(nh):
                 break
 
     print 'done aligning'
-    
+    """
     goal_mgr = sub._camera_2d_action_clients['forward'].send_goal(legacy_vision_msg.FindGoal(
         object_names=['grapes/empty_cell'],
     ))

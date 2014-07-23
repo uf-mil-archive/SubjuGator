@@ -19,7 +19,7 @@ def parse_arg(arg):
 @util.cancellableInlineCallbacks
 def main():
     try:
-        nh, args = txros.NodeHandle.from_argv_with_remaining('run_missions')
+        nh, args = txros.NodeHandle.from_argv_with_remaining('run_method', anonymous=True)
         
         sub = yield sub_scripting.get_sub(nh)
  

@@ -89,7 +89,7 @@ def main(nh):
             return
         for a in unmoved_peg_coords:
             for b in empty_coords:
-                for rest in gen_paths(unmoved_peg_coords - {a}, (empty_coords | {a}) - {b}):
+                for rest in gen_paths(unmoved_peg_coords - {a}, empty_coords - {b}):
                     yield [(a, b)] + rest
 
     def dist((ax, ay), (bx, by)):
@@ -115,19 +115,24 @@ def main(nh):
         #center on peg
         
         yield sub.open_gripper()
-        yield sub.visual_approach('forward', 'grapes/peg', size_estimate=6*.0254, desired_distance=1, selector=select_centered)
-        yield sub.move.right(.12).go()
-        yield sub.move.down(.03).go()
-        yield sub.move.forward(.32).go()
-        print 'gripper closing'
-        yield sub.close_gripper()
-        yield sub.move.backward(.75).go()
         
+        yield sub.set_ignore_magnetometer(True)
+        try:
+            yield sub.visual_approach('forward', 'grapes/peg', size_estimate=6*.0254, desired_distance=1, selector=select_centered)
+            yield sub.move.right(.125).go()
+            yield sub.move.down(.03).go()
+            yield sub.move.forward(.32).go()
+            print 'gripper closing'
+            yield sub.close_gripper()
+            yield sub.move.backward(.75).go()
+        finally:
+            yield sub.set_ignore_magnetometer(False)
+            
         print 'going to', b
         yield storedpose.relative([1,-float(res[coords.index(b)]['center'][0])*1.5, -float(res[coords.index(b)]['center'][1])*1.5]).go(speed=.1)
         print 'centering on', b
         
-        #yield sub.set_ignore_magnetometer(True) 
+        yield sub.set_ignore_magnetometer(True) 
         try:       
             yield sub.visual_approach('forward', 'grapes/empty_cell', size_estimate=6*.0254, desired_distance=1, selector=select_centered)
             yield sub.move.right(.09).go()
@@ -137,5 +142,5 @@ def main(nh):
             yield sub.open_gripper()
             yield sub.move.backward(.75).go()
         finally:
-            pass#yield sub.set_ignore_magnetometer(False)
+            yield sub.set_ignore_magnetometer(False)
 

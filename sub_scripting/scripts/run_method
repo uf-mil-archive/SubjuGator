@@ -1,0 +1,41 @@
+#!/usr/bin/python
+
+import sys
+import traceback
+import signal
+
+from twisted.internet import defer, reactor
+
+import txros
+from txros import util
+
+import sub_scripting
+
+
+def parse_arg(arg):
+    x = arg.split(',')
+    return x[0], x[1:]
+
+@util.cancellableInlineCallbacks
+def main():
+    try:
+        nh, args = txros.NodeHandle.from_argv_with_remaining('run_missions')
+        
+        sub = yield sub_scripting.get_sub(nh)
+ 
+        class NS(dict):
+            def __missing__(self, key):
+                return getattr(sub, key)
+        for arg in args[1:]:
+            if not arg.endswith(')'): arg += '()'
+            print (yield eval(arg, NS()))
+    except Exception:
+        traceback.print_exc()
+    finally:
+        reactor.stop()
+
+def _start():
+    signal.signal(signal.SIGINT, lambda signum, frame: reactor.callFromThread(task.cancel))
+    task = main().addErrback(lambda fail: fail.trap(defer.CancelledError))
+reactor.callWhenRunning(_start)
+reactor.run()

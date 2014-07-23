@@ -12,7 +12,7 @@ from sub_launch.missions import shooter
 from sub_launch.missions import buoy
 from sub_launch.missions import path
 from sub_launch.missions import manipulation
-from sub_launch.missions import bins, maneuvering
+from sub_launch.missions import bins, maneuvering, recovery
 
 
 @util.cancellableInlineCallbacks
@@ -42,6 +42,9 @@ def main_list(nh):
         yield path.main(nh)
         print 'staring manipulation'
         yield manipulation.main(nh)
+        yield sub.move.depth(0.75).turn_right_deg(15).go()
+        yield sub.move.forward(7).go()
+        yield recovery.main(nh)
     finally:
         print 'main finally start'
         #yield util.sleep(3)
@@ -56,24 +59,6 @@ def fail_list(nh):
         print 'fail end'
     finally:
         print 'fail finally'
-
-class TimeoutError(Exception): pass
-@util.cancellableInlineCallbacks
-def wrap_timeout(df, duration):
-    timeout = util.sleep(duration)
-    
-    try:
-        result, index = yield defer.DeferredList([df, timeout], fireOnOneCallback=True, fireOnOneErrback=True)
-    finally:
-        yield df.cancel()
-        yield timeout.cancel()
-        df.addErrback(lambda fail: fail.trap(defer.CancelledError))
-        timeout.addErrback(lambda fail: fail.trap(defer.CancelledError))
-    
-    if index == 1:
-        raise TimeoutError()
-    else:
-        defer.returnValue(result)
 
 @util.cancellableInlineCallbacks
 def main(nh):
@@ -90,7 +75,7 @@ def main(nh):
             break
     
     try:
-        yield wrap_timeout(main_list(nh), time_left - 60)
+        yield util.wrap_timeout(main_list(nh), time_left - 60)
     except Exception:
         traceback.print_exc()
     

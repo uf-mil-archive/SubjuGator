@@ -296,22 +296,22 @@ class _Sub(object):
 
 
     @util.cancellableInlineCallbacks
-    def lower_impaler(self):
+    def raise_down_grabber(self):
         yield self._set_valve_service(SetValveRequest(valve=3, opened=False))
         yield util.sleep(.3)
         yield self._set_valve_service(SetValveRequest(valve=0, opened=True))
     @util.cancellableInlineCallbacks
-    def raise_impaler(self):
+    def lower_down_grabber(self):
         yield self._set_valve_service(SetValveRequest(valve=0, opened=False))
         yield util.sleep(.3)
         yield self._set_valve_service(SetValveRequest(valve=3, opened=True))
     @util.cancellableInlineCallbacks
-    def expand_impaler(self):
+    def open_down_grabber(self):
         yield self._set_valve_service(SetValveRequest(valve=1, opened=False))
         yield util.sleep(.3)
         yield self._set_valve_service(SetValveRequest(valve=2, opened=True))
     @util.cancellableInlineCallbacks
-    def contract_impaler(self):
+    def close_down_grabber(self):
         yield self._set_valve_service(SetValveRequest(valve=2, opened=False))
         yield util.sleep(.3)
         yield self._set_valve_service(SetValveRequest(valve=1, opened=True))
@@ -345,7 +345,7 @@ class _Sub(object):
     @util.cancellableInlineCallbacks
     def get_processed_ping(self, frequency):
         while True:
-            msg = yield self._hydrophone_ping_sub.get_next_message()
+            msg = yield self._hydrophones_processed_sub.get_next_message()
             if abs(msg.freq - frequency) < 1.5e3:
                 defer.returnValue(msg)
     
@@ -354,11 +354,15 @@ class _Sub(object):
         start_pose = self.pose
         start_map_transform = tf.Transform(
             start_pose.position, start_pose.orientation)
+        orientation = start_pose.orientation
         move_goal_mgr = None
+        good = []
         try:
             while True:
                 feedback = yield self.get_processed_ping(frequency)
-                bottom_z = self.pose.position[2] - 0.1 - (yield self.get_dvl_range())
+                print feedback
+                bottom_z = self.pose.position[2] - (yield self.get_dvl_range())
+                print 'bottom_z:', bottom_z
                 
                 try:
                     transform = yield self._tf_listener.get_transform('/base_link',
@@ -370,39 +374,53 @@ class _Sub(object):
                     continue
                 
                 ray_start_sensor = numpy.array([0, 0, 0])
-                ray_dir_sensor = numpy.array(map(float, obj['center']))
+                ray_dir_sensor = orientation_helpers.xyz_array(feedback.position)
+                ray_dir_sensor = ray_dir_sensor / numpy.linalg.norm(ray_dir_sensor)
                 
                 ray_start_world = map_transform.transform_point(
                     transform.transform_point(ray_start_sensor))
                 ray_dir_world = map_transform.transform_vector(
                     transform.transform_vector(ray_dir_sensor))
                 
-                axis_world = numpy.array([0, 0, 1])
+                movement_plane_world = numpy.array([0, 0, 1])
                 
                 plane_point = numpy.array([0, 0, bottom_z])
                 plane_vector = numpy.array([0, 0, 1])
                 
                 x = plane_vector.dot(ray_start_world - plane_point) / plane_vector.dot(ray_dir_world)
                 object_pos = ray_start_world - ray_dir_world * x
+                print 'object_pos_body:', map_transform.inverse().transform_point(object_pos)
                 
-                desired_pos = object_pos - start_map_transform.transform_vector(transform.transform_point(ray_start_camera))
-                desired_pos = desired_pos - axis_world * axis_world.dot(desired_pos - start_pose.position)
+                desired_pos = object_pos - map_transform.transform_vector(transform.transform_point(ray_start_sensor))
+                desired_pos = desired_pos - movement_plane_world * movement_plane_world.dot(desired_pos - start_pose.position)
                 
                 error_pos = desired_pos - map_transform.transform_point([0, 0, 0])
-                error_pos = error_pos - axis_world * axis_world.dot(error_pos)
+                error_pos = error_pos - movement_plane_world * movement_plane_world.dot(error_pos)
                 
-                print desired_pos, numpy.linalg.norm(error_pos)/3e-2
+                threshold = 1 # m
+                angle_error = abs(math.acos((error_pos / numpy.linalg.norm(error_pos)).dot(self.pose.forward_vector)))
+                print 'pos error:', numpy.linalg.norm(error_pos), 'angle error:', math.degrees(angle_error), 'rel pos error:', numpy.linalg.norm(error_pos)/threshold
                 
-                if numpy.linalg.norm(error_pos) < 3e-2: # 3 cm
-                    yield (self.move
-                        .set_position(desired_pos)
-                        .go())
-                    
-                    return
+                if numpy.linalg.norm(error_pos) < threshold:
+                    good.append(desired_pos)
+                    if len(good) > 3:
+                        yield (self.move
+                            .set_orientation(orientation)
+                            .set_position(numpy.mean(good, axis=0))
+                            .go())
+                        
+                        return
+                else:
+                    good = []
                 
                 # go towards desired position
-                move_goal_mgr = self._moveto_action_client.send_goal(
-                    start_pose.set_position(desired_pos).as_MoveToGoal(speed=0.1))
+                if numpy.linalg.norm(error_pos) > 4 and angle_error > math.radians(30):
+                    move_goal_mgr = self._moveto_action_client.send_goal(
+                        self.pose.look_at_without_pitching(desired_pos).as_MoveToGoal())
+                    orientation = self.pose.look_at_without_pitching(desired_pos).orientation
+                else:
+                    move_goal_mgr = self._moveto_action_client.send_goal(
+                        self.pose.set_orientation(orientation).set_position((desired_pos+self.pose.position)/2).as_MoveToGoal())
         finally:
             if move_goal_mgr is not None: yield move_goal_mgr.cancel()
 

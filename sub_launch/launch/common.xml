@@ -36,8 +36,8 @@ shift: [1.8266060470689045e-05, -5.266451315444063e-06, 5.987404697539948e-05]
   <node pkg="tf" type="static_transform_publisher" name="dvl_broadcaster"
     args="0.431 0 -0.102  0 0 0.382683 -0.923880  base_link dvl 100" />
 
-  <!-- <node pkg="paulboard_driver" type="paulboard_driver" name="paulboard_driver">
-    <param name="port" type="string" value="/dev/ttyHydrophones"/>
+  <node pkg="paulboard_driver" type="paulboard_driver" name="paulboard_driver">
+    <param name="port" type="string" value="/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_A901AN8N-if00-port0"/>
     <param name="sample_rate" type="double" value="300000"/>
     <param name="frame" type="string" value="/hydrophones"/>
     <param name="permute" type="string" value="2 3 1 4"/>
@@ -48,7 +48,7 @@ shift: [1.8266060470689045e-05, -5.266451315444063e-06, 5.987404697539948e-05]
     <param name="dist_h" type="double" value="2.286000e-02"/>
     <param name="dist_h4" type="double" value="2.286000e-02"/>
     <param name="v_sound" type="double" value="1500"/>
-  </node> -->
+  </node>
 
   <node pkg="nodelet" type="nodelet" args="standalone odom_estimator/nodelet" name="odom_estimator" respawn="true"><rosparam>
       have_gps: false

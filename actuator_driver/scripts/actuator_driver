@@ -118,12 +118,11 @@ rospy.Service('~set_valve', SetValve, set_valve)
 def _poll():
     with valves_lock:
         ad.send_read_switches()
+        ad.send_set_valves(valves)
 rospy.Timer(rospy.Duration(0.01), lambda timerevent: _poll())
 
 pub = rospy.Publisher('~switches', Switches)
 while not rospy.is_shutdown():
-    with valves_lock:
-        ad.send_set_valves(valves)
     packet = ad.read()
     if packet[0] == 'switch_values':
         pub.publish(Switches(

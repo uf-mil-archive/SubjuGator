@@ -119,7 +119,7 @@ def _poll():
     with valves_lock:
         ad.send_read_switches()
         ad.send_set_valves(valves)
-rospy.Timer(rospy.Duration(0.01), lambda timerevent: _poll())
+rospy.Timer(rospy.Duration(0.05), lambda timerevent: _poll())
 
 pub = rospy.Publisher('~switches', Switches)
 while not rospy.is_shutdown():

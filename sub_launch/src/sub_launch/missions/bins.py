@@ -40,7 +40,7 @@ def main(nh):
     yield sub.visual_align('down', 'bins/all', distance_estimate=dist-.3, turn=False)
     #yield sub.move.down(dist-.3 - 2.5).go()
     print "aligned down"
-    yield sub.move.down(dist - 2.5).go()
+    yield sub.move.down(dist - 3.2).go()
     dist = yield sub.get_dvl_range()
     centered = sub.move
     

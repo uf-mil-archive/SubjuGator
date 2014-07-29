@@ -53,9 +53,9 @@ shift: [1.8266060470689045e-05, -5.266451315444063e-06, 5.987404697539948e-05]
   <node pkg="nodelet" type="nodelet" args="standalone odom_estimator/nodelet" name="odom_estimator" respawn="true"><rosparam>
       have_gps: false
       local_frame: /map
-      start_x_ecef:   740883 <!-- gainesville -->
-      start_y_ecef: -5497747
-      start_z_ecef:  3136908
+      start_x_ecef: -2459847 <!-- TRANSDEC -->
+      start_y_ecef: -4776091
+      start_z_ecef:  3426313
     </rosparam>
     <remap from="odom" to="imu_odom"/>
   </node>

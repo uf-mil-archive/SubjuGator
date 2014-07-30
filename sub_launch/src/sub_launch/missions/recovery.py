@@ -52,18 +52,18 @@ def try_to_grab(sub, obj_name, board_pose):
             print 'timed out'
             return
         print "relative move"
-        yield sub.move.relative([-.15,-.15,0]).go()
         yield sub.lower_down_grabber()
         yield sub.open_down_grabber()
         yield util.sleep(5) # XXX
         print "moving down"
         yield sub.move.down(1).go(speed=.2)
         try:
-            yield util.wrap_timeout(sub.visual_align('down', 'wreath/moonrock/low', 2, selector=select_centered, 20)
+            yield util.wrap_timeout(sub.visual_align('down', 'wreath/moonrock/low', 2, selector=select_centered, turn=False), 20)
         except util.TimeoutError:
             print 'timed out'
             return
-        yield sub.move.down(.7).go(speed=.2)
+        yield sub.move.relative([-.09,-.15,0]).go()
+        yield sub.move.down(.8).go(speed=.2)
         yield sub.close_down_grabber()
         print "moving back to surface"
         #yield sub.move.up(.5).go(speed=.2)
@@ -94,10 +94,10 @@ def main(nh, freq=25e3):
     yield sub.hydrophone_align(freq)
     
     print 'surfacing'
-    yield sub.move.depth(.5).go()
+    yield sub.move.depth(-.5).go()
     yield sub.move.depth(1).go()
     
-    yield sub.move.heading_deg(0).go()
+    yield sub.move.heading_deg(180).go()
     yield path.main(nh)
     orig_depth = -sub.pose.position[2]
     dist = yield sub.get_dvl_range()
@@ -105,7 +105,7 @@ def main(nh, freq=25e3):
     yield sub.move.forward(3).go()
     fwd_move = sub.move.go(linear=[0.25, 0, 0])
     try:
-        yield sub.visual_align('down', 'wreath/board', 2, selector=select_centered, turn=True)
+        yield sub.visual_align('down', 'wreath/board/high', 2, selector=select_centered, turn=True, angle=math.radians(45))
         #yield sub.visual_align('down', 'wreath/moonrock', dist, selector=select_by_body_direction([0,1,0]), turn=False)
     finally:
         yield fwd_move.cancel()

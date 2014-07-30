@@ -21,6 +21,7 @@ from tf import transformations
 from c3_trajectory_generator.srv import SetDisabled, SetDisabledRequest
 from odom_estimator.srv import SetIgnoreMagnetometer, SetIgnoreMagnetometerRequest
 from hydrophones.msg import ProcessedPing
+from geometry_msgs.msg import WrenchStamped
 
 
 class _PoseProxy(object):
@@ -68,6 +69,7 @@ class _Sub(object):
         self._set_ignore_magnetometer_service = self._node_handle.get_service_client(
             'odom_estimator/set_ignore_magnetometer', SetIgnoreMagnetometer)
         self._hydrophones_processed_sub = self._node_handle.subscribe('hydrophones/processed', ProcessedPing)
+        self._wrench_sub = self._node_handle.subscribe('wrench', WrenchStamped)
         
         yield self._trajectory_sub.get_next_message()
         
@@ -88,7 +90,7 @@ class _Sub(object):
         defer.returnValue(msg.data)
     
     @util.cancellableInlineCallbacks
-    def visual_align(self, camera, object_name, distance_estimate, selector=lambda items, body_tf: items[0], turn=True, angle=0):
+    def visual_align(self, camera, object_name, distance_estimate, selector=lambda items, body_tf: items[0], turn=True, angle=0, orient_away_from=None):
         goal_mgr = self._camera_2d_action_clients[camera].send_goal(legacy_vision_msg.FindGoal(
             object_names=[object_name],
         ))
@@ -155,7 +157,10 @@ class _Sub(object):
                             return transformations.rotation_matrix(angle, axis_world)[:3, :3].dot(x)
                         obj_dir_world = rotate(obj_dir_world, angle)
                         for sign in [-1, +1]:
-                            while rotate(obj_dir_world, sign*dangle).dot(start_pose.forward_vector) > obj_dir_world.dot(start_pose.forward_vector):
+                            f = lambda obj_dir_world: obj_dir_world.dot(start_pose.forward_vector)
+                            if orient_away_from is not None:
+                                f = lambda obj_dir_world: obj_dir_world.dot(obj_pos - orient_away_from)
+                            while f(rotate(obj_dir_world, sign*dangle)) > f(obj_dir_world):
                                 obj_dir_world = rotate(obj_dir_world, sign*dangle)
                         
                         yield (self.move
@@ -424,6 +429,12 @@ class _Sub(object):
                         self.pose.set_orientation(orientation).set_position((desired_pos+self.pose.position)/2).as_MoveToGoal())
         finally:
             if move_goal_mgr is not None: yield move_goal_mgr.cancel()
+    
+    @util.cancellableInlineCallbacks
+    def get_z_force(self):
+        wrench = yield self._wrench_sub.get_next_message()
+        return wrench.wrench.force.z
+
 
 _subs = {}
 @util.cancellableInlineCallbacks

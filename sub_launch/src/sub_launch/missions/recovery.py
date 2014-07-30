@@ -41,6 +41,15 @@ def select_by_body_direction(body_vector):
     return _
 
 @util.cancellableInlineCallbacks
+def get_weight(sub):
+    yield util.sleep(10)
+    start = time.time()
+    res = []
+    while time.time() < start + 5:
+        res.append((yield sub.get_z_force()))
+    defer.returnValue(sum(res) / len(res))
+
+@util.cancellableInlineCallbacks
 def try_to_grab(sub, obj_name, board_pose, surface=False, bubbles=False):
     assert obj_name in ['moonrock', 'cheese']
     try:
@@ -54,7 +63,8 @@ def try_to_grab(sub, obj_name, board_pose, surface=False, bubbles=False):
         print "relative move"
         yield sub.lower_down_grabber()
         yield sub.open_down_grabber()
-        yield util.sleep(5) # XXX
+        w1 = yield get_weight(sub)
+        print 'w1', w1
         print "moving down"
         yield sub.move.down(1).go(speed=.2)
         try:
@@ -68,7 +78,8 @@ def try_to_grab(sub, obj_name, board_pose, surface=False, bubbles=False):
         print "moving back to surface"
         #yield sub.move.up(.5).go(speed=.2)
         yield sub.move.depth(2).go()
-        yield util.sleep(5) # XXX
+        w2 = yield get_weight(sub)
+        print 'w2', w2
         print "going to hydrophone"
         yield sub.hydrophone_align(25e3)
         if surface:

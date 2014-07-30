@@ -27,7 +27,7 @@
   <include file="$(find image_proc)/launch/image_proc.launch" ns="/forward_camera">
     <arg name="manager" value="/forward_camera_nodelets"/>
   </include>
-  <param name="/forward_camera/corner_cut" value="100"/>
+  <param name="/forward_camera/corner_cut" value="0"/>
 
   <node pkg="nodelet" type="nodelet" name="down_camera_nodelets"
         args="manager" output="screen"/>  

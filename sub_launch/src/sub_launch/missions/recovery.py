@@ -41,7 +41,7 @@ def select_by_body_direction(body_vector):
     return _
 
 @util.cancellableInlineCallbacks
-def try_to_grab(sub, obj_name, board_pose):
+def try_to_grab(sub, obj_name, board_pose, surface=False, bubbles=False):
     assert obj_name in ['moonrock', 'cheese']
     try:
         yield sub.move.depth(2).go()
@@ -71,13 +71,22 @@ def try_to_grab(sub, obj_name, board_pose):
         yield util.sleep(5) # XXX
         print "going to hydrophone"
         yield sub.hydrophone_align(25e3)
-        print "relative move"
+        if surface:
+            yield sub.move.depth(-.5).go()
+            yield sub.move.depth(2).go()
         #yield sub.move.relative([-.15,-.2,0]).go()
         print "going down"
         yield sub.open_down_grabber()
         yield util.sleep(1)
         yield sub.close_down_grabber()
         yield sub.raise_down_grabber()
+        if bubbles:
+            yield sub.fire_left_torpedo()
+            yield sub.fire_right_torpedo()
+            yield sub.fire_left_torpedo()
+            yield sub.fire_right_torpedo()
+            yield sub.fire_left_torpedo()
+            yield sub.fire_right_torpedo()
         print "going to board"
         yield sub.move.look_at_without_pitching(board_pose.position).go()
         yield sub.move.set_position(board_pose.position).go()
@@ -97,8 +106,7 @@ def main(nh, freq=25e3):
     yield sub.move.depth(-.5).go()
     yield sub.move.depth(1).go()
     
-    yield sub.move.heading_deg(180).go()
-    yield path.main(nh)
+    yield path.main(nh, orient_away_from=True)
     orig_depth = -sub.pose.position[2]
     dist = yield sub.get_dvl_range()
     yield sub.move.depth(2).go()
@@ -111,9 +119,9 @@ def main(nh, freq=25e3):
         yield fwd_move.cancel()
     board_pose = sub.pose
     
+    yield try_to_grab(sub, 'moonrock', board_pose, surface=True)
     yield try_to_grab(sub, 'moonrock', board_pose)
-    yield try_to_grab(sub, 'moonrock', board_pose)
-    yield try_to_grab(sub, 'moonrock', board_pose)
+    yield try_to_grab(sub, 'moonrock', board_pose, bubbles=True)
     yield try_to_grab(sub, 'cheese', board_pose)
     yield try_to_grab(sub, 'cheese', board_pose)
     yield try_to_grab(sub, 'cheese', board_pose)

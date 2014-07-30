@@ -9,12 +9,15 @@ import numpy
 def selector(obj_name):
     assert obj_name in ['moonrock', 'cheese']
     def _(results, body_tf):
-        print results
         results = list(results)
         if len(results) > 1:
             for obj in results: obj['redness'] = float(obj['redness'])
             results.sort(key=lambda obj: float(obj['redness']))
-            first_rock = min(xrange(1, len(results)), key=lambda i: numpy.var([x['redness'] for x in results[:i]]) + numpy.var([x['redness'] for x in results[i:]]))
+            def ene(x):
+                x = numpy.array(x)
+                y = x - numpy.mean(x)
+                return numpy.sum(y*y)
+            first_rock = min(xrange(1, len(results)), key=lambda i: ene([x['redness'] for x in results[:i]]) + ene([x['redness'] for x in results[i:]]))
             cheeses, rocks = results[:first_rock], results[first_rock:]
             print [c['redness'] for c in cheeses], [r['redness'] for r in rocks]
             

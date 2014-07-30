@@ -3,4 +3,4 @@ rosparam dump $1.yaml
 rosbag record -o $1 \
     /forward_camera/image_raw /forward_camera/camera_info \
     /down_camera/image_raw /down_camera/camera_info \
-    /odom /tf /wrench
+    /odom /tf /wrench /trajectory

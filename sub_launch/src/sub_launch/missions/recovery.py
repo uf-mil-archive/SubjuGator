@@ -44,7 +44,7 @@ def try_to_grab(sub, obj_name, board_pose):
         yield sub.move.depth(2).go()
         dist = yield sub.get_dvl_range()
         try:
-            yield util.wrap_timeout(sub.visual_align('down', 'wreath/moonrock', dist-.3, selector=selector(obj_name)), 20)
+            yield util.wrap_timeout(sub.visual_align('down', 'wreath/'+obj_name, dist-.3, selector=selector(obj_name)), 20)
         except util.TimeoutError:
             print 'timed out'
             return
@@ -79,30 +79,32 @@ def try_to_grab(sub, obj_name, board_pose):
 @util.cancellableInlineCallbacks
 def main(nh, freq=25e3):
     sub = yield sub_scripting.get_sub(nh)
-    #yield sub.move.depth(1).go()
-    #yield sub.hydrophone_align(freq)
-    #yield sub.move.heading_deg(0).go()
-    #yield path.main(nh)
-    '''fwd_move = sub.move.go(linear=[0.25, 0, 0])
+    yield sub.move.depth(1).go()
+    yield sub.hydrophone_align(freq)
+    
+    print 'surfacing'
+    yield sub.move.depth(.5).go()
+    yield sub.move.depth(1).go()
+    
+    yield sub.move.heading_deg(0).go()
+    yield path.main(nh)
+    orig_depth = -sub.pose.position[2]
+    dist = yield sub.get_dvl_range()
+    yield sub.move.depth(2).go()
+    yield sub.move.forward(3).go()
+    fwd_move = sub.move.go(linear=[0.25, 0, 0])
     try:
-        orig_depth = -sub.pose.position[2]
-        
-        dist = yield sub.get_dvl_range()
-        yield sub.move.depth(2).go()     
-        
-        yield sub.move.forward(3).go()
-        
         yield sub.visual_align('down', 'wreath/board', dist-.3, selector=select_centered, turn=False)
         #yield sub.visual_align('down', 'wreath/moonrock', dist, selector=select_by_body_direction([0,1,0]), turn=False)
     finally:
-        yield fwd_move.cancel()'''
+        yield fwd_move.cancel()
     board_pose = sub.pose
     
     yield try_to_grab(sub, 'moonrock', board_pose)
-    yield try_to_grab(sub, 'cheese', board_pose)
+    yield try_to_grab(sub, 'moonrock', board_pose)
     yield try_to_grab(sub, 'moonrock', board_pose)
     yield try_to_grab(sub, 'cheese', board_pose)
-    yield try_to_grab(sub, 'moonrock', board_pose)
+    yield try_to_grab(sub, 'cheese', board_pose)
     yield try_to_grab(sub, 'cheese', board_pose)
     
     yield sub.move.depth(2).go()

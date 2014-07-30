@@ -16,7 +16,7 @@ def selector(obj_name):
             results.sort(key=lambda obj: float(obj['redness']))
             first_rock = min(xrange(1, len(results)), key=lambda i: numpy.var([x['redness'] for x in results[:i]]) + numpy.var([x['redness'] for x in results[i:]]))
             cheeses, rocks = results[:first_rock], results[first_rock:]
-            print cheeses, rocks
+            print [c['redness'] for c in cheeses], [r['redness'] for r in rocks]
             
             objs = cheeses if obj_name == 'cheese' else rocks
             

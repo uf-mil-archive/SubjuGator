@@ -159,7 +159,7 @@ class _Sub(object):
                         for sign in [-1, +1]:
                             f = lambda obj_dir_world: obj_dir_world.dot(start_pose.forward_vector)
                             if orient_away_from is not None:
-                                f = lambda obj_dir_world: obj_dir_world.dot(obj_pos - orient_away_from)
+                                f = lambda obj_dir_world: obj_dir_world.dot(object_pos - orient_away_from)
                             while f(rotate(obj_dir_world, sign*dangle)) > f(obj_dir_world):
                                 obj_dir_world = rotate(obj_dir_world, sign*dangle)
                         
@@ -433,7 +433,7 @@ class _Sub(object):
     @util.cancellableInlineCallbacks
     def get_z_force(self):
         wrench = yield self._wrench_sub.get_next_message()
-        return wrench.wrench.force.z
+        defer.returnValue(wrench.wrench.force.z)
 
 
 _subs = {}

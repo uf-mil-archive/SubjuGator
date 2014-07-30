@@ -29,8 +29,8 @@ def main(nh):
         orig_depth = -sub.pose.position[2]
         
         dist = yield sub.get_dvl_range()
-        yield sub.move.down(dist-1.75).go()       
-        yield sub.visual_align('down', 'wreath/cheese', dist, selector=select_by_body_direction([0,1,0]), turn=False)
+        yield sub.move.depth(2).go()      
+        #yield sub.visual_align('down', 'wreath/moonrock', dist, selector=select_by_body_direction([0,1,0]), turn=False)
     finally:
         yield fwd_move.cancel()       
     board_pose = sub.pose
@@ -39,26 +39,26 @@ def main(nh):
     try:
         while True:
             dist = yield sub.get_dvl_range()
-            yield sub.move.down(dist-1.75).go()
+            yield sub.move.depth(2).go()
             dist = yield sub.get_dvl_range()
             try:
-                yield util.wrap_timeout(sub.visual_align('down', 'wreath/cheese', dist-.3, selector=select_centered, turn=False), 20)
+                yield util.wrap_timeout(sub.visual_align('down', 'wreath/moonrock', dist-.3, selector=select_centered, turn=False), 20)
             except util.TimeoutError:
                 print 'timed out'
                 break
             print "relative move"
-            yield sub.move.relative([-.07,-.095,0]).go()
+            yield sub.move.relative([-.08,-.1,0]).go()
             print "lower down grabber"
             yield sub.lower_down_grabber()
             print "opening down grabber"
             yield sub.open_down_grabber()
             print "moving down"
-            yield sub.move.down(1.15).go(speed=.1)
+            yield sub.move.down(1.8).go(speed=.2)
             print "close down grabber"
             yield sub.close_down_grabber()
             print "moving back to surface"
-            yield sub.move.up(.5).go(speed=.1)
-            yield sub.move.up(.5).go()
+            yield sub.move.up(.5).go(speed=.2)
+            yield sub.move.depth(2).go()
             print "going to hydrophone"
             yield sub.hydrophone_align(25e3)
             print "relative move"
@@ -68,7 +68,7 @@ def main(nh):
             yield sub.open_down_grabber()
             yield util.sleep(1)
             print "going up"
-            yield sub.move.up(.7).go()
+            yield sub.move.depth(2).go()
             yield "closing down grabber"
             yield sub.close_down_grabber()
             yield sub.raise_down_grabber()
@@ -85,26 +85,26 @@ def main(nh):
     try:
         while True:
             dist = yield sub.get_dvl_range()
-            yield sub.move.down(dist-1.75).go()
+            yield sub.move.depth(2).go()
             dist = yield sub.get_dvl_range()
             try:
-                yield util.wrap_timeout(sub.visual_align('down', 'wreath/moonrock', dist-.3, selector=select_centered, turn=False), 20)
+                yield util.wrap_timeout(sub.visual_align('down', 'wreath/cheese', dist-.3, selector=select_centered, turn=False), 20)
             except util.TimeoutError:
                 print 'timed out'
                 break
             print "relative move"
-            yield sub.move.relative([-.07,-.095,0]).go()
+            yield sub.move.relative([-.08,-.1,0]).go()
             print "lower down grabber"
             yield sub.lower_down_grabber()
             print "opening down grabber"
             yield sub.open_down_grabber()
             print "moving down"
-            yield sub.move.down(1.15).go(speed=.1)
+            yield sub.move.down(1.8).go(speed=.2)
             print "close down grabber"
             yield sub.close_down_grabber()
             print "moving back to surface"
-            yield sub.move.up(.5).go(speed=.1)
-            yield sub.move.up(.5).go()
+            yield sub.move.up(.5).go(speed=.2)
+            yield sub.move.depth(2).go()
             print "going to hydrophone"
             yield sub.hydrophone_align(25e3)
             print "relative move"
@@ -114,7 +114,7 @@ def main(nh):
             yield sub.open_down_grabber()
             yield util.sleep(1)
             print "going up"
-            yield sub.move.up(.7).go()
+            yield sub.move.depth(2).go()
             yield "closing down grabber"
             yield sub.close_down_grabber()
             yield sub.raise_down_grabber()

@@ -102,10 +102,10 @@ shift: [1.7322001620747598e-05, -7.237241107056895e-06, 5.88175694611367e-05]
     <remap from="topic" to="dvl/range"/>
     <param name="cond" value="data &lt; .25"/>
   </node>
-  <node pkg="kill_handling" type="kill_on_cond" name="motor_power_kill">
+  <!-- <node pkg="kill_handling" type="kill_on_cond" name="motor_power_kill">
     <remap from="topic" to="voltage32"/>
     <param name="cond" value="data &lt; 5"/>
-  </node>
+  </node> -->
 
 
   <node pkg="object_finder" type="object_finder" name="forward_object_finder">

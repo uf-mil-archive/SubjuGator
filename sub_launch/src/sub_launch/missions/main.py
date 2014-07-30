@@ -19,11 +19,15 @@ from sub_launch.missions import bins, maneuvering, recovery
 def main_list(nh):
     sub = yield sub_scripting.get_sub(nh)
     try:
+        yield sub.move.depth(2).go()
+        yield sub.move.forward(10).go()
         print 'starting buoy'
+        yield sub.move.depth(3).go()
         yield buoy.main(nh)
         print 'starting path'
         yield path.main(nh)
         print 'starting maneuvering'
+        yield sub.move.depth(3).go()
         yield maneuvering.main(nh)
         print 'starting left path'
         yield path.main(nh, 'left')
@@ -34,16 +38,19 @@ def main_list(nh):
         print 'going back'
         yield sub.move.set_position(stored_pose1.position).set_orientation(stored_pose1.orientation).go()
         print 'starting shooter'
+        yield sub.move.depth(2.5).turn_right_deg(15).go()
         yield shooter.main(nh)
-        print 'starting path'
+        '''print 'starting path'
         yield sub.move.set_position(stored_pose2.position).set_orientation(stored_pose1.orientation).go()
-        yield sub.move.turn_right_deg(90).go()
+        yield sub.move.turn_left_deg(90).go()
         yield sub.move.forward(1.75).go()
         yield path.main(nh)
+        yield sub.move.forward(25).go()
+        yield sub.move.depth(4).go()
         print 'staring manipulation'
         yield manipulation.main(nh)
         yield sub.move.depth(0.75).turn_right_deg(20).go()
-        yield sub.move.forward(6).go()
+        yield sub.move.forward(6).go()'''
         yield recovery.main(nh)
     finally:
         print 'main finally start'

@@ -32,11 +32,10 @@ def main(nh):
     dist = yield sub.get_dvl_range()
     fwd_move = sub.move.go(linear=[0.25, 0, 0])
     try:
-        yield sub.visual_align('down', 'bins/all', distance_estimate=dist-.3, turn=True)
+        yield sub.visual_align('down', 'bins/all', distance_estimate=dist-.3, turn=True, angle=math.radians(45))
     finally:
         fwd_move.cancel()
     dist = yield sub.get_dvl_range()
-    yield sub.move.turn_left_deg(45).go()
     yield sub.visual_align('down', 'bins/all', distance_estimate=dist-.3, turn=False)
     #yield sub.move.down(dist-.3 - 2.5).go()
     print "aligned down"

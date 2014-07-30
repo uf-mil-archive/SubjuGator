@@ -28,7 +28,7 @@ def main(nh):
     fwd_move = sub.move.go(linear=[0.25, 0, 0])
     
     try:
-        obj = yield sub.visual_approach('forward', 'shooter/hole', size_estimate=5*.0254, desired_distance=2.5, selector=select_by_body_direction([0,1,0]))
+        obj = yield sub.visual_approach('forward', 'shooter/hole', size_estimate=5*.0254, desired_distance=1.5, selector=select_by_body_direction([0,1,0]))
     finally:
         yield fwd_move.cancel()
     
@@ -38,7 +38,7 @@ def main(nh):
     feedback = yield goal_mgr.get_feedback()
     res = map(json.loads, feedback.targetreses[0].object_results)  
     
-    i = 0
+    '''i = 0
     print 'about to align'  
     while True:
         print 'aligning'
@@ -59,7 +59,7 @@ def main(nh):
                     break
         else:
             i = 0
-    print 'done aligning'
+    print 'done aligning'''
     
     yield sub.visual_approach('forward', 'shooter/hole', size_estimate=5*.0254, desired_distance=1.0, selector=select_by_body_direction([0,1,0])) 
     yield util.sleep(5)

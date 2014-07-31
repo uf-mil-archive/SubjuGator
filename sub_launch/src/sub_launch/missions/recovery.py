@@ -4,6 +4,7 @@ from txros import util
 
 from twisted.internet import defer
 
+import random
 import time
 import math
 import sub_scripting
@@ -58,6 +59,7 @@ def get_weight(sub):
 def try_to_grab(sub, obj_name, freq, surface=False, bubbles=False):
     assert obj_name in ['moonrock', 'cheese']
     try:
+        yield sub.move.depth(1).go()
         fwd_move = sub.move.go(linear=[0.25, 0, 0])
         try:
             yield sub.visual_align('down', 'wreath/board/high', 2, selector=select_centered, turn=True, angle=math.radians(45))
@@ -72,7 +74,7 @@ def try_to_grab(sub, obj_name, freq, surface=False, bubbles=False):
         except util.TimeoutError:
             print 'timed out'
             return
-        print "relative move"
+        print "weighing"
         w1 = yield get_weight(sub)
         print 'w1', w1
         print "moving down"
@@ -84,7 +86,7 @@ def try_to_grab(sub, obj_name, freq, surface=False, bubbles=False):
             return
         yield sub.lower_down_grabber()
         yield sub.open_down_grabber()
-        yield sub.move.relative([-.09,-.15,0]).go()
+        yield sub.move.relative([-.10,-.15,0]).go()
         if obj_name == 'moonrock':
             yield sub.move.down(.7).go(speed=.2)
         else:
@@ -98,7 +100,7 @@ def try_to_grab(sub, obj_name, freq, surface=False, bubbles=False):
         gain = w2 - w1
         print 'weight gained', gain
         weights = {0: 0, 1: 2.97, 2: 4.00}
-        objects = min(weights, key=lambda w: abs(w - gain))
+        objects = min(weights, key=lambda w: abs(weights[w] - gain))
         print 'object count', objects
         if objects != 1:
             yield sub.move.set_position(board_pose.position + [random.uniform(-.5, .5), random.uniform(-.5, .5), 0]).go()
@@ -121,9 +123,8 @@ def try_to_grab(sub, obj_name, freq, surface=False, bubbles=False):
         yield sub.close_down_grabber()
         yield util.sleep(1)
         yield sub.open_down_grabber()
-        yield util.sleep(2)
+        yield util.sleep(3)
         yield sub.raise_down_grabber()
-        yield sub.close_down_grabber()
         if bubbles:
             yield sub.fire_left_torpedo()
             yield sub.fire_right_torpedo()
@@ -151,17 +152,16 @@ def retry_to_grab(*args, **kwargs):
 def main(nh, freq=33e3):
     sub = yield sub_scripting.get_sub(nh)
     yield sub.raise_down_grabber()
-    yield sub.move.depth(1).go()
-    yield sub.hydrophone_align(freq)
-    yield sub.move.relative(RELATIVE_PINGER_MOVE).go()
+    #yield sub.move.depth(1).go()
+    #yield sub.hydrophone_align(freq)
+    #yield sub.move.relative(RELATIVE_PINGER_MOVE).go()
     
     print 'surfacing'
-    yield sub.move.depth(0).go()
-    yield sub.move.depth(1).go()
+    #yield sub.move.depth(0).go()
+    #yield sub.move.depth(1).go()
     
-    yield path.main(nh, orient_away_from=True, forward=False, depth=0.4)
-    yield sub.move.depth(2).go()
-    yield sub.move.forward(2).go()
+    #yield path.main(nh, orient_away_from=True, forward=False, depth=0.4)
+    #yield sub.move.forward(2).go()
     
     yield retry_to_grab(sub, 'moonrock', freq, surface=True)
     yield retry_to_grab(sub, 'moonrock', freq, bubbles=True)

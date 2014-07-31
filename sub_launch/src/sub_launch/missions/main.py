@@ -52,7 +52,6 @@ def main_list(nh):
         yield manipulation.main(nh)
         yield sub.move.depth(0.75).turn_right_deg(20).go()
         yield sub.move.forward(6).go()'''
-        yield recovery.main(nh)
     finally:
         print 'main finally start'
         #yield util.sleep(3)
@@ -63,7 +62,7 @@ def fail_list(nh):
     sub = yield sub_scripting.get_sub(nh)
     try:
         print 'fail start'
-        #yield sub.move.depth(0).go()
+        yield recovery.main(nh)
         print 'fail end'
     finally:
         print 'fail finally'
@@ -83,7 +82,7 @@ def main(nh):
             break
     
     try:
-        yield util.wrap_timeout(main_list(nh), time_left - 60)
+        yield util.wrap_timeout(main_list(nh), time_left - 600)
     except Exception:
         traceback.print_exc()
     

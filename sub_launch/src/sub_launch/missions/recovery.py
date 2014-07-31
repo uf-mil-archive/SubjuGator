@@ -97,7 +97,8 @@ def try_to_grab(sub, obj_name, freq, surface=False, bubbles=False):
         print 'w2', w2
         gain = w2 - w1
         print 'weight gained', gain
-        objects = round(gain / 2.7)
+        weights = {0: 0, 1: 2.97, 2: 4.00}
+        objects = min(weights, key=lambda w: abs(w - gain))
         print 'object count', objects
         if objects != 1:
             yield sub.move.set_position(board_pose.position).go()

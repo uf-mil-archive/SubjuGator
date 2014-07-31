@@ -143,7 +143,7 @@ def try_to_grab(sub, obj_name, freq, surface=False, bubbles=False):
         print "finally"
         yield sub.close_down_grabber()
         yield sub.raise_down_grabber()
-    yield sub.move.depth(2).go()
+    #yield sub.move.depth(2).go()
     defer.returnValue(True)
 
 @util.cancellableInlineCallbacks

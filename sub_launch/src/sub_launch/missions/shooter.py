@@ -21,6 +21,37 @@ def select_by_body_direction(body_vector):
     return _
 
 @util.cancellableInlineCallbacks
+def align(sub):
+    goal_mgr = sub._camera_2d_action_clients['forward'].send_goal(legacy_vision_msg.FindGoal(
+        object_names=['shooter/board'],
+    ))
+    try:
+        i = 0
+        print 'about to align'  
+        while True:
+            print 'aligning'
+            feedback = yield goal_mgr.get_feedback()
+            res = map(json.loads, feedback.targetreses[0].object_results)
+            if not res:
+                continue
+            angle = float(res[0]['orientation_error'])
+            xdist = 1.5 * math.sin(angle/2)
+            print angle, xdist
+            yield sub.move.yaw_left(angle).go()
+            yield sub.move.right(2*xdist).go()
+    
+            if abs(angle)<math.radians(5):
+                i += 1
+                if i > 3:
+                    break
+            else:
+                i = 0
+    finally:
+        yield goal_mgr.cancel()
+    print 'done aligning'
+
+
+@util.cancellableInlineCallbacks
 def main(nh):
     print "starting shooter"
     sub = yield sub_scripting.get_sub(nh)
@@ -32,34 +63,11 @@ def main(nh):
     finally:
         yield fwd_move.cancel()
     
-    goal_mgr = sub._camera_2d_action_clients['forward'].send_goal(legacy_vision_msg.FindGoal(
-        object_names=['shooter/board'],
-    ))
-    feedback = yield goal_mgr.get_feedback()
-    res = map(json.loads, feedback.targetreses[0].object_results)  
-    
-    '''i = 0
-    print 'about to align'  
-    while True:
-        print 'aligning'
-        feedback = yield goal_mgr.get_feedback()
-        res = map(json.loads, feedback.targetreses[0].object_results)
-        if not res:
-            continue
-        #goal_mgr.cancel()
-        angle = float(res[0]['orientation_error'])
-        xdist = 1.5 * math.sin(angle/2)
-        print angle, xdist
-        yield sub.move.yaw_left(angle).go()
-        yield sub.move.right(2*xdist).go()
-
-        if abs(angle)<math.radians(5):
-                i += 1
-                if i > 3:
-                    break
-        else:
-            i = 0
-    print 'done aligning'''
+    start = sub.move
+    try:
+        yield util.wrap_timeout(align(sub), 30)
+    except Exception:
+        yield start.go() # go back because alignment failed
     
     yield sub.visual_approach('forward', 'shooter/hole', size_estimate=5*.0254, desired_distance=1.0, selector=select_by_body_direction([0,1,0])) 
     yield util.sleep(5)

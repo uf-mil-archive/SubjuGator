@@ -76,7 +76,10 @@ def try_to_grab(sub, obj_name, board_pose, surface=False, bubbles=False):
         yield sub.lower_down_grabber()
         yield sub.open_down_grabber()
         yield sub.move.relative([-.09,-.15,0]).go()
-        yield sub.move.down(.8).go(speed=.2)
+        if obj_name=='moonrock':
+            yield sub.move.down(.7).go(speed=.2)
+        else:
+            yield sub.move.down(.8).go(speed=.2)
         yield sub.close_down_grabber()
         print "moving back to surface"
         #yield sub.move.up(.5).go(speed=.2)
@@ -95,7 +98,7 @@ def try_to_grab(sub, obj_name, board_pose, surface=False, bubbles=False):
             yield sub.move.turn_left_deg(120).go()
             defer.returnValue(False)
         print "going to hydrophone"
-        yield sub.hydrophone_align(25e3)
+        yield sub.hydrophone_align(33e3)
         if surface:
             yield sub.move.depth(-.5).go()
             yield sub.move.depth(2).go()

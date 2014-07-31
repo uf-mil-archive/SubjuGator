@@ -27,6 +27,11 @@ def selector(obj_name):
             cheeses, rocks = results[:first_rock], results[first_rock:]
             print [c['redness'] for c in cheeses], [r['redness'] for r in rocks]
             
+            if obj_name == 'cheese':
+                return results[0]
+            else:
+                return results[-1]
+            
             objs = cheeses if obj_name == 'cheese' else rocks
             
             return min(objs, key=lambda obj: math.sqrt(float(obj['center'][0])**2 + float(obj['center'][1])**2))
@@ -74,9 +79,9 @@ def try_to_grab(sub, obj_name, freq, surface=False, bubbles=False):
         except util.TimeoutError:
             print 'timed out'
             return
-        print "weighing"
-        w1 = yield get_weight(sub)
-        print 'w1', w1
+        #print "weighing"
+        #w1 = yield get_weight(sub)
+        #print 'w1', w1
         print "moving down"
         yield sub.move.down(1).go(speed=.2)
         try:
@@ -95,20 +100,20 @@ def try_to_grab(sub, obj_name, freq, surface=False, bubbles=False):
         print "moving back to surface"
         #yield sub.move.up(.5).go(speed=.2)
         yield sub.move.depth(2).go()
-        w2 = yield get_weight(sub)
-        print 'w2', w2
-        gain = w2 - w1
-        print 'weight gained', gain
-        weights = {0: 0, 1: 2.97, 2: 4.00}
-        objects = min(weights, key=lambda w: abs(weights[w] - gain))
-        print 'object count', objects
-        if objects != 1:
-            yield sub.move.set_position(board_pose.position + [random.uniform(-.5, .5), random.uniform(-.5, .5), 0]).go()
-            yield sub.open_down_grabber()
-            yield util.sleep(1)
-            yield sub.close_down_grabber()
-            yield sub.move.turn_left_deg(120).go()
-            defer.returnValue(False)
+        #w2 = yield get_weight(sub)
+        #print 'w2', w2
+        #gain = w2 - w1
+        #print 'weight gained', gain
+        #weights = {0: 0, 1: 2.97, 2: 4.00}
+        #objects = min(weights, key=lambda w: abs(weights[w] - gain))
+        #print 'object count', objects
+        #if objects != 1:
+        #    yield sub.move.set_position(board_pose.position + [random.uniform(-.5, .5), random.uniform(-.5, .5), 0]).go()
+        #    yield sub.open_down_grabber()
+        #    yield util.sleep(1)
+        #    yield sub.close_down_grabber()
+        #    yield sub.move.turn_left_deg(120).go()
+        #    defer.returnValue(False)
         print "going to hydrophone"
         yield sub.hydrophone_align(freq)
         if surface:
@@ -152,16 +157,18 @@ def retry_to_grab(*args, **kwargs):
 def main(nh, freq=33e3):
     sub = yield sub_scripting.get_sub(nh)
     yield sub.raise_down_grabber()
-    #yield sub.move.depth(1).go()
-    #yield sub.hydrophone_align(freq)
-    #yield sub.move.relative(RELATIVE_PINGER_MOVE).go()
-    
-    print 'surfacing'
-    #yield sub.move.depth(0).go()
-    #yield sub.move.depth(1).go()
-    
-    #yield path.main(nh, orient_away_from=True, forward=False, depth=0.4)
-    #yield sub.move.forward(2).go()
+
+    if 1:
+        yield sub.move.depth(1).go()
+        yield sub.hydrophone_align(freq)
+        yield sub.move.relative(RELATIVE_PINGER_MOVE).go()
+        
+        print 'surfacing'
+        yield sub.move.depth(0).go()
+        #yield sub.move.depth(1).go()
+        
+        yield path.main(nh, orient_away_from=True, forward=False, depth=0.4)
+        yield sub.move.forward(2).go()
     
     yield retry_to_grab(sub, 'moonrock', freq, surface=True)
     yield retry_to_grab(sub, 'moonrock', freq, bubbles=True)
@@ -169,5 +176,3 @@ def main(nh, freq=33e3):
     yield retry_to_grab(sub,   'cheese', freq)
     yield retry_to_grab(sub,   'cheese', freq, bubbles=True)
     yield retry_to_grab(sub, 'moonrock', freq)
-    
-    yield sub.move.depth(2).go()

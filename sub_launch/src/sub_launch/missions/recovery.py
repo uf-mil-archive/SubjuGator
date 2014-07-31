@@ -45,10 +45,10 @@ def select_by_body_direction(body_vector):
 
 @util.cancellableInlineCallbacks
 def get_weight(sub):
-    yield util.sleep(10)
+    yield util.sleep(4)
     start = time.time()
     res = []
-    while time.time() < start + 5:
+    while time.time() < start + 3.5:
         res.append((yield sub.get_z_force()))
     defer.returnValue(sum(res) / len(res))
 
@@ -83,6 +83,14 @@ def try_to_grab(sub, obj_name, board_pose, surface=False, bubbles=False):
         yield sub.move.depth(2).go()
         w2 = yield get_weight(sub)
         print 'w2', w2
+        gain = w2 - w1
+        print 'weight gained', gain
+        objects = round(gain / 2.7)
+        print 'object count', objects
+        if objects != 1:
+            yield sub.move.set_position(board_pose.position).go()
+            yield sub.move.turn_left_deg(120).go()
+            defer.returnValue(False)
         print "going to hydrophone"
         yield sub.hydrophone_align(25e3)
         if surface:
@@ -108,7 +116,14 @@ def try_to_grab(sub, obj_name, board_pose, surface=False, bubbles=False):
         print "finally"
         yield sub.close_down_grabber()
         yield sub.raise_down_grabber()
-    yield sub.move.depth(2).go() 
+    yield sub.move.depth(2).go()
+    defer.returnValue(True)
+
+@util.cancellableInlineCallbacks
+def retry_to_grab(*args, **kwargs):
+    while True:
+        res = yield try_to_grab(*args, **kwargs)
+        if res: break
 
 @util.cancellableInlineCallbacks
 def main(nh, freq=25e3):
@@ -124,20 +139,19 @@ def main(nh, freq=25e3):
     orig_depth = -sub.pose.position[2]
     dist = yield sub.get_dvl_range()
     yield sub.move.depth(2).go()
-    yield sub.move.forward(3).go()
+    yield sub.move.forward(2).go()
     fwd_move = sub.move.go(linear=[0.25, 0, 0])
     try:
         yield sub.visual_align('down', 'wreath/board/high', 2, selector=select_centered, turn=True, angle=math.radians(45))
-        #yield sub.visual_align('down', 'wreath/moonrock', dist, selector=select_by_body_direction([0,1,0]), turn=False)
     finally:
         yield fwd_move.cancel()
     board_pose = sub.pose
     
-    yield try_to_grab(sub, 'moonrock', board_pose, surface=True)
-    yield try_to_grab(sub, 'moonrock', board_pose)
-    yield try_to_grab(sub, 'moonrock', board_pose, bubbles=True)
-    yield try_to_grab(sub, 'cheese', board_pose)
-    yield try_to_grab(sub, 'cheese', board_pose)
-    yield try_to_grab(sub, 'cheese', board_pose)
+    yield retry_to_grab(sub, 'moonrock', board_pose, surface=True)
+    yield retry_to_grab(sub, 'moonrock', board_pose)
+    yield retry_to_grab(sub, 'moonrock', board_pose, bubbles=True)
+    yield retry_to_grab(sub, 'cheese', board_pose)
+    yield retry_to_grab(sub, 'cheese', board_pose)
+    yield retry_to_grab(sub, 'cheese', board_pose)
     
     yield sub.move.depth(2).go()

@@ -9,7 +9,7 @@ import math
 import sub_scripting
 import numpy
 
-RELATIVE_PINGER_MOVE = numpy.array([-1, -.05, 0])
+RELATIVE_PINGER_MOVE = numpy.array([-.5, -.1, 0])
 
 def selector(obj_name):
     assert obj_name in ['moonrock', 'cheese']
@@ -152,20 +152,20 @@ def retry_to_grab(*args, **kwargs):
 @util.cancellableInlineCallbacks
 def main(nh, freq=33e3):
     sub = yield sub_scripting.get_sub(nh)
-    yield sub.raise_down_grabber()
-    yield sub.move.depth(1).go()
-    yield sub.hydrophone_align(freq)
-    yield sub.move.relative(RELATIVE_PINGER_MOVE).go()
+    #yield sub.raise_down_grabber()
+    #yield sub.move.depth(1).go()
+    #yield sub.hydrophone_align(freq)
+    #yield sub.move.relative(RELATIVE_PINGER_MOVE).go()
     
-    print 'surfacing'
-    yield sub.move.depth(0).go()
-    yield sub.move.depth(1).go()
+    #print 'surfacing'
+    #yield sub.move.depth(0).go()
+    #yield sub.move.depth(1).go()
     
-    yield path.main(nh, orient_away_from=True, forward=False)
-    orig_depth = -sub.pose.position[2]
-    dist = yield sub.get_dvl_range()
+    #yield path.main(nh, orient_away_from=True, forward=False)
+    #orig_depth = -sub.pose.position[2]
+    #dist = yield sub.get_dvl_range()
     yield sub.move.depth(2).go()
-    yield sub.move.forward(2).go()
+    #yield sub.move.forward(2).go()
     
     yield retry_to_grab(sub, 'moonrock', freq, surface=True)
     yield retry_to_grab(sub, 'moonrock', freq)

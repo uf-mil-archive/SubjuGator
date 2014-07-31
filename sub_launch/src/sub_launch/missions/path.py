@@ -9,7 +9,7 @@ import sub_scripting
 def main(nh, direction=None, orient_away_from=False, forward=True):
     sub = yield sub_scripting.get_sub(nh)
     
-    yield sub.move.depth(0.75).go()
+    yield sub.move.depth(0.4).go()
     
     dist = yield sub.get_dvl_range()
     

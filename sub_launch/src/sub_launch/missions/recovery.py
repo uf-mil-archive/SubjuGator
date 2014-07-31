@@ -64,8 +64,6 @@ def try_to_grab(sub, obj_name, board_pose, surface=False, bubbles=False):
             print 'timed out'
             return
         print "relative move"
-        yield sub.lower_down_grabber()
-        yield sub.open_down_grabber()
         w1 = yield get_weight(sub)
         print 'w1', w1
         print "moving down"
@@ -75,6 +73,8 @@ def try_to_grab(sub, obj_name, board_pose, surface=False, bubbles=False):
         except util.TimeoutError:
             print 'timed out'
             return
+        yield sub.lower_down_grabber()
+        yield sub.open_down_grabber()
         yield sub.move.relative([-.09,-.15,0]).go()
         yield sub.move.down(.8).go(speed=.2)
         yield sub.close_down_grabber()
@@ -89,6 +89,9 @@ def try_to_grab(sub, obj_name, board_pose, surface=False, bubbles=False):
         print 'object count', objects
         if objects != 1:
             yield sub.move.set_position(board_pose.position).go()
+            yield sub.open_down_grabber()
+            yield util.sleep(1)
+            yield sub.close_down_grabber()
             yield sub.move.turn_left_deg(120).go()
             defer.returnValue(False)
         print "going to hydrophone"

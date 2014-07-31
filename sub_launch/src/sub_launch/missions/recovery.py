@@ -9,6 +9,8 @@ import math
 import sub_scripting
 import numpy
 
+RELATIVE_PINGER_MOVE = numpy.array([-1, -.05, 0])
+
 def selector(obj_name):
     assert obj_name in ['moonrock', 'cheese']
     def _(results, body_tf):
@@ -53,9 +55,16 @@ def get_weight(sub):
     defer.returnValue(sum(res) / len(res))
 
 @util.cancellableInlineCallbacks
-def try_to_grab(sub, obj_name, board_pose, freq, surface=False, bubbles=False):
+def try_to_grab(sub, obj_name, freq, surface=False, bubbles=False):
     assert obj_name in ['moonrock', 'cheese']
     try:
+        fwd_move = sub.move.go(linear=[0.25, 0, 0])
+        try:
+            yield sub.visual_align('down', 'wreath/board/high', 2, selector=select_centered, turn=True, angle=math.radians(45))
+        finally:
+            yield fwd_move.cancel()
+        board_pose = sub.pose
+        
         yield sub.move.depth(2).go()
         dist = yield sub.get_dvl_range()
         try:
@@ -76,7 +85,7 @@ def try_to_grab(sub, obj_name, board_pose, freq, surface=False, bubbles=False):
         yield sub.lower_down_grabber()
         yield sub.open_down_grabber()
         yield sub.move.relative([-.09,-.15,0]).go()
-        if obj_name=='moonrock':
+        if obj_name == 'moonrock':
             yield sub.move.down(.7).go(speed=.2)
         else:
             yield sub.move.down(.8).go(speed=.2)
@@ -99,15 +108,24 @@ def try_to_grab(sub, obj_name, board_pose, freq, surface=False, bubbles=False):
             defer.returnValue(False)
         print "going to hydrophone"
         yield sub.hydrophone_align(freq)
+        yield sub.move.relative(RELATIVE_PINGER_MOVE).go()
         if surface:
             yield sub.move.depth(0).go()
             yield sub.move.depth(2).go()
         #yield sub.move.relative([-.15,-.2,0]).go()
         print "going down"
         yield sub.open_down_grabber()
-        yield util.sleep(1)
-        yield sub.close_down_grabber()
+        yield util.sleep(3)
         yield sub.raise_down_grabber()
+        yield util.sleep(.5)
+        yield sub.lower_down_grabber()
+        yield util.sleep(2)
+        yield sub.close_down_grabber()
+        yield util.sleep(1)
+        yield sub.open_down_grabber()
+        yield util.sleep(2)
+        yield sub.raise_down_grabber()
+        yield sub.close_down_grabber()
         if bubbles:
             yield sub.fire_left_torpedo()
             yield sub.fire_right_torpedo()
@@ -135,30 +153,25 @@ def retry_to_grab(*args, **kwargs):
 def main(nh, freq=33e3):
     sub = yield sub_scripting.get_sub(nh)
     yield sub.raise_down_grabber()
-    #yield sub.move.depth(1).go()
-    #yield sub.hydrophone_align(freq)
+    yield sub.move.depth(1).go()
+    yield sub.hydrophone_align(freq)
+    yield sub.move.relative(RELATIVE_PINGER_MOVE).go()
     
-    #print 'surfacing'
-    #yield sub.move.depth(0).go()
-    #yield sub.move.depth(1).go()
+    print 'surfacing'
+    yield sub.move.depth(0).go()
+    yield sub.move.depth(1).go()
     
-    #yield path.main(nh, orient_away_from=True, forward=False)
-    #orig_depth = -sub.pose.position[2]
-    #dist = yield sub.get_dvl_range()
+    yield path.main(nh, orient_away_from=True, forward=False)
+    orig_depth = -sub.pose.position[2]
+    dist = yield sub.get_dvl_range()
     yield sub.move.depth(2).go()
-    #yield sub.move.forward(2).go()
-    fwd_move = sub.move.go(linear=[0.25, 0, 0])
-    try:
-        yield sub.visual_align('down', 'wreath/board/high', 2, selector=select_centered, turn=True, angle=math.radians(45))
-    finally:
-        yield fwd_move.cancel()
-    board_pose = sub.pose
+    yield sub.move.forward(2).go()
     
-    #yield retry_to_grab(sub, 'moonrock', board_pose, freq, surface=True)
-    yield retry_to_grab(sub, 'moonrock', board_pose, freq)
-    yield retry_to_grab(sub, 'moonrock', board_pose, freq, bubbles=True)
-    yield retry_to_grab(sub, 'cheese', board_pose, freq)
-    yield retry_to_grab(sub, 'cheese', board_pose, freq)
-    yield retry_to_grab(sub, 'cheese', board_pose, freq)
+    yield retry_to_grab(sub, 'moonrock', freq, surface=True)
+    yield retry_to_grab(sub, 'moonrock', freq)
+    yield retry_to_grab(sub, 'moonrock', freq, bubbles=True)
+    yield retry_to_grab(sub, 'cheese', freq)
+    yield retry_to_grab(sub, 'cheese', freq)
+    yield retry_to_grab(sub, 'cheese', freq)
     
     yield sub.move.depth(2).go()

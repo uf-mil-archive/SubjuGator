@@ -420,9 +420,9 @@ class _Sub(object):
                     good = []
                 
                 # go towards desired position
-                if numpy.linalg.norm(error_pos) > 4 and angle_error > math.radians(30):
+                if numpy.linalg.norm(error_pos) > 4:
                     move_goal_mgr = self._moveto_action_client.send_goal(
-                        self.pose.look_at_without_pitching(desired_pos).as_MoveToGoal())
+                        self.pose.look_at_without_pitching(desired_pos).set_position((desired_pos+self.pose.position)/2).as_MoveToGoal())
                     orientation = self.pose.look_at_without_pitching(desired_pos).orientation
                 else:
                     move_goal_mgr = self._moveto_action_client.send_goal(

@@ -101,7 +101,7 @@ def try_to_grab(sub, obj_name, freq, surface=False, bubbles=False):
         objects = min(weights, key=lambda w: abs(w - gain))
         print 'object count', objects
         if objects != 1:
-            yield sub.move.set_position(board_pose.position).go()
+            yield sub.move.set_position(board_pose.position + [random.uniform(-.5, .5), random.uniform(-.5, .5), 0]).go()
             yield sub.open_down_grabber()
             yield util.sleep(1)
             yield sub.close_down_grabber()
@@ -109,18 +109,15 @@ def try_to_grab(sub, obj_name, freq, surface=False, bubbles=False):
             defer.returnValue(False)
         print "going to hydrophone"
         yield sub.hydrophone_align(freq)
-        yield sub.move.relative(RELATIVE_PINGER_MOVE).go()
         if surface:
             yield sub.move.depth(0).go()
             yield sub.move.depth(2).go()
+            yield sub.hydrophone_align(freq)
+        yield sub.move.relative(RELATIVE_PINGER_MOVE).go()
         #yield sub.move.relative([-.15,-.2,0]).go()
         print "going down"
         yield sub.open_down_grabber()
         yield util.sleep(3)
-        yield sub.raise_down_grabber()
-        yield util.sleep(.5)
-        yield sub.lower_down_grabber()
-        yield util.sleep(2)
         yield sub.close_down_grabber()
         yield util.sleep(1)
         yield sub.open_down_grabber()
@@ -153,26 +150,24 @@ def retry_to_grab(*args, **kwargs):
 @util.cancellableInlineCallbacks
 def main(nh, freq=33e3):
     sub = yield sub_scripting.get_sub(nh)
-    #yield sub.raise_down_grabber()
-    #yield sub.move.depth(1).go()
-    #yield sub.hydrophone_align(freq)
-    #yield sub.move.relative(RELATIVE_PINGER_MOVE).go()
+    yield sub.raise_down_grabber()
+    yield sub.move.depth(1).go()
+    yield sub.hydrophone_align(freq)
+    yield sub.move.relative(RELATIVE_PINGER_MOVE).go()
     
-    #print 'surfacing'
-    #yield sub.move.depth(0).go()
-    #yield sub.move.depth(1).go()
+    print 'surfacing'
+    yield sub.move.depth(0).go()
+    yield sub.move.depth(1).go()
     
-    #yield path.main(nh, orient_away_from=True, forward=False)
-    #orig_depth = -sub.pose.position[2]
-    #dist = yield sub.get_dvl_range()
+    yield path.main(nh, orient_away_from=True, forward=False, depth=0.4)
     yield sub.move.depth(2).go()
-    #yield sub.move.forward(2).go()
+    yield sub.move.forward(2).go()
     
     yield retry_to_grab(sub, 'moonrock', freq, surface=True)
-    yield retry_to_grab(sub, 'moonrock', freq)
     yield retry_to_grab(sub, 'moonrock', freq, bubbles=True)
-    yield retry_to_grab(sub, 'cheese', freq)
-    yield retry_to_grab(sub, 'cheese', freq)
-    yield retry_to_grab(sub, 'cheese', freq)
+    yield retry_to_grab(sub,   'cheese', freq)
+    yield retry_to_grab(sub,   'cheese', freq)
+    yield retry_to_grab(sub,   'cheese', freq, bubbles=True)
+    yield retry_to_grab(sub, 'moonrock', freq)
     
     yield sub.move.depth(2).go()

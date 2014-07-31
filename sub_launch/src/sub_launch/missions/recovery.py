@@ -10,7 +10,7 @@ import math
 import sub_scripting
 import numpy
 
-RELATIVE_PINGER_MOVE = numpy.array([-.5, -.1, 0])
+RELATIVE_PINGER_MOVE = numpy.array([-.3, -.1, 0])
 
 def selector(obj_name):
     assert obj_name in ['moonrock', 'cheese']
@@ -116,11 +116,10 @@ def try_to_grab(sub, obj_name, freq, surface=False, bubbles=False):
         #    defer.returnValue(False)
         print "going to hydrophone"
         yield sub.hydrophone_align(freq)
+        yield sub.move.relative(RELATIVE_PINGER_MOVE).go()
         if surface:
             yield sub.move.depth(0).go()
             yield sub.move.depth(2).go()
-            yield sub.hydrophone_align(freq)
-        yield sub.move.relative(RELATIVE_PINGER_MOVE).go()
         #yield sub.move.relative([-.15,-.2,0]).go()
         print "going down"
         yield sub.open_down_grabber()
@@ -171,7 +170,7 @@ def main(nh, freq=33e3):
         yield sub.move.forward(2).go()
     
     yield retry_to_grab(sub, 'moonrock', freq, surface=True)
-    yield retry_to_grab(sub, 'moonrock', freq, bubbles=True)
+    yield retry_to_grab(sub, 'moonrock', freq, bubbles=True, surface=True)
     yield retry_to_grab(sub,   'cheese', freq)
     yield retry_to_grab(sub,   'cheese', freq)
     yield retry_to_grab(sub,   'cheese', freq, bubbles=True)

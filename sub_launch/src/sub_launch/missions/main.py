@@ -51,7 +51,7 @@ def fail_list(nh):
     sub = yield sub_scripting.get_sub(nh)
     try:
         print 'fail start'
-        #yield recovery.main(nh)
+        yield recovery.main(nh)
         print 'fail end'
     finally:
         print 'fail finally'
@@ -71,7 +71,7 @@ def main(nh):
             break
     
     try:
-        yield util.wrap_timeout(main_list(nh), time_left - 600)
+        yield util.wrap_timeout(main_list(nh), 11*60)
     except Exception:
         traceback.print_exc()
     

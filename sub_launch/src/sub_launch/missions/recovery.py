@@ -100,7 +100,7 @@ def try_to_grab(sub, obj_name, freq, surface=False, bubbles=False):
         yield sub.close_down_grabber()
         print "moving back to surface"
         #yield sub.move.up(.5).go(speed=.2)
-        yield sub.move.depth(2).go()
+        yield sub.move.depth(1).go()
         #w2 = yield get_weight(sub)
         #print 'w2', w2
         #gain = w2 - w1
@@ -118,9 +118,17 @@ def try_to_grab(sub, obj_name, freq, surface=False, bubbles=False):
         print "going to hydrophone"
         yield sub.hydrophone_align(freq)
         yield sub.move.relative(RELATIVE_PINGER_MOVE).go()
+        bin_pose = sub.move
         if surface:
             yield sub.move.depth(0).go()
-            yield sub.move.depth(2).go()
+            yield sub.move.depth(1).go()
+        yield sub.raise_down_grabber()
+        try:
+            yield util.wrap_timeout(sub.visual_align('down', 'wreath/board/high', 2, selector=select_centered, turn=False), 10)
+        except util.TimeoutError:
+            print 'bin alignment timed out'
+            yield bin_pose.go()
+        yield sub.lower_down_grabber()
         #yield sub.move.relative([-.15,-.2,0]).go()
         print "going down"
         yield sub.open_down_grabber()
@@ -158,7 +166,7 @@ def main(nh, freq=33e3):
     sub = yield sub_scripting.get_sub(nh)
     yield sub.raise_down_grabber()
 
-    if 0:
+    if 1:
         yield sub.move.depth(1).go()
         yield sub.hydrophone_align(freq)
         yield sub.move.relative(RELATIVE_PINGER_MOVE).go()
@@ -170,9 +178,11 @@ def main(nh, freq=33e3):
         yield path.main(nh, orient_away_from=True, forward=False, depth=0.4)
         yield sub.move.forward(2).go()
     
-    #yield retry_to_grab(sub, 'moonrock', freq, surface=True)
-    #yield retry_to_grab(sub, 'moonrock', freq, bubbles=True, surface=True)
-    #yield retry_to_grab(sub,   'cheese', freq)
+    yield retry_to_grab(sub, 'moonrock', freq, surface=True)
+    yield retry_to_grab(sub, 'moonrock', freq, bubbles=True, surface=True)
+    yield retry_to_grab(sub,   'cheese', freq)
     yield retry_to_grab(sub,   'cheese', freq)
     yield retry_to_grab(sub,   'cheese', freq, bubbles=True)
     yield retry_to_grab(sub, 'moonrock', freq)
+    while True:
+        yield retry_to_grab(sub, 'moonrock', freq)

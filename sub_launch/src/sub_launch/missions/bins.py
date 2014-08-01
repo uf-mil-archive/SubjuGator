@@ -9,7 +9,6 @@ import math
 #the most points are awarded for dropping in primary and secondary, dropping in any other gives partial
   
 select_centered = lambda objs, body_tf: min(objs, key=lambda obj: math.sqrt(float(obj['center'][0])**2 + float(obj['center'][1])**2))
-primary_secondary = ['2', '4']
 
 def select(image_text):
     def _(results, body_tf):
@@ -43,7 +42,7 @@ def main(nh):
     dist = yield sub.get_dvl_range()
     centered = sub.move
     
-    for x in ["2", "4"]:
+    for x in ["1", "4"]:
         print 'going to', x
         yield centered.go()
         print "aligning single", x

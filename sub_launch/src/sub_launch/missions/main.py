@@ -20,40 +20,27 @@ def main_list(nh):
     print 'a'
     sub = yield sub_scripting.get_sub(nh)
     try:
-        #yield sub.move.depth(2).go()
-        #yield sub.move.forward(10).go()
-        #print 'starting buoy'
-        #yield sub.move.depth(3).go()
-        #yield buoy.main(nh)
+        yield sub.move.depth(2).go()
+        yield sub.move.forward(10).go()
+        print 'starting buoy'
+        yield sub.move.depth(3).go()
+        yield buoy.main(nh)
         print 'starting path'
         yield path.main(nh)
         print 'starting maneuvering'
         yield sub.move.depth(2.7).go()
         yield sub.move.forward(4).go()
         yield maneuvering.main(nh)
-        print 'starting left path'
-        yield path.main(nh, 'left')
+        print 'starting path'
+        yield path.main(nh)
         stored_pose1 = sub.pose
         yield sub.move.forward(4).go()
         print 'staring bins'
         yield bins.main(nh)
         stored_pose2 = sub.pose
-        print 'going back'
-        yield sub.move.set_position(stored_pose1.position).set_orientation(stored_pose1.orientation).go()
         print 'starting shooter'
-        yield sub.move.depth(2.5).turn_right_deg(35).go()
+        yield sub.move.set_position(stored_pose2.position).set_orientation(stored_pose1.orientation).depth(2.5).turn_right_deg(45).backward(2).go()
         yield shooter.main(nh)
-        '''print 'starting path'
-        yield sub.move.set_position(stored_pose2.position).set_orientation(stored_pose1.orientation).go()
-        yield sub.move.turn_left_deg(90).go()
-        yield sub.move.forward(1.75).go()
-        yield path.main(nh)
-        yield sub.move.forward(25).go()
-        yield sub.move.depth(4).go()
-        print 'staring manipulation'
-        yield manipulation.main(nh)
-        yield sub.move.depth(0.75).turn_right_deg(20).go()
-        yield sub.move.forward(6).go()'''
     finally:
         print 'main finally start'
         #yield util.sleep(3)
@@ -64,7 +51,7 @@ def fail_list(nh):
     sub = yield sub_scripting.get_sub(nh)
     try:
         print 'fail start'
-        #yield recovery.main(nh)
+        yield recovery.main(nh)
         print 'fail end'
     finally:
         print 'fail finally'
@@ -89,3 +76,5 @@ def main(nh):
         traceback.print_exc()
     
     yield fail_list(nh)
+
+

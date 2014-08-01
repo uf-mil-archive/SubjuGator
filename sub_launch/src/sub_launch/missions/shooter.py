@@ -64,10 +64,10 @@ def main(nh):
         yield fwd_move.cancel()
     
     start = sub.move
-    try:
-        yield util.wrap_timeout(align(sub), 30)
-    except Exception:
-        yield start.go() # go back because alignment failed
+    #try:
+    #    yield util.wrap_timeout(align(sub), 30)
+    #except Exception:
+    #    yield start.go() # go back because alignment failed
     
     yield sub.visual_approach('forward', 'shooter/hole', size_estimate=5*.0254, desired_distance=1.0, selector=select_by_body_direction([0,1,0])) 
     yield util.sleep(5)

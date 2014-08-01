@@ -17,6 +17,7 @@ from sub_launch.missions import bins, maneuvering, recovery
 
 @util.cancellableInlineCallbacks
 def main_list(nh):
+    print 'a'
     sub = yield sub_scripting.get_sub(nh)
     try:
         #yield sub.move.depth(2).go()
@@ -24,22 +25,23 @@ def main_list(nh):
         #print 'starting buoy'
         #yield sub.move.depth(3).go()
         #yield buoy.main(nh)
-        #print 'starting path'
-        #yield path.main(nh)
-        #print 'starting maneuvering'
-        #yield sub.move.depth(3).go()
-        #yield maneuvering.main(nh)
+        print 'starting path'
+        yield path.main(nh)
+        print 'starting maneuvering'
+        yield sub.move.depth(2.7).go()
+        yield sub.move.forward(4).go()
+        yield maneuvering.main(nh)
         print 'starting left path'
         yield path.main(nh, 'left')
         stored_pose1 = sub.pose
-        #yield sub.move.forward(4).go()
+        yield sub.move.forward(4).go()
         print 'staring bins'
-        #yield bins.main(nh)
-        #stored_pose2 = sub.pose
+        yield bins.main(nh)
+        stored_pose2 = sub.pose
         print 'going back'
         yield sub.move.set_position(stored_pose1.position).set_orientation(stored_pose1.orientation).go()
         print 'starting shooter'
-        yield sub.move.depth(2.5).turn_right_deg(30).go()
+        yield sub.move.depth(2.5).turn_right_deg(35).go()
         yield shooter.main(nh)
         '''print 'starting path'
         yield sub.move.set_position(stored_pose2.position).set_orientation(stored_pose1.orientation).go()
@@ -62,7 +64,7 @@ def fail_list(nh):
     sub = yield sub_scripting.get_sub(nh)
     try:
         print 'fail start'
-        yield recovery.main(nh)
+        #yield recovery.main(nh)
         print 'fail end'
     finally:
         print 'fail finally'

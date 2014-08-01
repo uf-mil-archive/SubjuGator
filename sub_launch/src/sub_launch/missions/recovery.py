@@ -118,15 +118,18 @@ def try_to_grab(sub, obj_name, freq, surface=False, bubbles=False):
         print "going to hydrophone"
         yield sub.hydrophone_align(freq)
         yield sub.move.relative(RELATIVE_PINGER_MOVE).go()
-        bin_pose = sub.move
         if surface:
             yield sub.move.depth(0).go()
             yield sub.move.depth(1).go()
         yield sub.raise_down_grabber()
+        bin_pose = sub.move
         try:
             yield util.wrap_timeout(sub.visual_align('down', 'wreath/board/high', 2, selector=select_centered, turn=False), 10)
         except util.TimeoutError:
             print 'bin alignment timed out'
+            yield bin_pose.go()
+        except:
+            print 'bin alignment???'
             yield bin_pose.go()
         yield sub.lower_down_grabber()
         #yield sub.move.relative([-.15,-.2,0]).go()

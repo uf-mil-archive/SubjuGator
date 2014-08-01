@@ -27,6 +27,10 @@ def main_list(nh):
         yield buoy.main(nh)
         print 'starting path'
         yield path.main(nh)
+        if 0:
+            yield sub.move.turn_left_deg(30).go()
+            yield sub.move.forward(15).go()
+            return
         print 'starting maneuvering'
         yield sub.move.depth(2.7).go()
         yield sub.move.forward(4).go()

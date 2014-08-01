@@ -59,7 +59,7 @@ def main(nh):
     fwd_move = sub.move.go(linear=[0.25, 0, 0])
     
     try:
-        obj = yield sub.visual_approach('forward', 'shooter/hole', size_estimate=5*.0254, desired_distance=1.5, selector=select_by_body_direction([0,1,0]))
+        obj = yield util.wrap_timeout(sub.visual_approach('forward', 'shooter/hole', size_estimate=5*.0254, desired_distance=1.5, selector=select_by_body_direction([0,1,0])), 30)
     finally:
         yield fwd_move.cancel()
     

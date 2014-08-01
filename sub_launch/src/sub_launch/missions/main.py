@@ -51,7 +51,7 @@ def fail_list(nh):
     sub = yield sub_scripting.get_sub(nh)
     try:
         print 'fail start'
-        yield recovery.main(nh)
+        #yield recovery.main(nh)
         print 'fail end'
     finally:
         print 'fail finally'

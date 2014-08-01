@@ -133,6 +133,7 @@ def try_to_grab(sub, obj_name, freq, surface=False, bubbles=False):
             yield bin_pose.go()
         yield sub.lower_down_grabber()
         #yield sub.move.relative([-.15,-.2,0]).go()
+        yield sub.move.depth(2).go()
         print "going down"
         yield sub.open_down_grabber()
         yield util.sleep(3)

@@ -78,6 +78,7 @@ def try_to_grab(sub, obj_name, freq, surface=False, bubbles=False):
             yield util.wrap_timeout(sub.visual_align('down', 'wreath/moonrock/high', 2, selector=selector(obj_name)), 20)
         except util.TimeoutError:
             print 'timed out'
+            yield sub.move.yaw_left_deg(120).go()
             return
         #print "weighing"
         #w1 = yield get_weight(sub)
@@ -157,7 +158,7 @@ def main(nh, freq=33e3):
     sub = yield sub_scripting.get_sub(nh)
     yield sub.raise_down_grabber()
 
-    if 1:
+    if 0:
         yield sub.move.depth(1).go()
         yield sub.hydrophone_align(freq)
         yield sub.move.relative(RELATIVE_PINGER_MOVE).go()
@@ -169,9 +170,9 @@ def main(nh, freq=33e3):
         yield path.main(nh, orient_away_from=True, forward=False, depth=0.4)
         yield sub.move.forward(2).go()
     
-    yield retry_to_grab(sub, 'moonrock', freq, surface=True)
-    yield retry_to_grab(sub, 'moonrock', freq, bubbles=True, surface=True)
-    yield retry_to_grab(sub,   'cheese', freq)
+    #yield retry_to_grab(sub, 'moonrock', freq, surface=True)
+    #yield retry_to_grab(sub, 'moonrock', freq, bubbles=True, surface=True)
+    #yield retry_to_grab(sub,   'cheese', freq)
     yield retry_to_grab(sub,   'cheese', freq)
     yield retry_to_grab(sub,   'cheese', freq, bubbles=True)
     yield retry_to_grab(sub, 'moonrock', freq)

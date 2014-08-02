@@ -17,14 +17,14 @@ from sub_launch.missions import bins, maneuvering, recovery
 
 @util.cancellableInlineCallbacks
 def main_list(nh):
-    print 'a'
     sub = yield sub_scripting.get_sub(nh)
     try:
-        yield sub.move.depth(2).go()
-        yield sub.move.forward(10).go()
-        print 'starting buoy'
-        yield sub.move.depth(3).go()
-        yield buoy.main(nh)
+        return
+        #yield sub.move.depth(2).go()
+        #yield sub.move.forward(10).go()
+        #print 'starting buoy'
+        #yield sub.move.depth(3).go()
+        #yield buoy.main(nh)
         print 'starting path'
         yield path.main(nh)
         if 1:
@@ -64,8 +64,6 @@ def fail_list(nh):
 
 @util.cancellableInlineCallbacks
 def main(nh):
-    sub = yield sub_scripting.get_sub(nh)
-    
     #while True:
     #    time_left_str = yield util.nonblocking_raw_input('Enter time left: (e.g. 5:40) ')
     #    try:
@@ -75,6 +73,8 @@ def main(nh):
     #        traceback.print_exc()
     #    else:
     #        break
+    
+    sub = yield sub_scripting.get_sub(nh)
     
     try:
         yield util.wrap_timeout(main_list(nh), 11*60)

@@ -27,8 +27,10 @@ def main_list(nh):
         yield buoy.main(nh)
         print 'starting path'
         yield path.main(nh)
-        if 0:
-            yield sub.move.turn_left_deg(30).go()
+        if 1:
+            #yield sub.move.turn_left_deg(30).go()
+            yield sub.move.turn_right_deg(15).go()
+
             yield sub.move.forward(15).go()
             return
         print 'starting maneuvering'
@@ -64,15 +66,15 @@ def fail_list(nh):
 def main(nh):
     sub = yield sub_scripting.get_sub(nh)
     
-    while True:
-        time_left_str = yield util.nonblocking_raw_input('Enter time left: (e.g. 5:40) ')
-        try:
-            m, s = time_left_str.split(':')
-            time_left = 60 * int(m) + int(s)
-        except Exception:
-            traceback.print_exc()
-        else:
-            break
+    #while True:
+    #    time_left_str = yield util.nonblocking_raw_input('Enter time left: (e.g. 5:40) ')
+    #    try:
+    #        m, s = time_left_str.split(':')
+    #        time_left = 60 * int(m) + int(s)
+    #    except Exception:
+    #        traceback.print_exc()
+    #    else:
+    #        break
     
     try:
         yield util.wrap_timeout(main_list(nh), 11*60)

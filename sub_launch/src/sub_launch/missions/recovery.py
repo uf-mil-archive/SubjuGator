@@ -86,7 +86,7 @@ def try_to_grab(sub, obj_name, freq, surface=False, bubbles=False):
         print "moving down"
         yield sub.move.down(1).go(speed=.2)
         try:
-            yield util.wrap_timeout(sub.visual_align('down', 'wreath/moonrock/low', 2, selector=select_centered, turn=False), 20)
+            yield util.wrap_timeout(sub.visual_align('down', 'wreath/moonrock/low', 1, selector=select_centered, turn=False), 20)
         except util.TimeoutError:
             print 'timed out'
             return
@@ -175,9 +175,8 @@ def main(nh, freq=33e3):
         yield sub.hydrophone_align(freq)
         yield sub.move.relative(RELATIVE_PINGER_MOVE).go()
         
-        print 'surfacing'
-        yield sub.move.depth(0).go()
-        #yield sub.move.depth(1).go()
+        #print 'surfacing'
+        #yield sub.move.depth(0).go()
         
         yield path.main(nh, orient_away_from=True, forward=False, depth=0.4)
         yield sub.move.forward(2).go()

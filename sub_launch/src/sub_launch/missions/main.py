@@ -1,6 +1,7 @@
 from __future__ import division
 
 import traceback
+import numpy
 
 from txros import util
 from twisted.internet import threads, stdio, protocol, defer
@@ -20,8 +21,9 @@ def main_list(nh):
     sub = yield sub_scripting.get_sub(nh)
     yield sub.move.depth(1).go()
     yield sub.move.forward(15).go()
-    yield sub.move.heading_deg(90).go()
-    yield sub.move.forward(20).go()
+    m = numpy.array([7.6448368633, 41.202367025499996, 0]) * .8
+    yield sub.move.look_at_rel_without_pitching(m).go()
+    yield sub.move.absolute(m).go()
 
 @util.cancellableInlineCallbacks
 def fail_list(nh):

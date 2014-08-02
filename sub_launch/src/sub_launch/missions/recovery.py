@@ -120,7 +120,7 @@ def try_to_grab(sub, obj_name, freq, surface=False, bubbles=False):
         yield sub.move.relative(RELATIVE_PINGER_MOVE).go()
         if surface:
             yield sub.move.depth(0).go()
-            yield sub.move.depth(1).go()
+        yield sub.move.depth(.4).go()
         yield sub.raise_down_grabber()
         bin_pose = sub.move
         try:
@@ -166,7 +166,7 @@ def retry_to_grab(*args, **kwargs):
         if res: break
 
 @util.cancellableInlineCallbacks
-def main(nh, freq=25e3):
+def main(nh, freq=33e3):
     sub = yield sub_scripting.get_sub(nh)
     yield sub.raise_down_grabber()
 

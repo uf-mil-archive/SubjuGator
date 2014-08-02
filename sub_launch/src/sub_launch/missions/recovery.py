@@ -172,7 +172,11 @@ def main(nh, freq=25e3):
 
     if 1:
         yield sub.move.depth(1).go()
-        yield sub.hydrophone_align(freq)
+        fwd_move = sub.move.go(linear=[.3, 0, 0])
+        try:
+            yield sub.hydrophone_align(freq)
+        finally:
+            fwd_move.cancel()
         yield sub.move.relative(RELATIVE_PINGER_MOVE).go()
         
         #print 'surfacing'

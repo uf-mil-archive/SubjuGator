@@ -124,7 +124,7 @@ def try_to_grab(sub, obj_name, freq, surface=False, bubbles=False):
         yield sub.raise_down_grabber()
         bin_pose = sub.move
         try:
-            yield util.wrap_timeout(sub.visual_align('down', 'wreath/board/high', 2, selector=select_centered, turn=False), 10)
+            yield util.wrap_timeout(sub.visual_align('down', 'wreath/bin/high', 2, selector=select_centered, turn=False), 10)
         except util.TimeoutError:
             print 'bin alignment timed out'
             yield bin_pose.go()

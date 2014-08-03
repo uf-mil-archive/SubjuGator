@@ -73,6 +73,7 @@ def try_to_grab(sub, obj_name, freq, surface=False, bubbles=False):
             yield fwd_move.cancel()
         board_pose = sub.pose.depth(1).right(.6)
         
+        yield sub.move.yaw_left_deg(90*random.randrange(4)).go()
         yield sub.move.depth(2).go()
         try:
             yield util.wrap_timeout(sub.visual_align('down', 'wreath/moonrock/high', 2, selector=selector(obj_name), one_shot=True, turn=False), 20)

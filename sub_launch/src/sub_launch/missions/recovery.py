@@ -77,13 +77,13 @@ def try_to_grab(sub, obj_name, freq, surface=False, bubbles=False):
         try:
             yield util.wrap_timeout(sub.visual_align('down', 'wreath/moonrock/high', 2, selector=selector(obj_name), one_shot=True, turn=False), 20)
         except util.TimeoutError:
-            print 'timed out 1'
+            print 'timed out'
             yield sub.move.yaw_left_deg(120).go()
             return
         try:
             yield util.wrap_timeout(sub.visual_align('down', 'wreath/moonrock/high', 2, selector=select_centered), 20)
         except util.TimeoutError:
-            print 'timed out 2'
+            print 'timed out 1'
             yield sub.move.yaw_left_deg(120).go()
             return
         #print "weighing"
@@ -94,7 +94,7 @@ def try_to_grab(sub, obj_name, freq, surface=False, bubbles=False):
         try:
             yield util.wrap_timeout(sub.visual_align('down', 'wreath/moonrock/low', 1, selector=select_centered, turn=False), 20)
         except util.TimeoutError:
-            print 'timed out 3'
+            print 'timed out 2'
             return
         yield sub.lower_down_grabber()
         yield sub.open_down_grabber()

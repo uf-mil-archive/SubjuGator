@@ -76,6 +76,7 @@ shift: [1.7322001620747598e-05, -7.237241107056895e-06, 5.88175694611367e-05]
     amax_b: [ 0.15,  0.05,  0.125,  1.5,   0.2,  0.5]
     arevoffset_b: [0.05, 0, 0]
     umax_b: [ 0.25,  0.25,  0.25,   0.1,   0.1,  0.1]
+    traj_dt: 0.001
   </rosparam></node>
 
   <node pkg="uf_common" type="interactive_marker_moveto" name="interactive_marker_moveto"/>

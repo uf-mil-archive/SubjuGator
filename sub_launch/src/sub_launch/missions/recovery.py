@@ -71,7 +71,7 @@ def try_to_grab(sub, obj_name, freq, surface=False, bubbles=False):
             yield sub.visual_align('down', 'wreath/board/high', 2, selector=select_centered, turn=True, angle=math.radians(45))
         finally:
             yield fwd_move.cancel()
-        board_pose = sub.pose.depth(1)
+        board_pose = sub.pose.depth(1).right(.6)
         
         yield sub.move.depth(2).go()
         try:
@@ -98,7 +98,7 @@ def try_to_grab(sub, obj_name, freq, surface=False, bubbles=False):
             return
         yield sub.lower_down_grabber()
         yield sub.open_down_grabber()
-        yield sub.move.relative([-.10,-.15,0]).go()
+        yield sub.move.relative([-.10 if obj_name == 'moonrock' else -.115,-.15,0]).go()
         if obj_name == 'moonrock':
             yield sub.move.down(.73).go(speed=.2)
         else:

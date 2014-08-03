@@ -119,8 +119,6 @@ def try_to_grab(sub, obj_name, freq, surface=False, bubbles=False):
         print "going to hydrophone"
         yield sub.hydrophone_align(freq)
         yield sub.move.relative(RELATIVE_PINGER_MOVE).go()
-        if surface:
-            yield sub.move.depth(0).go()
         yield sub.move.depth(.4).go()
         yield sub.raise_down_grabber()
         bin_pose = sub.move
@@ -133,6 +131,9 @@ def try_to_grab(sub, obj_name, freq, surface=False, bubbles=False):
         except:
             print 'bin alignment???'
             yield bin_pose.go()
+        if surface:
+            yield sub.move.depth(0).go()
+        yield sub.move.depth(.4).go()
         yield sub.lower_down_grabber()
         #yield sub.move.relative([-.15,-.2,0]).go()
         yield sub.move.depth(2).go()

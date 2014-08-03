@@ -10,7 +10,8 @@ import math
 import sub_scripting
 import numpy
 
-RELATIVE_PINGER_MOVE = numpy.array([-.3, -.1, 0])
+RELATIVE_PINGER_MOVE = numpy.array([-.15, -.1, 0])
+RELATIVE_VISION_MOVE = numpy.array([-.07, -.07, 0])
 
 def selector(obj_name):
     assert obj_name in ['moonrock', 'cheese']
@@ -64,13 +65,13 @@ def get_weight(sub):
 def try_to_grab(sub, obj_name, freq, surface=False, bubbles=False):
     assert obj_name in ['moonrock', 'cheese']
     try:
-        yield sub.move.depth(1).go()
+        yield sub.move.depth(.4).go()
         fwd_move = sub.move.go(linear=[0.25, 0, 0])
         try:
             yield sub.visual_align('down', 'wreath/board/high', 2, selector=select_centered, turn=True, angle=math.radians(45))
         finally:
             yield fwd_move.cancel()
-        board_pose = sub.pose
+        board_pose = sub.pose.depth(1)
         
         yield sub.move.depth(2).go()
         dist = yield sub.get_dvl_range()
@@ -125,6 +126,7 @@ def try_to_grab(sub, obj_name, freq, surface=False, bubbles=False):
         bin_pose = sub.move
         try:
             yield util.wrap_timeout(sub.visual_align('down', 'wreath/bin/high', 2, selector=select_centered, turn=False), 10)
+            yield sub.move.relative(RELATIVE_VISION_MOVE).go()
         except util.TimeoutError:
             print 'bin alignment timed out'
             yield bin_pose.go()
@@ -182,6 +184,17 @@ def main(nh, freq=33e3):
         #print 'surfacing'
         #yield sub.move.depth(0).go()
         
+        yield sub.move.depth(0.4).go()
+        bin_pose = sub.move
+        try:
+            yield util.wrap_timeout(sub.visual_align('down', 'wreath/bin/high', 2, selector=select_centered, turn=False), 10)
+            yield sub.move.relative(RELATIVE_VISION_MOVE).go()
+        except util.TimeoutError:
+            print 'bin alignment timed out'
+            yield bin_pose.go()
+        except:
+            print 'bin alignment???'
+            yield bin_pose.go()
         yield path.main(nh, orient_away_from=True, forward=False, depth=0.4)
         yield sub.move.forward(2).go()
     

@@ -90,7 +90,7 @@ class _Sub(object):
         defer.returnValue(msg.data)
     
     @util.cancellableInlineCallbacks
-    def visual_align(self, camera, object_name, distance_estimate, selector=lambda items, body_tf: items[0], turn=True, angle=0, orient_away_from=None):
+    def visual_align(self, camera, object_name, distance_estimate, selector=lambda items, body_tf: items[0], turn=True, angle=0, orient_away_from=None, one_shot=False):
         goal_mgr = self._camera_2d_action_clients[camera].send_goal(legacy_vision_msg.FindGoal(
             object_names=[object_name],
         ))
@@ -148,7 +148,7 @@ class _Sub(object):
                 
                 print desired_pos, numpy.linalg.norm(error_pos)/3e-2
                 
-                if numpy.linalg.norm(error_pos) < 3e-2: # 3 cm
+                if numpy.linalg.norm(error_pos) < 3e-2 or one_shot: # 3 cm
                     if turn:
                         direction_symmetry = int(obj['direction_symmetry'])
                         dangle = 2*math.pi/direction_symmetry

@@ -76,9 +76,15 @@ def try_to_grab(sub, obj_name, freq, surface=False, bubbles=False):
         yield sub.move.depth(2).go()
         dist = yield sub.get_dvl_range()
         try:
-            yield util.wrap_timeout(sub.visual_align('down', 'wreath/moonrock/high', 2, selector=selector(obj_name)), 20)
+            yield util.wrap_timeout(sub.visual_align('down', 'wreath/moonrock/high', 2, selector=selector(obj_name), one_shot=True, turn=False), 20)
         except util.TimeoutError:
-            print 'timed out'
+            print 'timed out 1'
+            yield sub.move.yaw_left_deg(120).go()
+            return
+        try:
+            yield util.wrap_timeout(sub.visual_align('down', 'wreath/moonrock/high', 2, selector=select_centered), 20)
+        except util.TimeoutError:
+            print 'timed out 2'
             yield sub.move.yaw_left_deg(120).go()
             return
         #print "weighing"
@@ -89,15 +95,15 @@ def try_to_grab(sub, obj_name, freq, surface=False, bubbles=False):
         try:
             yield util.wrap_timeout(sub.visual_align('down', 'wreath/moonrock/low', 1, selector=select_centered, turn=False), 20)
         except util.TimeoutError:
-            print 'timed out'
+            print 'timed out 3'
             return
         yield sub.lower_down_grabber()
         yield sub.open_down_grabber()
         yield sub.move.relative([-.10,-.15,0]).go()
         if obj_name == 'moonrock':
-            yield sub.move.down(.7).go(speed=.2)
+            yield sub.move.down(.73).go(speed=.2)
         else:
-            yield sub.move.down(.8).go(speed=.2)
+            yield sub.move.down(.81).go(speed=.2)
         yield sub.close_down_grabber()
         print "moving back to surface"
         #yield sub.move.up(.5).go(speed=.2)

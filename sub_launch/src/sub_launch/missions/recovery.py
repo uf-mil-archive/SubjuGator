@@ -65,7 +65,7 @@ def get_weight(sub):
 def try_to_grab(sub, obj_name, freq, surface=False, bubbles=False):
     assert obj_name in ['moonrock', 'cheese']
     try:
-        yield sub.move.depth(.4).go()
+        yield sub.move.depth(0.4).go()
         fwd_move = sub.move.go(linear=[0.25, 0, 0])
         try:
             yield sub.visual_align('down', 'wreath/board/high', 2, selector=select_centered, turn=True, angle=math.radians(45))
@@ -74,7 +74,6 @@ def try_to_grab(sub, obj_name, freq, surface=False, bubbles=False):
         board_pose = sub.pose.depth(1)
         
         yield sub.move.depth(2).go()
-        dist = yield sub.get_dvl_range()
         try:
             yield util.wrap_timeout(sub.visual_align('down', 'wreath/moonrock/high', 2, selector=selector(obj_name), one_shot=True, turn=False), 20)
         except util.TimeoutError:

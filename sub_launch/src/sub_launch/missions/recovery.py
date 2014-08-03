@@ -175,7 +175,7 @@ def retry_to_grab(*args, **kwargs):
         if res: break
 
 @util.cancellableInlineCallbacks
-def main(nh, freq=33e3):
+def main(nh, freq=25e3):
     sub = yield sub_scripting.get_sub(nh)
     yield sub.raise_down_grabber()
 

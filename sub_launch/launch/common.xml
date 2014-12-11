@@ -35,6 +35,10 @@ shift: [1.7322001620747598e-05, -7.237241107056895e-06, 5.88175694611367e-05]
   </node>
   <node pkg="tf" type="static_transform_publisher" name="dvl_broadcaster"
     args="0.431 0 -0.102  0 0 0.382683 -0.923880  base_link dvl 100" />
+  <node pkg="uf_common" type="velocitymeasurements_to_vector3" name="dvl_water_mass_converter">
+    <remap from="velocitymeasurements" to="dvl/water_mass"/>
+    <remap from="vel" to="dvl/water_mass_processed"/>
+  </node>
 
   <node pkg="paulboard_driver" type="paulboard_driver" name="paulboard_driver">
     <param name="port" type="string" value="/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_A901AN8N-if00-port0"/>

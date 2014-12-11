@@ -255,8 +255,9 @@ class ActuatorProtocol(protocol.Protocol):
         print 'actuator connection lost'
 
 class DVLProtocol(protocol.Protocol):
-    def __init__(self, get_vel_func, get_range_func):
+    def __init__(self, get_vel_func, get_water_mass_rel_vel_func, get_range_func):
         self.get_vel_func = get_vel_func
+        self.get_water_mass_rel_vel_func = get_water_mass_rel_vel_func
         self.get_range_func = get_range_func
     
     def connectionMade(self):
@@ -293,10 +294,11 @@ class DVLProtocol(protocol.Protocol):
     def tick(self):
         beams = [(-.5, 0, -.866), (.5, 0, -.866), (0, .5, -.866), (0, -.5, -.866)]
         vel = self.get_vel_func()
+        water_mass_rel_vel = self.get_water_mass_rel_vel_func()
         self.sendHighResVel(
             bottom_vel=[-vel*beam for beam in beams],
             bottom_dist=[0, 0, 0, 0],
-            water_vel=[0, 0, 0, 0],
+            water_vel=[-water_mass_rel_vel*beam for beam in beams],
             water_dist=[0, 0, 0, 0],
             speed_of_sound=100,
             height=self.get_range_func(),

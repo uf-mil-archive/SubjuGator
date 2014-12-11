@@ -83,7 +83,7 @@ pool_mesh = threed.mesh_from_obj(roslib.packages.resource_file('auvsi_robosub', 
 pool_geom = ode.GeomTriMesh(pool_mesh.ode_trimeshdata, space)
 
 def get_water_vel(pos):
-    return v(0, 0, 0)
+    return v(0.1, 0, 0)
     #return (pos % v(0, 0, 1))*math.e**(-pos.mag()/3)
 
 imu_pos = v(0.43115992, 0.0, 0.010165058)
@@ -251,6 +251,11 @@ def get_dvl_vel():
     #dvl_to_sub = vector.axisangle_to_quat(v(1,0,0),math.pi)
     dvl_pos = imu_pos # v(1, 0, 0)
     return dvl_to_sub.conj().quat_rot(body.vectorFromWorld(body.getRelPointVel(dvl_pos)))
+def get_dvl_water_mass_rel_vel():
+    dvl_to_sub = v(0,1,0,0)%v(0.0, 0.923879532511287, 0.382683432365090, 0.0)
+    #dvl_to_sub = vector.axisangle_to_quat(v(1,0,0),math.pi)
+    dvl_pos = imu_pos # v(1, 0, 0)
+    return dvl_to_sub.conj().quat_rot(body.vectorFromWorld(body.getRelPointVel(dvl_pos) - get_water_vel(dvl_pos)))
 def get_dvl_range():
     g = ode.GeomRay(None, 1e3)
     g.set(body.getRelPointPos(imu_pos), body.vectorToWorld(v(0, 0, -1)))
@@ -262,7 +267,7 @@ def get_dvl_range():
             continue
         return (V(pos) - V(body.getRelPointPos(imu_pos))).mag()
     return 0
-reactor.listenTCP(10050, util.AutoServerFactory(devices.DVLProtocol, get_dvl_vel, get_dvl_range))
+reactor.listenTCP(10050, util.AutoServerFactory(devices.DVLProtocol, get_dvl_vel, get_dvl_water_mass_rel_vel, get_dvl_range))
 reactor.listenUDP(10060, devices.MergeProtocol(lambda: killed))
 reactor.listenTCP(10061, util.AutoServerFactory(devices.ActuatorProtocol))
 reactor.listenTCP(10255, util.AutoServerFactory(devices.HeartbeatProtocol))

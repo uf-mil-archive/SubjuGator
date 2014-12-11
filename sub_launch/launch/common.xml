@@ -94,7 +94,7 @@ shift: [1.7322001620747598e-05, -7.237241107056895e-06, 5.88175694611367e-05]
     </rosparam>
   </group>
 
-  <node pkg="thruster_mapper" type="thruster_mapper" name="thruster_mapper" respawn="true"/>
+  <node pkg="thruster_mapper" type="thruster_mapper" name="thruster_mapper"/>
 
   <node pkg="sub_launch" type="odom_to_euler" name="odom_to_euler"/>
 

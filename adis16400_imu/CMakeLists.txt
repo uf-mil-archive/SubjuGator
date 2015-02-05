@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(adis16400_imu)
 # Load catkin and all dependencies required for this package
 # TODO: remove all from COMPONENTS that are not catkin packages.
-find_package(catkin REQUIRED COMPONENTS sensor_msgs geometry_msgs nodelet roscpp)
+find_package(catkin REQUIRED COMPONENTS sensor_msgs geometry_msgs nodelet roscpp uf_common)
 # CATKIN_MIGRATION: removed during catkin migration
 # cmake_minimum_required(VERSION 2.4.6)
 
@@ -48,7 +48,7 @@ find_package(catkin REQUIRED COMPONENTS sensor_msgs geometry_msgs nodelet roscpp
 # TODO: fill in what other packages will need to use this package
 catkin_package(
     DEPENDS  # TODO
-    CATKIN_DEPENDS sensor_msgs geometry_msgs nodelet roscpp
+    CATKIN_DEPENDS sensor_msgs geometry_msgs nodelet roscpp uf_common
     INCLUDE_DIRS include# TODO include
     LIBRARIES # TODO
 )
@@ -57,6 +57,7 @@ include_directories(include ${Boost_INCLUDE_DIR} ${catkin_INCLUDE_DIRS})
 add_library(adis16400_imu_nodelet src/nodelet.cpp)
 target_link_libraries(adis16400_imu_nodelet ${catkin_LIBRARIES})
 add_dependencies(adis16400_imu_nodelet ${catkin_EXPORTED_TARGETS})
+set_target_properties(adis16400_imu_nodelet PROPERTIES COMPILE_FLAGS -std=c++11)
 #target_link_libraries(${PROJECT_NAME} another_library)
 #rosbuild_add_boost_directories()
 #rosbuild_link_boost(${PROJECT_NAME} thread)

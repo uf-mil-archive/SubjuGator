@@ -5,6 +5,8 @@
 #include <pluginlib/class_list_macros.h>
 #include <ros/ros.h>
 
+#include <uf_common/param_helpers.h>
+
 #include "adis16400_imu/driver.h"
 
 
@@ -19,9 +21,9 @@ namespace adis16400_imu {
             }
             
             virtual void onInit() {
-                ros::NodeHandle& private_nh = getPrivateNodeHandle();
-                std::string port = "/dev/adis1640x"; private_nh.getParam("port", port);
-                frame_id = "/adis16400"; private_nh.getParam("frame_id", frame_id);
+                std::string port = uf_common::getParam<std::string>(getPrivateNodeHandle(), "port");
+                frame_id = uf_common::getParam<std::string>(getPrivateNodeHandle(), "frame_id");
+                drop_every_ = uf_common::getParam<unsigned int>(getPrivateNodeHandle(), "divide", 1);
                 
                 ros::NodeHandle& nh = getNodeHandle();
                 pub = nh.advertise<sensor_msgs::Imu>("imu/data_raw", 10);
@@ -39,7 +41,7 @@ namespace adis16400_imu {
                     sensor_msgs::Imu imu;
                     sensor_msgs::MagneticField mag;
                     if(device->read(frame_id, imu, mag)) {
-                        if(count++ % 4 != 0) continue;
+                        if(count++ % drop_every_ != 0) continue;
                         pub.publish(imu);
                         mag_pub.publish(mag);
                     }
@@ -53,6 +55,7 @@ namespace adis16400_imu {
             bool running;
             boost::thread polling_thread_inst;
             int count;
+            unsigned int drop_every_;
     };
     
     PLUGINLIB_DECLARE_CLASS(adis16400_imu, nodelet, adis16400_imu::Nodelet, nodelet::Nodelet);

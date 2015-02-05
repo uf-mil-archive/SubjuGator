@@ -1,4 +1,6 @@
 <launch>
+  <!-- decimate IMU samples by 4 -->
+  <param name="/imu_driver/divide" value="4"/>
   <include file="$(find sub_launch)/launch/common.xml"/>
 
   <node pkg="sub_launch" type="imu_conn" name="imu_conn" respawn="true"/>

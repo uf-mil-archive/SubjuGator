@@ -47,7 +47,7 @@ class _Sub(object):
         self._node_handle = node_handle
     
     @util.cancellableInlineCallbacks
-    def _init(self):
+    def _init(self, need_trajectory=True):
         self._trajectory_sub = self._node_handle.subscribe('trajectory', PoseTwistStamped)
         self._trajectory_pub = self._node_handle.advertise('trajectory', PoseTwistStamped)
         self._trajectory_generator_set_disabled_service = self._node_handle.get_service_client('c3_trajectory_generator/set_disabled', SetDisabled)
@@ -71,7 +71,8 @@ class _Sub(object):
         self._hydrophones_processed_sub = self._node_handle.subscribe('hydrophones/processed', ProcessedPing)
         self._wrench_sub = self._node_handle.subscribe('wrench', WrenchStamped)
         
-        yield self._trajectory_sub.get_next_message()
+        if(need_trajectory == True):
+            yield self._trajectory_sub.get_next_message()
         
         defer.returnValue(self)
     
@@ -438,10 +439,10 @@ class _Sub(object):
 
 _subs = {}
 @util.cancellableInlineCallbacks
-def get_sub(node_handle):
+def get_sub(node_handle, need_trajectory=True):
     if node_handle not in _subs:
         _subs[node_handle] = None # placeholder to prevent this from happening reentrantly
-        _subs[node_handle] = yield _Sub(node_handle)._init()
+        _subs[node_handle] = yield _Sub(node_handle)._init(need_trajectory)
         # XXX remove on nodehandle shutdown
     defer.returnValue(_subs[node_handle])
 

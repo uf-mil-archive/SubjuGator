@@ -33,3 +33,11 @@ to
 
     # automatically repair filesystems with inconsistencies during boot
     FSCKFIX=yes
+
+
+Add
+
+    192.168.1.21 sub sub-pc
+    192.168.1.22 sub-gumstix
+
+to the end of `/etc/hosts`.

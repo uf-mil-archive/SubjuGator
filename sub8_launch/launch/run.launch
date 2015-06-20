@@ -99,7 +99,8 @@ shift: [3.413877569289349e-06, -4.128412594086165e-06, -1.2491711473117817e-06]
   <node pkg="videoray_m5_thruster_driver" type="videoray_m5_thruster_driver" name="thruster_driver"><rosparam>
     buses:
       - port: /dev/serial/by-id/usb-FTDI_FT232R_USB_UART_A403IMC9-if00-port0
-        thrusters: {}
+        thrusters:
+          FLL: {node_id: 11, frame_id: /base_link, position: [0.2678, 0.2795, 0], direction: [0.866, -0.5, 0]}
       - port: /dev/serial/by-id/usb-FTDI_FT232R_USB_UART_A403IMCD-if00-port0
         thrusters:
           FRV: {node_id: 12, frame_id: /base_link, position: [0.1583, -0.169, 0.0142], direction: [0, 0, -1]}

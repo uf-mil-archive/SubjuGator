@@ -18,10 +18,10 @@
     <param name="frame_id" type="string" value="/imu"/>
     <rosparam>
 scale:
-- [1.01666299978973, 0.00019465706615585314, -0.024308740469546786]
-- [0.0001946570661559285, 0.997692200979356, -0.009372000736979502]
-- [-0.024308740469546765, -0.009372000736979615, 0.9865545470398474]
-shift: [1.7322001620747598e-05, -7.237241107056895e-06, 5.88175694611367e-05]
+- [0.9998775506838481, -0.00574705758600929, -0.02566220699905671]
+- [-0.005747057586009251, 0.9855550605329937, -0.02401122262564814]
+- [-0.02566220699905675, -0.02401122262564814, 1.0160657741128645]
+shift: [3.413877569289349e-06, -4.128412594086165e-06, -1.2491711473117817e-06]
     </rosparam>
   </node>
   <node pkg="tf" type="static_transform_publisher" name="imu_broadcaster"
@@ -65,11 +65,11 @@ shift: [1.7322001620747598e-05, -7.237241107056895e-06, 5.88175694611367e-05]
   <node pkg="c3_trajectory_generator" type="c3_trajectory_generator" name="c3_trajectory_generator"><rosparam>
     fixed_frame: /map
     body_frame: /base_link
-    vmin_b: [-0.2,  -0.3,  -0.4,   -0.75, -0.5, -2]
-    vmax_b: [ 0.75,  0.3,   0.4,    0.75,  0.5,  2]
-    amin_b: [-0.075,  -0.05, -0.1,   -1.5,  -0.2, -0.5]
-    amax_b: [ 0.25,  0.05,  0.125,  1.5,   0.2,  0.5]
-    arevoffset_b: [0.05, 0, 0]
+    vmin_b: [-1,  -1,  -1,   -0.75, -0.5, -3]
+    vmax_b: [ 1,  1,   1,    0.75,  0.5,  3]
+    amin_b: [-0.5,  -0.5, -0.4,   -1.5,  -0.2, -3]
+    amax_b: [ 0.5,  0.5,  0.4,  1.5,   0.2,  3]
+    arevoffset_b: [0.0, 0, 0]
     umax_b: [ 0.25,  0.25,  0.25,   0.1,   0.1,  0.1]
   </rosparam></node>
 
@@ -99,19 +99,18 @@ shift: [1.7322001620747598e-05, -7.237241107056895e-06, 5.88175694611367e-05]
   <node pkg="videoray_m5_thruster_driver" type="videoray_m5_thruster_driver" name="thruster_driver"><rosparam>
     buses:
       - port: /dev/serial/by-id/usb-FTDI_FT232R_USB_UART_A403IMC9-if00-port0
-        thrusters:
-          FLL: {node_id: 11, frame_id: /base_link, position: [0.2678, 0.2795, 0], direction: [0.866, -0.5, 0]}
+        thrusters: {}
       - port: /dev/serial/by-id/usb-FTDI_FT232R_USB_UART_A403IMCD-if00-port0
         thrusters:
-          FRV: {node_id: 12, frame_id: /base_link, position: [0.1583, -0.169, 0.0142], direction: [0, 0, 1]}
-          FRL: {node_id: 13, frame_id: /base_link, position: [0.2678, -0.2795, 0], direction: [0.866, 0.5, 0]}
+          FRV: {node_id: 12, frame_id: /base_link, position: [0.1583, -0.169, 0.0142], direction: [0, 0, -1]}
+          FRL: {node_id: 13, frame_id: /base_link, position: [0.2678, -0.2795, 0], direction: [-0.866, -0.5, 0]}
       - port: /dev/serial/by-id/usb-FTDI_FT232R_USB_UART_A403IMCI-if00-port0
         thrusters:
           BLV: {node_id: 14, frame_id: /base_link, position: [-0.1583, 0.169, 0.0142], direction: [0, 0, 1]}
-          BLL: {node_id: 15, frame_id: /base_link, position: [-0.2678, 0.2795, 0], direction: [-0.866, -0.5, 0]}
+          BLL: {node_id: 15, frame_id: /base_link, position: [-0.2678, 0.2795, 0], direction: [0.866, 0.5, 0]}
       - port: /dev/serial/by-id/usb-FTDI_FT232R_USB_UART_A403IN03-if00-port0
         thrusters:
           BRV: {node_id: 16, frame_id: /base_link, position: [-0.1583, -0.169, 0.0142], direction: [0, 0, 1]}
-          BRL: {node_id: 17, frame_id: /base_link, position: [-0.2678, -0.2795, 0], direction: [-0.866, 0.5, 0]}
+          BRL: {node_id: 17, frame_id: /base_link, position: [-0.2678, -0.2795, 0], direction: [0.866, -0.5, 0]}
   </rosparam></node>
 </launch>

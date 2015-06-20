@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(sub_launch)
 # Load catkin and all dependencies required for this package
 # TODO: remove all from COMPONENTS that are not catkin packages.
-find_package(catkin REQUIRED COMPONENTS magnetic_dynamic_compensation adis16400_imu thruster_mapper imagenex_852 leaksensor_driver rise_6dof odometry_utils indirect_kalman_6dof tf magnetic_hardsoft_compensation uf_common thruster_driver rdi_explorer_dvl image_proc c3_trajectory_generator depth_driver object_finder merge_driver)
+find_package(catkin REQUIRED COMPONENTS magnetic_dynamic_compensation adis16400_imu thruster_mapper imagenex_852 leaksensor_driver rise_6dof odometry_utils tf magnetic_hardsoft_compensation uf_common thruster_driver rdi_explorer_dvl image_proc c3_trajectory_generator depth_driver object_finder merge_driver)
 # CATKIN_MIGRATION: removed during catkin migration
 # cmake_minimum_required(VERSION 2.4.6)
 
@@ -42,7 +42,7 @@ catkin_python_setup()
 # TODO: fill in what other packages will need to use this package
 catkin_package(
     DEPENDS  # TODO
-    CATKIN_DEPENDS magnetic_dynamic_compensation adis16400_imu thruster_mapper imagenex_852 leaksensor_driver rise_6dof odometry_utils indirect_kalman_6dof tf magnetic_hardsoft_compensation uf_common thruster_driver rdi_explorer_dvl image_proc c3_trajectory_generator depth_driver object_finder merge_driver
+    CATKIN_DEPENDS magnetic_dynamic_compensation adis16400_imu thruster_mapper imagenex_852 leaksensor_driver rise_6dof odometry_utils tf magnetic_hardsoft_compensation uf_common thruster_driver rdi_explorer_dvl image_proc c3_trajectory_generator depth_driver object_finder merge_driver
     INCLUDE_DIRS # TODO include
     LIBRARIES # TODO
 )

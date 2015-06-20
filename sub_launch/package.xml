@@ -31,7 +31,6 @@
   <build_depend>magnetic_hardsoft_compensation</build_depend>
   <build_depend>uf_common</build_depend>
   <build_depend>tf</build_depend>
-  <build_depend>indirect_kalman_6dof</build_depend>
   <build_depend>merge_driver</build_depend>
 
   <!-- Dependencies needed after this package is compiled. -->
@@ -51,7 +50,6 @@
   <run_depend>magnetic_hardsoft_compensation</run_depend>
   <run_depend>uf_common</run_depend>
   <run_depend>tf</run_depend>
-  <run_depend>indirect_kalman_6dof</run_depend>
   <run_depend>merge_driver</run_depend>
 
   <!-- Dependencies needed only for running tests. -->
@@ -62,7 +60,6 @@
   <!-- <test_depend>leaksensor_driver</test_depend> -->
   <!-- <test_depend>rise_6dof</test_depend> -->
   <!-- <test_depend>odometry_utils</test_depend> -->
-  <!-- <test_depend>indirect_kalman_6dof</test_depend> -->
   <!-- <test_depend>tf</test_depend> -->
   <!-- <test_depend>magnetic_hardsoft_compensation</test_depend> -->
   <!-- <test_depend>uf_common</test_depend> -->

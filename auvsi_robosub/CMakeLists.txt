@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(auvsi_robosub)
 # Load catkin and all dependencies required for this package
 # TODO: remove all from COMPONENTS that are not catkin packages.
-find_package(catkin REQUIRED COMPONENTS uf_smach)
+find_package(catkin REQUIRED COMPONENTS)
 catkin_python_setup()
 
 # CATKIN_MIGRATION: removed during catkin migration
@@ -42,7 +42,7 @@ catkin_python_setup()
 # TODO: fill in what other packages will need to use this package
 catkin_package(
     DEPENDS  # TODO
-    CATKIN_DEPENDS uf_smach
+    CATKIN_DEPENDS 
     INCLUDE_DIRS # TODO include
     LIBRARIES # TODO
 )

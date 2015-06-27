@@ -3,10 +3,10 @@
   <node pkg="c3_trajectory_generator" type="c3_trajectory_generator" name="c3_trajectory_generator"><rosparam>
     fixed_frame: /map
     body_frame: /base_link
-    vmin_b: [-1,  -0.4,  -1,   -0.75, -0.5, -300]
-    vmax_b: [ 1,  0.4,   1,    0.75,  0.5,  300]
-    amin_b: [-0.3,  -0.2, -0.4,   -1.5,  -0.2, -300]
-    amax_b: [ 0.3,  0.2,  0.4,  1.5,   0.2,  300]
+    vmin_b: [-1,  -0.5,  -1,   -0.75, -0.5, -300]
+    vmax_b: [ 1,  0.5,   1,    0.75,  0.5,  300]
+    amin_b: [-0.5,  -0.25, -0.4,   -1.5,  -0.2, -300]
+    amax_b: [ 0.5,  0.25,  0.4,  1.5,   0.2,  300]
     arevoffset_b: [0.0, 0, 0]
     umax_b: [ 1,  1,  1,   1,1,10]
   </rosparam></node>

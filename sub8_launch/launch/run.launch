@@ -62,6 +62,8 @@ shift: [3.413877569289349e-06, -4.128412594086165e-06, -1.2491711473117817e-06]
   </node>
   <node pkg="nodelet" type="nodelet" args="standalone odometry_utils/odometry_to_tf" name="odometry_to_tf"/>
 
+  <include file="$(find sub8_launch)/launch/traj.launch"/>
+
   <node pkg="rise_6dof" type="rise_6dof" name="rise_6dof">
     <remap from="/current" to="odom"/>
     <remap from="/desired" to="trajectory"/>
@@ -104,4 +106,6 @@ shift: [3.413877569289349e-06, -4.128412594086165e-06, -1.2491711473117817e-06]
           BRV: {node_id: 16, frame_id: /base_link, position: [-0.1583, -0.169, 0.0142], direction: [0, 0, 1]}
           BRL: {node_id: 17, frame_id: /base_link, position: [-0.2678, -0.2795, 0], direction: [0.866, -0.5, 0]}
   </rosparam></node>
+
+  <include file="$(find sub8_launch)/launch/cameras.launch"/>
 </launch>

@@ -1,0 +1,31 @@
+<launch>
+  <node pkg="nodelet" type="nodelet" name="forward_camera_nodelets"
+        args="manager" output="screen"/>
+  <node pkg="nodelet" type="nodelet" name="forward_camera_driver"
+        args="standalone ueye2/UEyeNodelet">
+    <remap from="image_raw" to="forward_camera/image_raw"/>
+    <remap from="camera_info" to="forward_camera/camera_info"/>
+    <remap from="set_camera_info" to="forward_camera/set_camera_info"/>
+    <param name="frame_id" value="/forward_camera"/>
+    <param name="id" value="10"/>
+    <param name="hbins" value="4"/>
+    <param name="vbins" value="4"/>
+    <param name="framerate" value="10"/>
+    <param name="autowhitebalance" value="false"/>
+    <param name="calibration_file" value="$(find sub8_launch)/launch/forward_cal.txt"/>
+    <rosparam file="$(find sub8_launch)/launch/ueye_forward_camera.yaml"/>
+  </node>
+  <group ns="param_saver/forward_camera_driver">
+    <param name="filename" value="$(find sub8_launch)/launch/ueye_forward_camera.yaml"/>
+    <rosparam>
+      file_basepath: /forward_camera_driver
+      param_paths: [red_gain, green_gain, blue_gain, auto_reference]
+    </rosparam>
+  </group>
+  <node pkg="tf" type="static_transform_publisher" name="forward_camera_tf"
+    args="0.566 0 0.049  0.5 -0.5 0.5 -0.5  base_link forward_camera 100" />
+  <include file="$(find image_proc)/launch/image_proc.launch" ns="/forward_camera">
+    <arg name="manager" value="/forward_camera_nodelets"/>
+  </include>
+  <param name="/forward_camera/corner_cut" value="0"/>
+</launch>

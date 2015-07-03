@@ -28,4 +28,9 @@
     <arg name="manager" value="/forward_camera_nodelets"/>
   </include>
   <param name="/forward_camera/corner_cut" value="0"/>
+
+  <node pkg="object_finder" type="object_finder" name="forward_object_finder">
+    <remap from="find" to="find_forward"/>
+    <remap from="camera" to="forward_camera"/>
+  </node>
 </launch>

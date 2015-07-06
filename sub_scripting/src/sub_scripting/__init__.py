@@ -21,7 +21,7 @@ from tf import transformations
 from c3_trajectory_generator.srv import SetDisabled, SetDisabledRequest
 from odom_estimator.srv import SetIgnoreMagnetometer, SetIgnoreMagnetometerRequest
 from hydrophones.msg import ProcessedPing
-from geometry_msgs.msg import WrenchStamped
+from geometry_msgs.msg import WrenchStamped, Point
 
 
 class _PoseProxy(object):
@@ -70,6 +70,10 @@ class _Sub(object):
             'odom_estimator/set_ignore_magnetometer', SetIgnoreMagnetometer)
         self._hydrophones_processed_sub = self._node_handle.subscribe('hydrophones/processed', ProcessedPing)
         self._wrench_sub = self._node_handle.subscribe('wrench', WrenchStamped)
+
+        self._delorean_sub = self._node_handle.subscribe("delorean" , Point)
+        self._train_sub = self._node_handle.subscribe("train" , Point)
+        self._tracks_sub = self._node_handle.subscribe("tracks" , Point)
         
         if(need_trajectory == True):
             yield self._trajectory_sub.get_next_message()
@@ -250,6 +254,21 @@ class _Sub(object):
         finally:
             yield goal_mgr.cancel()
             if move_goal_mgr is not None: yield move_goal_mgr.cancel()
+
+    @util.cancellableInlineCallbacks
+    def get_target_location(self, target):
+        if target == 'delorean':
+            msg = yield self._delorean_sub.get_next_message()
+            defer.returnValue(msg)
+        if target == 'train':
+            msg = yield self._train_sub.get_next_message()
+            defer.returnValue(msg)
+        if target == 'tracks':
+            msg = yield self._tracks_sub.get_next_message()
+            defer.returnValue(msg)
+
+        print 'Invalid target ', target
+        assert False
     
     @util.cancellableInlineCallbacks
     def visual_approach_3d(self, camera, distance, targetdesc, loiter_time=0):

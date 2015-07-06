@@ -1,13 +1,17 @@
 # Catkin User Guide: http://www.ros.org/doc/groovy/api/catkin/html/user_guide/user_guide.html
 # Catkin CMake Standard: http://www.ros.org/doc/groovy/api/catkin/html/user_guide/standards.html
 cmake_minimum_required(VERSION 2.8.3)
-project(recovery_vision)
+project(sub_vision)
+
+set(CMAKE_XX_FLAGS "-std=c++11")
+
 
 find_package(catkin REQUIRED COMPONENTS
 	roscpp
 	rospy
 	std_msgs
 	geometry_msgs
+	cv_bridge
 )
 
 
@@ -30,6 +34,8 @@ target_link_libraries(recovery_vision ${catkin_LIBRARIES} vision_tools)
 
 add_dependencies(recovery_vision sub_vision_generate_messages_cpp)
 add_dependencies(recovery_vision src/vision_tools.cpp)
+
+add_definitions(-std=c++11)
 
 install(TARGETS vision_tools
 		ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}

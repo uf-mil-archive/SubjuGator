@@ -3,6 +3,8 @@
 
 #include <ros/ros.h>
 #include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 
 
 int calcIdealThreshold(cv::Mat histogram);
@@ -30,7 +32,7 @@ double vehicleOrientationAngle(cv::RotatedRect minAreaRect, cv::Point2d centroid
 void vehicleOrientationAngle_TEST();
 
 // Draws an arrow defined by a point of origin, an angle, and a length
-void drawArrowByAngle(cv::Mat& img, cv::Point origin, double angleDeg, double length, cv::Scalar& color);
+void drawArrowByAngle(cv::Mat& img, cv::Point origin, double angleDeg, double length);//, cv::Scalar& color);
 void drawArrowByAngle_TEST();
 
 // Function will create a local point density map illustrating the amount of points

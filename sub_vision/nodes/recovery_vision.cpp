@@ -3,7 +3,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include "vision_tools.h"
-#include "BTTF_Vehicle.h"
+//#include "BTTF_Vehicle.h" ALSO COMMENTED OUT LINE 387!!!!
 #include <iostream>
 #include <ros/ros.h>
 #include "geometry_msgs/Point.h"
@@ -20,7 +20,7 @@ using namespace cv;
 //	double area = 0;
 //	Point2d centroid = Point2d(0, 0);
 //
-/ls/	// Constructor
+// Constructor
 //	DS_Blob(vector<Point>* contour, double area, Point2d centroid){
 //		this->contour = *contour;
 //		this->area = area;
@@ -91,8 +91,8 @@ int main(int argc, char* argv[]){
 	// Image containers
 	Mat currentFrame, frameHSV, frameHUE, blobExtractionImg, outputFrame;
 
-	ros::Publisher delorean_pub = nh.Publisher<geometry_msgs::Point>("delorean", 1000)
-	ros::Publisher train_pub = nh.Publisher<geometry_msgs::Point>("train", 1000)
+	ros::Publisher delorean_pub = nh.advertise<geometry_msgs::Point>("delorean", 1000);
+	ros::Publisher train_pub = nh.advertise<geometry_msgs::Point>("train", 1000);
 	//ros::Publisher tracks_pub = nh.Publisher<Geometry_msgs::Point>("tracks", 1000)
 
 	// Named Windows	
@@ -317,12 +317,13 @@ int main(int argc, char* argv[]){
 					putText(outputFrame, DeLorean, objectCenter, font, fontSize, orange, fontThickness);
 					//arrowedLine(outputFrame, currentObject.center, centroid, Scalar(255, 0, 0));
 					vehicleOrientation = vehicleOrientationAngle(currentObject, centroid);
-					drawArrowByAngle(outputFrame, objectCenter, vehicleOrientation, 20, Scalar(0, 255, 255));
-					delorean_point = geometry_msgs::Point(x = centroid.x
-														  y = centroid.y
-														  z = vehicleOrientation
-														)
-					delorean_pub.publish(delorean_point)
+					drawArrowByAngle(outputFrame, objectCenter, vehicleOrientation, 20);// Scalar(0, 255, 255));
+
+					geometry_msgs::Point::Ptr delorean_point(new geometry_msgs::Point);
+					delorean_point->x = centroid.x;
+					delorean_point->y = centroid.y;
+					//delorean_point->z = centroid.z;
+					delorean_pub.publish(delorean_point);
 					
 				}
 				else if (avgHue > 41 && avgHue < 59) {	// Train Identified
@@ -336,12 +337,13 @@ int main(int argc, char* argv[]){
 					int fontThickness = 3;
 					putText(outputFrame, Train, objectCenter, font, fontSize, yellow, fontThickness);
 					vehicleOrientation = vehicleOrientationAngle(currentObject, centroid);
-					drawArrowByAngle(outputFrame, objectCenter, vehicleOrientation, 50, Scalar(0, 255, 255));
-					train_point = geometry_msgs::Point(x = centroid.x
-														  y = centroid.y
-														  z = vehicleOrientation
-														)
-					train_pub.publish(train_point)
+					drawArrowByAngle(outputFrame, objectCenter, vehicleOrientation, 50);//, Scalar(0, 255, 255));
+
+					geometry_msgs::Point::Ptr train_point(new geometry_msgs::Point);
+					train_point->x = centroid.x;
+					train_point->y = centroid.y;
+					//train_point->z = centroid.z;
+					train_pub.publish(train_point);
 				}
 
 				
@@ -382,7 +384,7 @@ int main(int argc, char* argv[]){
 
 				// Draw arrow to  waypoint on output img
 				if (waypoint.x != 0 && waypoint.y != 0){
-					arrowedLine(outputFrame, camOrigin, waypoint, Scalar(0, 0, smallestDistance), 6);
+					//arrowedLine(outputFrame, camOrigin, waypoint, Scalar(0, 0, smallestDistance), 6);
 					putText(outputFrame, "Waypoint", camOrigin, FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 3);
 				}
 			}

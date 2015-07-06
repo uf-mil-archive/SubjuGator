@@ -2,6 +2,7 @@
 #include <ros/ros.h>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 #include <math.h>
 #include <iostream>
 
@@ -107,17 +108,17 @@ void vehicleOrientationAngle_TEST(){
 	circle(img, org, 1, Scalar(120), CV_FILLED);
 	drawRotatedRect(img, RR, Scalar(255));
 	double vehicleOrientation = vehicleOrientationAngle(RR, vehicleCentroid);
-	drawArrowByAngle(img, org, vehicleOrientation, 50, Scalar(255));
+	drawArrowByAngle(img, org, vehicleOrientation, 50);//, Scalar(255));
 }
 
-void drawArrowByAngle(cv::Mat& img, cv::Point origin, double angleDeg, double length, Scalar& color){
+void drawArrowByAngle(cv::Mat& img, cv::Point origin, double angleDeg, double length){//, Scalar& color){
 	double deltaX = 0;
 	double deltaY = 0;
 	double angleRad = degToRad(angleDeg);
 	deltaX = length * cos(angleRad);
 	deltaY = length * -sin(angleRad);
 	Point endPoint = Point((int)deltaX + origin.x, (int)deltaY + origin.y);
-	arrowedLine(img, origin, endPoint, color, 3);
+	//arrowedLine(img, origin, endPoint, color, 3);
 	
 }
 void drawArrowByAngle_TEST(){
@@ -130,7 +131,7 @@ void drawArrowByAngle_TEST(){
 			angleDEG = 0;
 			length = 30;
 		}
-		drawArrowByAngle(img, origin, angleDEG, length, white);
+		drawArrowByAngle(img, origin, angleDEG, length);//, white);
 		angleDEG += 22.5;
 		length += 10;
 	}					// Set breakpoint here to check for correct intermediate image

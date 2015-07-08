@@ -71,7 +71,8 @@ class _Sub(object):
         self._hydrophones_processed_sub = self._node_handle.subscribe('hydrophones/processed', ProcessedPing)
         self._wrench_sub = self._node_handle.subscribe('wrench', WrenchStamped)
 
-        self._delorean_sub = self._node_handle.subscribe("delorean" , Point)
+        self._green_buoy_sub = self._node_handle.subscribe("green_buoy_vision" , Point)      
+        self._red_marker_sub = self._node_handle.subscribe("red_marker_vision" , Point)
         self._train_sub = self._node_handle.subscribe("train" , Point)
         self._tracks_sub = self._node_handle.subscribe("tracks" , Point)
         
@@ -270,6 +271,16 @@ class _Sub(object):
         print 'Invalid target ', target
         assert False
     
+    @util.cancellableInlineCallbacks
+    def get_green_buoy(self):
+        msg = yield self._green_buoy_sub.get_next_message()
+        defer.returnValue(msg)
+
+    @util.cancellableInlineCallbacks
+    def get_red_marker(self):
+        msg = yield self._red_marker_sub.get_next_message()
+        defer.returnValue(msg)
+
     @util.cancellableInlineCallbacks
     def visual_approach_3d(self, camera, distance, targetdesc, loiter_time=0):
         goal_mgr = self._camera_3d_action_clients[camera].send_goal(object_finder_msg.FindGoal(

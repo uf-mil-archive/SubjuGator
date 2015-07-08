@@ -322,7 +322,7 @@ int main(int argc, char* argv[]){
 					geometry_msgs::Point::Ptr delorean_point(new geometry_msgs::Point);
 					delorean_point->x = centroid.x;
 					delorean_point->y = centroid.y;
-					//delorean_point->z = centroid.z;
+					delorean_point->z = vehicleOrientation;
 					delorean_pub.publish(delorean_point);
 					
 				}
@@ -342,7 +342,7 @@ int main(int argc, char* argv[]){
 					geometry_msgs::Point::Ptr train_point(new geometry_msgs::Point);
 					train_point->x = centroid.x;
 					train_point->y = centroid.y;
-					//train_point->z = centroid.z;
+					train_point->z = vehicleOrientation;
 					train_pub.publish(train_point);
 				}
 

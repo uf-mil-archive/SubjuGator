@@ -1,0 +1,3 @@
+<launch>
+  <node name="recovery_vision" pkg="sub8_vision" type="recovery_vision" />
+</launch>

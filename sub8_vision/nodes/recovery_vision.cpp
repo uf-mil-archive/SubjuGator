@@ -16,17 +16,12 @@
 using namespace std;
 using namespace cv;
 
+ros::Publisher delorean_pub;
+ros::Publisher train_pub;
 
-class ImgConverter{
-	ros::NodeHandle nh;
+void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 
-public:
-	//cv_bridge::CvImagePtr img_ptr(new cv_bridge::CvImage());
-	
-
-};
-
-void callback(const sensor_msgs::ImageConstPtr& msg){
+	cout << "callback was called" << endl; //DBG
 
 
 	// Constants
@@ -37,16 +32,30 @@ void callback(const sensor_msgs::ImageConstPtr& msg){
 	Mat currentFrame, frameHSV, frameHUE, blobExtractionImg, outputFrame;
 
 	//Node Handle
-	ros::NodeHandle nh;
+	ros::NodeHandle n;
 
 	// Publishers
-	ros::Publisher delorean_pub = nh.advertise<geometry_msgs::Point>("delorean", 1000);
-	ros::Publisher train_pub = nh.advertise<geometry_msgs::Point>("train", 1000);
-	//ros::Publisher tracks_pub = nh.Publisher<Geometry_msgs::Point>("tracks", 1000)
+	ros::Publisher delorean_pub = n.advertise<geometry_msgs::Point>("delorean", 1000);
+	ros::Publisher train_pub = n.advertise<geometry_msgs::Point>("train", 1000);
+	//ros::Publisher tracks_pub = n.Publisher<Geometry_msgs::Point>("tracks", 1000)
+
+	// Wait for publisher subscriber connections to get set up
+	// while (true){
+	// 	bool readyToPublish = delorean_pub.getNumSubscribers() > 0 && train_pub.getNumSubscribers() > 0;
+	// 	if (readyToPublish) break;
+	// }
+	usleep(1000*100);
+
 
 	// Named Windows	
-	namedWindow("Vehicle Detection Output");
-	namedWindow("DBG");
+	//namedWindow("Vehicle Detection Output");
+	//startWindowThread();
+	//namedWindow("HUE");
+	//startWindowThread();
+	//namedWindow("After Flood Fill");
+	//startWindowThread();
+	//namedWindow("first contours");
+	//startWindowThread();
 
 	// Enumeration
 	enum class Recognized
@@ -93,6 +102,11 @@ void callback(const sensor_msgs::ImageConstPtr& msg){
 	// Applying flood fill to Hue channel
 	blobExtractionImg = frameHUE.clone();
 	floodFill(blobExtractionImg, Point(0, 0), Scalar(0), 0, 3, 3, 8);
+
+	//imshow("HUE", frameHUE); // DBG
+	//waitKey(10);
+	//imshow("After Flood Fill", blobExtractionImg); // DBG
+	//waitKey(10);
 	
 	// Containers for blob extraction
 	vector<vector<Point>> floodFillContours, joinedFFContours;
@@ -113,6 +127,9 @@ void callback(const sensor_msgs::ImageConstPtr& msg){
 			if (Distance(p1.x, p1.y, p2.x, p2.y) < distThresh) line(blobExtractionImg, p1, p2, Scalar(255), 2);
 		}
 	}
+
+	//imshow("first contours", floodFillContours); // DBG
+	//waitKey(10);
 
 	// Extract object contours from joined blobs
 	findContours(blobExtractionImg, joinedFFContours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
@@ -251,11 +268,12 @@ void callback(const sensor_msgs::ImageConstPtr& msg){
 			vehicleOrientation = vehicleOrientationAngle(currentObject, centroid);
 			drawArrowByAngle(outputFrame, objectCenter, vehicleOrientation, 20);// Scalar(0, 255, 255));
 
-			geometry_msgs::Point::Ptr delorean_point(new geometry_msgs::Point);
-			delorean_point->x = centroid.x;
-			delorean_point->y = centroid.y;
-			delorean_point->z = vehicleOrientation;
+			geometry_msgs::Point delorean_point;
+			delorean_point.x = centroid.x;
+			delorean_point.y = centroid.y;
+			delorean_point.z = vehicleOrientation;
 			delorean_pub.publish(delorean_point);
+			cout << "DeLorean: " << "x = " << delorean_point.x << "y = " << delorean_point.y << "z = " << delorean_point.z << endl;
 			
 		}
 		else if (avgHue > 41 && avgHue < 59) {	// Train Identified
@@ -271,14 +289,29 @@ void callback(const sensor_msgs::ImageConstPtr& msg){
 			vehicleOrientation = vehicleOrientationAngle(currentObject, centroid);
 			drawArrowByAngle(outputFrame, objectCenter, vehicleOrientation, 50);//, Scalar(0, 255, 255));
 
-			geometry_msgs::Point::Ptr train_point(new geometry_msgs::Point);
-			train_point->x = centroid.x;
-			train_point->y = centroid.y;
-			train_point->z = vehicleOrientation;
+			geometry_msgs::Point train_point;
+			train_point.x = centroid.x;
+			train_point.y = centroid.y;
+			train_point.z = vehicleOrientation;
 			train_pub.publish(train_point);
-		}
+			cout << "Train : " << "x = " << train_point.x << "y = " << train_point.y << "z = " << train_point.z << endl;
 
-		
+		}
+		else {
+			geometry_msgs::Point delorean_point;
+			delorean_point.x = 0;
+			delorean_point.y = 0;
+			delorean_point.z = 0;
+			delorean_pub.publish(delorean_point);
+
+			geometry_msgs::Point train_point;
+			train_point.x = 0;
+			train_point.y = 0;
+			train_point.z = 0;
+			train_pub.publish(train_point);
+			cout << "DeLorean: " << "x = " << delorean_point.x << "y = " << delorean_point.y << "z = " << delorean_point.z << endl;
+			cout << "Train : " << "x = " << train_point.x << "y = " << train_point.y << "z = " << train_point.z << endl;
+		}	
 	}	// End of object recognition loop
 
 
@@ -331,7 +364,9 @@ void callback(const sensor_msgs::ImageConstPtr& msg){
 	
 	// Display Results
 	imshow("Vehicle Detection Output", outputFrame);
-	imshow("DBG", frameHUE);
+	waitKey(1);
+
+	//destroyAllWindows();
 }	
 
 int main(int argc, char* argv[]){
@@ -339,8 +374,10 @@ int main(int argc, char* argv[]){
 
  	ros::NodeHandle n;
 
- 	ros::Subscriber cam_sub = n.subscribe("/forward_camera/image_color",\
-		 1, callback);
+	// Since we're subscribing to an image, use an image_transport::Subscriber
+	image_transport::ImageTransport it(n);
+ 	image_transport::Subscriber cam_sub = it.subscribe("/forward_camera/image_color",\
+		 1, imgCallback);
 
  	ros::spin();
 

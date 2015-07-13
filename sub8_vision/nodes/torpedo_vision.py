@@ -24,11 +24,18 @@ class find_signs(object):
 		self.red_mask = None
 		self.final_shapes = None
 
-		top_right_pub = rospy.Publisher("torpedo/TR", Point, queue_size = 1)
-		top_left_pub = rospy.Publisher("torpedo/TL", Point, queue_size = 1)
-		bottom_right_pub = rospy.Publisher("torpedo/BR", Point, queue_size = 1)
-		bottom_left_pub = rospy.Publisher("torpedo/BL", Point, queue_size = 1)
+		self.x_pixel_array = []
+		self.y_pixel_array = []
+		self.x_set = set()
+		self.y_set = set()
+		self.sign_x_center = 0
+		self.sign_y_center = 0
 
+		self.top_right_pub = rospy.Publisher("torpedo/TR", Point, queue_size = 1)
+		self.top_left_pub = rospy.Publisher("torpedo/TL", Point, queue_size = 1)
+		self.bottom_right_pub = rospy.Publisher("torpedo/BR", Point, queue_size = 1)
+		self.bottom_left_pub = rospy.Publisher("torpedo/BL", Point, queue_size = 1)
+		self.center_publisher = rospy.Publisher("torpedo/center", Point, queue_size = 1)
 
 	def red_work(self):
 		self.red_mask = cv2.inRange(self.master_hsv, LOWER_RED, UPPER_RED)
@@ -64,8 +71,26 @@ class find_signs(object):
 						cx = int(M['m10']/M['m00'])
 						cy = int(M['m01']/M['m00'])
 						cv2.circle(self.master_import,(cx,cy),10,(255,0,0),-1)
+						self.x_pixel_array.append(cx)
+						self.y_pixel_array.append(cy)
+						self.x_set = self.x_pixel_array
+						self.y_set = self.y_pixel_array
 
-	def show_image(self):
+	def output(self):
+		x_temp = 0
+		y_temp = 0
+		for x in self.x_set:
+			x_temp += x
+		for y in self.y_set:
+			y_temp += y
+
+		self.sign_x_center = x_temp/8
+		self.sign_y_center = y_temp/8
+
+		cv2.circle(self.master_import,(self.sign_x_center, self.sign_y_center),10,(0,0,255),-1)
+		to_pub = Point(x = self.sign_x_center, y = self.sign_y_center)
+		self.center_publisher.publish(to_pub)
+
 		cv2.imshow('res',self.master_import)
 		k = cv2.waitKey(0)
 
@@ -76,7 +101,7 @@ if __name__ == "__main__":
 	find_signs.yellow_work()
 	find_signs.filter_and_assign()
 	find_signs.contour_then_filter()
-	find_signs.show_image()
+	find_signs.output()
 	
 	
 
@@ -86,5 +111,4 @@ if __name__ == "__main__":
 	
 
 	
-
 

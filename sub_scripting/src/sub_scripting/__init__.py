@@ -75,9 +75,12 @@ class _Sub(object):
         self._red_marker_sub = self._node_handle.subscribe("red_marker_vision" , Point)
         self._train_sub = self._node_handle.subscribe("train" , Point)
         self._tracks_sub = self._node_handle.subscribe("tracks" , Point)
+        self._torpedo_center = self._node_handle.subscribe("torpedo/center", Point)
+
         
         if(need_trajectory == True):
             yield self._trajectory_sub.get_next_message()
+
         
         defer.returnValue(self)
     
@@ -271,6 +274,13 @@ class _Sub(object):
         print 'Invalid target ', target
         assert False
     
+    @util.cancellableInlineCallbacks
+    def get_torpedod_location(self, target):
+        if target == 'center':
+            msg = yield self._torpedo_center.get_next_message()
+            defer.returnValue(msg)
+
+
     @util.cancellableInlineCallbacks
     def get_green_buoy(self):
         msg = yield self._green_buoy_sub.get_next_message()

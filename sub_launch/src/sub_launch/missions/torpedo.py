@@ -38,6 +38,13 @@ def main(nh):
         if y_location > CAMERA_Y_CENTER:
             sub.move.up(.1)
 
+    TL = yield sub.get_torpedo_location('top_left')
+    TL_location = TL.x + TL.y
+
+    while TL_location > 50:
+        yield sub.move.forward(1).go()
+        TL = yield sub.get_torpedo_location('top_left')
+        TL_location = TL.x + TL.y
 
     # Still need to figure out how to get ditance from object
 

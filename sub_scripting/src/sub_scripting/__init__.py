@@ -76,6 +76,7 @@ class _Sub(object):
         self._train_sub = self._node_handle.subscribe("train" , Point)
         self._tracks_sub = self._node_handle.subscribe("tracks" , Point)
         self._torpedo_center = self._node_handle.subscribe("torpedo/center", Point)
+        self._torpedo_TL = self._node_handle.subscribe("torpedo/TL", Point)
 
         
         if(need_trajectory == True):
@@ -278,6 +279,9 @@ class _Sub(object):
     def get_torpedod_location(self, target):
         if target == 'center':
             msg = yield self._torpedo_center.get_next_message()
+            defer.returnValue(msg)
+        if target == 'top_left':
+            msg = yield self._torpedo_TL.get_next_message()
             defer.returnValue(msg)
 
 

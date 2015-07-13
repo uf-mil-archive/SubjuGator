@@ -26,8 +26,11 @@ class find_signs(object):
 
 		self.x_pixel_array = []
 		self.y_pixel_array = []
+
+		# Convert to set to remove duplicatesss
 		self.x_set = set()
 		self.y_set = set()
+
 		self.sign_x_center = 0
 		self.sign_y_center = 0
 

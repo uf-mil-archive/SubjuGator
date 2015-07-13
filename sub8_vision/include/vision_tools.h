@@ -19,8 +19,10 @@ double distCameraToObject(double actualLengthMM, double folcalLengthMM, double l
 void drawRotatedRect(cv::Mat& img, cv::RotatedRect RR, cv::Scalar color, int lineThickness);
 
 // Returns the width (smallest dimension) of a RotatedRect
-double rotatedRectWidth(cv::RotatedRect RR);
+double rotatedRectWidth(cv::RotatedRect& RR);
 void rotatedRectWidth_TEST();
+
+double rotatedRectHeight(cv::RotatedRect& RR);
 
 // Returns the orientation angle of a ray starting at p1 and passing through p2
 // Pointing right -> 0	degrees	Pointing up -> 90 degrees

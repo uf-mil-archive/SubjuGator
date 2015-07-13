@@ -23,13 +23,22 @@ void drawRotatedRect(cv::Mat& img, cv::RotatedRect RR, cv::Scalar color, int lin
 }
 
 
-double rotatedRectWidth(cv::RotatedRect RR){
+double rotatedRectWidth(cv::RotatedRect& RR){
 	Point2f vertices[4];
 	RR.points(vertices);
 	float dist01 = Distance(vertices[0].x, vertices[0].y, vertices[1].x, vertices[1].y);
 	float dist12 = Distance(vertices[1].x, vertices[1].y, vertices[2].x, vertices[2].y);
 	return dist01 <= dist12 ? (double)dist01 : (double)dist12;
 }
+
+double rotatedRectHeight(cv::RotatedRect& RR){
+	Point2f vertices[4];
+	RR.points(vertices);
+	float dist01 = Distance(vertices[0].x, vertices[0].y, vertices[1].x, vertices[1].y);
+	float dist12 = Distance(vertices[1].x, vertices[1].y, vertices[2].x, vertices[2].y);
+	return dist01 <= dist12 ? (double)dist12 : (double)dist01;
+}
+
 void rotatedRectWidth_TEST(){
 	RotatedRect RR1{ Point2f(100.0, 100.0), Size2f(40.5, 20.5), 45.0 };
 	RotatedRect RR2{ Point2f(100.0, 100.0), Size2f(20.5, 40.5), 45.0 };

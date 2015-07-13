@@ -11,7 +11,8 @@
 #include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/image_encodings.h>
 
-#define PI           3.14159265358979323846
+#define PI        3.14159265358979323846
+
 
 using namespace std;
 using namespace cv;
@@ -19,17 +20,19 @@ using namespace cv;
 ros::Publisher delorean_pub;
 ros::Publisher train_pub;
 
+// We need a global variable n order to use the slider in our callback function
+int rec_viz_thresh_slider;
+
 void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 
-	cout << "callback was called" << endl; //DBG
-
+	//cout << "callback was called" << endl; //DBG
 
 	// Constants
 	const double DOWNSAMPLING_FACTOR = .5;	// Downsampling scale factor
 	const int RECOGNITION_RADIUS = 125;		// Only recognizes objects within this distance from origin
 
 	// Image containers
-	Mat currentFrame, frameHSV, frameHUE, blobExtractionImg, outputFrame;
+	Mat currentFrame, frameHSV, frameHUE, frameSAT, blobExtractionImg, outputFrame;
 
 	//Node Handle
 	ros::NodeHandle n;
@@ -89,35 +92,58 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 	Size kernelSize = Size(3, 3);
 	GaussianBlur(outputFrame, outputFrame, kernelSize, 0);
 
+	//cout << "reduced frame size:	" << outputFrame.cols << " x " << outputFrame.rows << endl; // DBG
+
 	// Containers for color conversion
 	frameHSV = Mat::zeros(outputFrame.size(), CV_8U);
 	vector<Mat> separtedHSV(3);
 	vector<vector<Point>> HSVcontours;
 
-	// Converting to HSV colorspace and isolating Hue channel
+	// Converting to HSV colorspace and isolating Hue and Sat channels
 	cvtColor(outputFrame, frameHSV, CV_BGR2HSV);
 	split(frameHSV, separtedHSV);
 	frameHUE = separtedHSV[0].clone();
+	frameSAT =  separtedHSV[1].clone();
+	Mat frameVAL =  separtedHSV[2].clone(); // DBG
 
-	// Applying flood fill to Hue channel
-	blobExtractionImg = frameHUE.clone();
-	floodFill(blobExtractionImg, Point(0, 0), Scalar(0), 0, 3, 3, 8);
+	// // Applying flood fill to Hue channel
+	// float meanHue = mean(frameHUE)[0];
+	// float acceptableHueError = 20.0;
+	// cout << meanHue << endl;
+	// blobExtractionImg = frameHUE.clone();
+	// for (int i = 0; i < blobExtractionImg.rows; i += 10){
+	// 	for(int j = 0; j < blobExtractionImg.cols; j += 10){
+	// 		Point seedPt = Point(j,i);
+	// 		int pixHue = blobExtractionImg.at<uchar>(i,j);
+	// 		if (fabs(meanHue - pixHue) <= acceptableHueError){
+	// 			floodFill(blobExtractionImg, seedPt, Scalar(255), 0, 3, 3, 8);
+	// 		}
 
-	//imshow("HUE", frameHUE); // DBG
+	// 	}
+	// }
+	//floodFill(blobExtractionImg, Point(0, 0), Scalar(0), 0, 3, 3, 8);
+	//int thresh = 110;
+	threshold(frameSAT, blobExtractionImg, rec_viz_thresh_slider, 255, THRESH_BINARY);
+
+	
+	imshow("HUE", frameHUE); // DBG
+	imshow("SAT", frameSAT); // DBG
+	//imshow("VAL", frameVAL); // DBG
 	//waitKey(10);
-	//imshow("After Flood Fill", blobExtractionImg); // DBG
+	imshow("Thresholding", blobExtractionImg); // DBG
 	//waitKey(10);
 	
 	// Containers for blob extraction
 	vector<vector<Point>> floodFillContours, joinedFFContours;
 
 	// Blob extraction
-	findContours(blobExtractionImg, floodFillContours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);	
-	
+	findContours(blobExtractionImg, floodFillContours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+
 	// Joining Blobs that are close together
 	blobExtractionImg = Mat::zeros(outputFrame.size(), CV_8U);
-	double distThresh = 50;
-	drawContours(blobExtractionImg, floodFillContours, -1, Scalar(255), 2);		// Draw blob mask image
+	double distThresh = 50; 												// Will join blobs that are closer than this
+	drawContours(blobExtractionImg, floodFillContours, -1, Scalar(255), 2);	// Draw blob mask image
+	imshow("First Countours", blobExtractionImg); // DBG
 	for (int i = 0; i < floodFillContours.size(); i++){
 		for (int j = 0; j < floodFillContours.size(); j++){
 
@@ -133,7 +159,8 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 
 	// Extract object contours from joined blobs
 	findContours(blobExtractionImg, joinedFFContours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
-	drawContours(blobExtractionImg, joinedFFContours, -1, Scalar(122), 1);
+	drawContours(blobExtractionImg, joinedFFContours, -1, Scalar(122), 2);
+	imshow("Second Countours", blobExtractionImg); // DBG
 	
 	// Approximate joined contours with rotated rectangles
 	vector<RotatedRect> rotatedRects;
@@ -153,26 +180,23 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 		}
 		circle(outputFrame, rect.center, 3, Scalar(0, 255, 0), CV_FILLED);
 	}
+	imshow("Recognition Objects", blobExtractionImg); // DBG
 
 	// Containers for hue averaging and centroid calculation
-	int avgHue = 0;
-	int pixCount = 0;
-	int hueSum = 0;
-	int xSum = 0;
-	int ySum = 0;
-
+	int avgHue, hueSum, pixCount, xSum, ySum;
 
 	// Object recognition loop
 	Recognized identifiedVehicle = Recognized::None; //  0 -> No vehicle identified
 	bool objectsRecognized = false;			// Temp, want to replace this
 	for (RotatedRect currentObject : rotatedRects){
 		
+		// Reset hue averaging counters
+		avgHue = hueSum = pixCount = xSum = ySum = 0;
 
-		// Object properties
+		// Extract basic object properties
 		Point2f objectCenter = currentObject.center;
 		Rect objectRectangle = currentObject.boundingRect();
 		float distanceToOrigin = Distance(camCenter.x, camCenter.y, objectCenter.x, objectCenter.y);
-
 
 		// Stop object recognition in current frame if object is too far
 		if (distanceToOrigin > RECOGNITION_RADIUS) continue;
@@ -205,10 +229,8 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 			if (insideBoundingRect) componentBlobs.push_back(currentBlob);
 		}
 
-
-
-		// Reset hue averaging counters
-		hueSum = pixCount = xSum = ySum = 0;
+		// Eliminate objects with the wrong number of component blobs
+		if (componentBlobs.size() != 2 && componentBlobs.size() != 4) continue;
 
 		// Average hue of all component blobs
 		for (vector<Point> blob : componentBlobs){
@@ -235,10 +257,7 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 					// else frameHUE.at<uchar>(Point(x, y)) = 122; // Dbg
 				}
 			}
-
-
 		}	// End of hue averaging loop
-		
 
 		// Calculate object's average hue and centroid
 		Point2d centroid;
@@ -246,15 +265,30 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 			avgHue = (float)hueSum / pixCount;
 			centroid = Point2d{ (double)xSum / pixCount, (double)ySum / pixCount };
 		}
+
+		// Eliminate objects with high hue values
+		const int maxAcceptableHueAvg = 50;
+		if (avgHue > maxAcceptableHueAvg) continue;
 		
 		// Orientation angle of vector from rect center to vehicle centroid
 		double vehicleOrientation = -1; // -1 is flag for no vehicle rec
 		circle(frameHUE, centroid, 2, Scalar(0), CV_FILLED);
 		circle(frameHUE, currentObject.center, 2, Scalar(122), CV_FILLED);
+
+		float RR_height = rotatedRectHeight(currentObject);
+		//cout << "height(long) : " << RR_height << endl;
+		float RR_width = rotatedRectWidth(currentObject);
+		//cout << "width(short): " << RR_width << endl;
+		float w_h_ratio = RR_width/RR_height;
+		cout << "width/height : ** " << w_h_ratio << endl;
+
+		// Set limits for acceptable width/height ratios for recognition
+		const float maxTrainRatio = 0.6;
+		const float minDeloreanRatio = 0.7;
 		
 
 		// Outcomes of identification
-		if (avgHue > 21 && avgHue < 39) {		// Delorean Identified
+		if (componentBlobs.size() == 2 && w_h_ratio > minDeloreanRatio) {		// Delorean Identified
 			identifiedVehicle = Recognized::DeLorean;
 			objectsRecognized = true;			// Temp, want to replace this
 			float orientation = currentObject.angle;
@@ -273,10 +307,10 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 			delorean_point.y = centroid.y;
 			delorean_point.z = vehicleOrientation;
 			delorean_pub.publish(delorean_point);
-			cout << "DeLorean: " << "x = " << delorean_point.x << "y = " << delorean_point.y << "z = " << delorean_point.z << endl;
+			//cout << "DeLorean: " << "x = " << delorean_point.x << " y = " << delorean_point.y << " z = " << delorean_point.z << endl; // DBG
 			
 		}
-		else if (avgHue > 41 && avgHue < 59) {	// Train Identified
+		else if (componentBlobs.size() == 4 && w_h_ratio < maxTrainRatio) {	// Train Identified
 			identifiedVehicle = Recognized::Train;
 			objectsRecognized = true;			// Temp, want to replace this
 			int orientation = currentObject.angle;
@@ -294,24 +328,24 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 			train_point.y = centroid.y;
 			train_point.z = vehicleOrientation;
 			train_pub.publish(train_point);
-			cout << "Train : " << "x = " << train_point.x << "y = " << train_point.y << "z = " << train_point.z << endl;
+			//cout << "Train : " << "x = " << train_point.x << " y = " << train_point.y << " z = " << train_point.z << endl; // DBG
 
 		}
-		else {
-			geometry_msgs::Point delorean_point;
-			delorean_point.x = 0;
-			delorean_point.y = 0;
-			delorean_point.z = 0;
-			delorean_pub.publish(delorean_point);
+		// else {
+		// 	geometry_msgs::Point delorean_point;
+		// 	delorean_point.x = 0;
+		// 	delorean_point.y = 0;
+		// 	delorean_point.z = 0;
+		// 	delorean_pub.publish(delorean_point);
 
-			geometry_msgs::Point train_point;
-			train_point.x = 0;
-			train_point.y = 0;
-			train_point.z = 0;
-			train_pub.publish(train_point);
-			cout << "DeLorean: " << "x = " << delorean_point.x << "y = " << delorean_point.y << "z = " << delorean_point.z << endl;
-			cout << "Train : " << "x = " << train_point.x << "y = " << train_point.y << "z = " << train_point.z << endl;
-		}	
+		// 	geometry_msgs::Point train_point;
+		// 	train_point.x = 0;
+		// 	train_point.y = 0;
+		// 	train_point.z = 0;
+		// 	train_pub.publish(train_point);
+			//cout << "DeLorean: " << "x = " << delorean_point.x << " y = " << delorean_point.y << " z = " << delorean_point.z << endl; // DBG
+			//cout << "Train : " << "x = " << train_point.x << " y = " << train_point.y << " z = " << train_point.z << endl; // DBG
+		// }	
 	}	// End of object recognition loop
 
 
@@ -350,10 +384,9 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 		// Draw arrow to  waypoint on output img
 		if (waypoint.x != 0 && waypoint.y != 0){
 			//arrowedLine(outputFrame, camCenter, waypoint, Scalar(0, 0, smallestDistance), 6);
-			putText(outputFrame, "Waypoint", camCenter, FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 3);
+			//putText(outputFrame, "Waypoint", camCenter, FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 3);
 		}
 	}
-
 
 	// Draw origin and recognition for visualization
 	Scalar green(0, 255, 0);
@@ -373,6 +406,11 @@ int main(int argc, char* argv[]){
 	ros::init(argc, argv, "recovery_vision");
 
  	ros::NodeHandle n;
+
+ 	// Create and initialize slider
+ 	namedWindow("Thresholding");
+ 	rec_viz_thresh_slider = 120;
+	createTrackbar("Saturation Threshold: ", "Thresholding", &rec_viz_thresh_slider, 255);
 
 	// Since we're subscribing to an image, use an image_transport::Subscriber
 	image_transport::ImageTransport it(n);

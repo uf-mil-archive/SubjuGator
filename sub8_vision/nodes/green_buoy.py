@@ -52,11 +52,10 @@ class image_converter:
         upper_value = np.array([h2, s2, v2], np.uint8)
         #endthresholding
         temp = np.array(0)
+        cv2.rectangle(img,(0,0),(960,200),(0,0,0),-1)        #kernel = np.ones((150,150),np.uint8)
         mask = cv2.inRange(img, lower_value, upper_value)
         bImg = cv2.bitwise_or(mask, temp)
-        img = cv2.rectangle(img,(0,0),(960,200),(0,0,0),-1)
-        #img = cv2.rectangle(img,(0,0),(50,480),(0,0,0),-1)
-        #kernel = np.ones((150,150),np.uint8)
+        #cv2.rectangle(thresh,(0,0),(960,200),(0,0,0),-1)        #kernel = np.ones((150,150),np.uint8)
         #bImg = cv2.morphologyEx(bImg, cv2.MORPH_CLOSE, kernel)#messed something up was included in a tutorial not entirely required here
         ret, thresh = cv2.threshold(bImg, 127, 255, 0)
         #end thresholding and building heat mask

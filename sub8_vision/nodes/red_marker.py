@@ -52,6 +52,7 @@ class image_converter:
         upper_value = np.array([h2, s2, v2], np.uint8)
         #endthresholding
         temp = np.array(0)
+        cv2.rectangle(img,(0,0),(960,200),(0,0,0),-1)        #kernel = np.ones((150,150),np.uint8)
         mask = cv2.inRange(img, lower_value, upper_value)
         bImg = cv2.bitwise_or(mask, temp)
         img = cv2.rectangle(img,(0,0),(960,200),(0,0,0),-1)

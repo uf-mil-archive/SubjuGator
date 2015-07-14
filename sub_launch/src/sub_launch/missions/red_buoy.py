@@ -30,5 +30,5 @@ def main(nh):
     yield sub.visual_approach_3d('forward', 1.5, buoy_targetdesc)
     
     yield sub.move.forward(1.5).go()
-    yield sub.move.forward(-1.5).go()
-    yield sub.move.forward(4.5).depth(1).go()
+    yield sub.move.forward(-6).go()
+    #yield sub.move.forward(4.5).depth(1).go()

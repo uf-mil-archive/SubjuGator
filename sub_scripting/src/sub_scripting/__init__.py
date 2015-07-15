@@ -276,7 +276,7 @@ class _Sub(object):
         assert False
     
     @util.cancellableInlineCallbacks
-    def get_torpedod_location(self, target):
+    def get_torpedo_location(self, target):
         if target == 'center':
             msg = yield self._torpedo_center.get_next_message()
             defer.returnValue(msg)

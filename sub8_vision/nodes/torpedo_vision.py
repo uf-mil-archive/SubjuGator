@@ -179,8 +179,8 @@ class find_signs(object):
         self.bottom_right_pub.publish(self.BR)
 
 
-        #cv2.imshow('res',self.master_import)
-        #k = cv2.waitKey(3)
+        cv2.imshow('res',self.master_import)
+        k = cv2.waitKey(3)
 
         #image_message = self.bridge.cv2_to_imgmsg(self.master_import)
         #self.image_pub.publish(image_message, "bgr8")

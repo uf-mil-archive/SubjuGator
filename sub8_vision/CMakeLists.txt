@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
 	rospy
 	std_msgs
 	geometry_msgs
+	OpenCV
 	cv_bridge
 	image_transport
 )
@@ -27,10 +28,13 @@ set(YOUR_LIB_SOURCES
 )
 
 include_directories(include ${catkin_INCLUDE_DIRS})
+include_directories(${OpenCV_INCLUDE_DIRS})
+
 
 add_executable(recovery_vision nodes/recovery_vision.cpp)
 add_library(vision_tools ${YOUR_LIB_SOURCES})
 target_link_libraries(recovery_vision ${catkin_LIBRARIES} vision_tools)
+target_link_libraries(recovery_vision ${OpenCV_LIBRARIES})
 
 add_dependencies(recovery_vision sub_vision_generate_messages_cpp)
 add_dependencies(recovery_vision src/vision_tools.cpp)

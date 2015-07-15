@@ -104,8 +104,6 @@ double vehicleOrientationAngle(RotatedRect minAreaRect, Point2d centroid){
 	//	else rectOrientationAngle += 180;
 	//	return rectOrientationAngle;
 	//}
-
-
 }
 void vehicleOrientationAngle_TEST(){
 	Point2f org = Point2f(250.0, 250.0);
@@ -117,18 +115,19 @@ void vehicleOrientationAngle_TEST(){
 	circle(img, org, 1, Scalar(120), CV_FILLED);
 	drawRotatedRect(img, RR, Scalar(255));
 	double vehicleOrientation = vehicleOrientationAngle(RR, vehicleCentroid);
-	drawArrowByAngle(img, org, vehicleOrientation, 50);//, Scalar(255));
+	Scalar color = Scalar(255);
+	//drawArrowByAngle(img, org, vehicleOrientation, 50, color);
 }
 
-void drawArrowByAngle(cv::Mat& img, cv::Point origin, double angleDeg, double length){//, Scalar& color){
+void drawArrowByAngle(cv::Mat& img, cv::Point origin, double angleDeg, double length){
 	double deltaX = 0;
 	double deltaY = 0;
 	double angleRad = degToRad(angleDeg);
 	deltaX = length * cos(angleRad);
 	deltaY = length * -sin(angleRad);
 	Point endPoint = Point((int)deltaX + origin.x, (int)deltaY + origin.y);
-	//arrowedLine(img, origin, endPoint, color, 3);
-	
+	line(img, origin, endPoint, Scalar(255), 3);
+	circle(img, endPoint, 5, Scalar(0,0,255), CV_FILLED);
 }
 void drawArrowByAngle_TEST(){
 	Mat img = Mat(600, 600, CV_8UC1, Scalar(0));
@@ -140,14 +139,12 @@ void drawArrowByAngle_TEST(){
 			angleDEG = 0;
 			length = 30;
 		}
-		drawArrowByAngle(img, origin, angleDEG, length);//, white);
+		//drawArrowByAngle(img, origin, angleDEG, length);
 		angleDEG += 22.5;
 		length += 10;
 	}					// Set breakpoint here to check for correct intermediate image
 	imshow("Debug Image", img);
 	waitKey(0);
-
-
 }
 
 double rayOrientationAngle(cv::Point2d p1, cv::Point2d p2){

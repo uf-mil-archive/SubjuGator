@@ -34,7 +34,7 @@ double vehicleOrientationAngle(cv::RotatedRect minAreaRect, cv::Point2d centroid
 void vehicleOrientationAngle_TEST();
 
 // Draws an arrow defined by a point of origin, an angle, and a length
-void drawArrowByAngle(cv::Mat& img, cv::Point origin, double angleDeg, double length);//, cv::Scalar& color);
+void drawArrowByAngle(cv::Mat& img, cv::Point origin, double angleDeg, double length);
 void drawArrowByAngle_TEST();
 
 // Function will create a local point density map illustrating the amount of points

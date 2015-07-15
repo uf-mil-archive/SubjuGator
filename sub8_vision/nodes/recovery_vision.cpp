@@ -19,6 +19,7 @@ using namespace cv;
 
 ros::Publisher delorean_pub;
 ros::Publisher train_pub;
+ros::Publisher handle_pub;
 
 // We need a global variable n order to use the slider in our callback function
 int rec_viz_thresh_slider;
@@ -29,7 +30,8 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 
 	// Constants
 	const double DOWNSAMPLING_FACTOR = .5;	// Downsampling scale factor
-	const int RECOGNITION_RADIUS = 125;		// Only recognizes objects within this distance from origin
+	const double RE_UPSAMPLING_FACTOR = 1/DOWNSAMPLING_FACTOR;
+	const int RECOGNITION_RADIUS = 100;		// Only recognizes objects within this distance from origin
 
 	// Image containers
 	Mat currentFrame, frameHSV, frameHUE, frameSAT, blobExtractionImg, outputFrame;
@@ -40,6 +42,7 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 	// Publishers
 	ros::Publisher delorean_pub = n.advertise<geometry_msgs::Point>("delorean", 1000);
 	ros::Publisher train_pub = n.advertise<geometry_msgs::Point>("train", 1000);
+	ros::Publisher handle_pub = n.advertise<geometry_msgs::Point>("handle", 1000);
 	//ros::Publisher tracks_pub = n.Publisher<Geometry_msgs::Point>("tracks", 1000)
 
 	// Wait for publisher subscriber connections to get set up
@@ -143,7 +146,7 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 	blobExtractionImg = Mat::zeros(outputFrame.size(), CV_8U);
 	double distThresh = 50; 												// Will join blobs that are closer than this
 	drawContours(blobExtractionImg, floodFillContours, -1, Scalar(255), 2);	// Draw blob mask image
-	imshow("First Countours", blobExtractionImg); // DBG
+	//imshow("First Countours", blobExtractionImg); // DBG
 	for (int i = 0; i < floodFillContours.size(); i++){
 		for (int j = 0; j < floodFillContours.size(); j++){
 
@@ -160,7 +163,7 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 	// Extract object contours from joined blobs
 	findContours(blobExtractionImg, joinedFFContours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
 	drawContours(blobExtractionImg, joinedFFContours, -1, Scalar(122), 2);
-	imshow("Second Countours", blobExtractionImg); // DBG
+	//imshow("Second Countours", blobExtractionImg); // DBG
 	
 	// Approximate joined contours with rotated rectangles
 	vector<RotatedRect> rotatedRects;
@@ -230,7 +233,7 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 		}
 
 		// Eliminate objects with the wrong number of component blobs
-		if (componentBlobs.size() != 2 && componentBlobs.size() != 4) continue;
+		if (componentBlobs.size() != 1 && componentBlobs.size() != 2 && componentBlobs.size() != 4) continue;
 
 		// Average hue of all component blobs
 		for (vector<Point> blob : componentBlobs){
@@ -285,10 +288,11 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 		// Set limits for acceptable width/height ratios for recognition
 		const float maxTrainRatio = 0.6;
 		const float minDeloreanRatio = 0.7;
+		const float idealHandleRatio = 0.5;
 		
 
 		// Outcomes of identification
-		if (componentBlobs.size() == 2 && w_h_ratio > minDeloreanRatio) {		// Delorean Identified
+		if (componentBlobs.size() == 2 && w_h_ratio > minDeloreanRatio && w_h_ratio < 0.9) {		// Delorean Identified
 			identifiedVehicle = Recognized::DeLorean;
 			objectsRecognized = true;			// Temp, want to replace this
 			float orientation = currentObject.angle;
@@ -303,12 +307,53 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 			drawArrowByAngle(outputFrame, objectCenter, vehicleOrientation, 20);// Scalar(0, 255, 255));
 
 			geometry_msgs::Point delorean_point;
-			delorean_point.x = centroid.x;
-			delorean_point.y = centroid.y;
+			delorean_point.x = centroid.x * RE_UPSAMPLING_FACTOR;
+			delorean_point.y = centroid.y * RE_UPSAMPLING_FACTOR;
 			delorean_point.z = vehicleOrientation;
 			delorean_pub.publish(delorean_point);
 			//cout << "DeLorean: " << "x = " << delorean_point.x << " y = " << delorean_point.y << " z = " << delorean_point.z << endl; // DBG
-			
+		}
+
+		else if(componentBlobs.size() == 1 && w_h_ratio < maxTrainRatio && w_h_ratio > 0.4){		// Could be handle
+			//Mat handleROI = frameHUE(objectRectangle);
+
+			// Calculate the average hue value of the pixels inside the object above a threshold
+			const int hueThresh = 130;
+			int _hueSum = 0;
+			int _xSum = 0;
+			int _ySum = 0;
+			int _pixCount = 0;
+
+			for (int y = objectRectangle.y; y < objectRectangle.y + objectRectangle.width; y ++){
+				for (int x = objectRectangle.x; x < objectRectangle.x + objectRectangle.width; x ++){
+					int _hueVal = frameHUE.at<uchar>(y,x);
+
+					// Test returns positive value if point is inside contour
+					int insideOutside = pointPolygonTest(componentBlobs[0], Point(x, y), false);
+
+					// If pixel is inside object and isn't orange'ish
+					if(insideOutside > 0 && _hueVal > hueThresh){
+						_hueSum += _hueVal;
+						_xSum += x;
+						_ySum += y;
+						_pixCount++;
+					}
+				}
+			}
+			cout << "hueSum: " << _hueSum << " pixCount: " << _pixCount << endl;
+			if (_pixCount > 250) {
+				int _avgHue = _hueSum / _pixCount;
+				Point _centroid = Point(_xSum/_pixCount, _ySum/_pixCount);
+				cout << "Average Handle Hue:" << _avgHue << endl;
+				circle(outputFrame, _centroid, 5, Scalar(255,0,255), CV_FILLED);
+				string Handle = "Handle";
+				putText(outputFrame, Handle, _centroid, FONT_HERSHEY_SIMPLEX, 1, Scalar(255,0,255), 3);
+				geometry_msgs::Point handle_point;
+				handle_point.x = _centroid.x * RE_UPSAMPLING_FACTOR;
+				handle_point.y = _centroid.y * RE_UPSAMPLING_FACTOR;
+				handle_point.z = vehicleOrientation;
+				handle_pub.publish(handle_point);
+			}
 		}
 		else if (componentBlobs.size() == 4 && w_h_ratio < maxTrainRatio) {	// Train Identified
 			identifiedVehicle = Recognized::Train;
@@ -324,8 +369,8 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 			drawArrowByAngle(outputFrame, objectCenter, vehicleOrientation, 50);//, Scalar(0, 255, 255));
 
 			geometry_msgs::Point train_point;
-			train_point.x = centroid.x;
-			train_point.y = centroid.y;
+			train_point.x = centroid.x * RE_UPSAMPLING_FACTOR;
+			train_point.y = centroid.y * RE_UPSAMPLING_FACTOR;
 			train_point.z = vehicleOrientation;
 			train_pub.publish(train_point);
 			//cout << "Train : " << "x = " << train_point.x << " y = " << train_point.y << " z = " << train_point.z << endl; // DBG
@@ -392,7 +437,7 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 	Scalar green(0, 255, 0);
 	Scalar red(0, 0, 255);
 	Scalar color = objectsRecognized ? green : red;
-	circle(outputFrame, camCenter, 5, color, CV_FILLED);			// Origin
+	//circle(outputFrame, camCenter, 5, color, CV_FILLED);			// Origin
 	circle(outputFrame, camCenter, RECOGNITION_RADIUS, color, 3);	// Recognition Circle
 	
 	// Display Results
@@ -415,7 +460,7 @@ int main(int argc, char* argv[]){
 	// Since we're subscribing to an image, use an image_transport::Subscriber
 	image_transport::ImageTransport it(n);
  	image_transport::Subscriber cam_sub = it.subscribe("/forward_camera/image_color",\
-		 1, imgCallback);
+		 1, imgCallback); // Needs to be changed to downward camera
 
  	ros::spin();
 

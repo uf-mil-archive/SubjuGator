@@ -1,116 +1,82 @@
-#! /usr/bin/env python
+#! usr/bin/env python
 
 from __future__ import division
 from txros import util
 import sub_scripting
-import station_hold
-from std_msgs.msg import Bool 
-import rospy
-import sensor_msgs.point_cloud2 as pc2
-import math
+from geometry_msgs.msg import *
 
-# 5 degrees - .0425
-# 10 degrees - .085
+X_RES = 640
+Y_RES = 480
+CAMERA_X_CENTER = X_RES/2
+CAMERA_Y_CENTER = Y_RES/2
 
-LEFT_TURN = .0425
-RIGHT_TURN = -.0425
 PIXEL_TOLERANCE = 20
-ANGLE_OFFSET = 4
-DISPLAY_HEIGHT = 640
-DEFAULT_DEVICE = 'delorean'
-SUB_LENGTH_OFFSET = 2
-MOVE_OFFSET = 2
 
-def calc_angle(opp_input):
-    adjacent = DISPLAY_HEIGHT / 2
+def calc_y_angle(opp_input):
+    adjacent = CAMERA_Y_CENTER
     opposite = opp_input
     hypotenuse = math.sqrt(adjacent*adjacent + opposite*opposite)
-    arcsin = math.asin(opposite/hypotenuse)
+    arcsin = math.acos(opposite/hypotenuse)
     return arcsin
 
-def find_target():
-
-    # While the sub is not locked on to the target's orientation
-    while True:
-        # Get new target location - 
-        # 0 is dead center
-        # positive values mean right
-        # negative values mean left
-        msg =  yield sub.get_target_location(target)
-        x_pixel, y_pixel, orientation = msg[0], msg[1], msg[2] 
-
-
-        # Throws out bad readings
-        if x_pixel != 0 and y_pixel != 0 and orientation != 0:
-
-             print x_pixel, y_pixel, orientation
-
-            # If the pixel location is within our range of error
-            if abs(msg) < PIXEL_TOLERANCE:
-                print "circle in Center at location: " + str(msg) + " --- Locking Target"
-                break
-                # Break the loop and continue
-
-            angle_move = calc_angle(msg) / ANGLE_OFFSET
-
-            # If the target is right of the center 
-            if msg > 0:
-                # turn the number of degrees right between the center and the target, minus an offset
-                #yield sub.move.turn_left(angle_move).go()
-                print "Turning right", abs(angle_move)
-
-            # If the target is left of the center
-            if msg < 0:
-                # turn the number of degrees left between the center and the target, minus an offset
-                #yield sub.move.turn_left(-angle_move).go()
-                print "Turning left", abs(angle_move)
-
-            print target + " at pixel location: ", abs(msg)
+def calc_x_angle(opp_input):
+    adjacent = CAMERA_X_CENTER
+    opposite = opp_input
+    hypotenuse = math.sqrt(adjacent*adjacent + opposite*opposite)
+    arcsin = math.acos(opposite/hypotenuse)
+    return arcsin
 
 @util.cancellableInlineCallbacks
-def main(nh, target=None):
+def main(nh, target = None):
+    sub = yield sub_scripting.get_sub(nh)
 
-    if target == None:
-        target = DEFAULT_DEVICE
+    if target = None: target = 'delorean'
 
-    sub = yield sub_scripting.get_sub(nh, False, False)
+    x_location = 0
+    y_location = 0
 
-    # While the sub is still distant from the target
-    while True and not rospy.is_shutdown():
+    orientation=Quaternion(x=0, y=0, z=0, w=1)
+    yield sub.set_position(sub.pose.position, orientation).go()
 
-        temp_distance = 0
-        avg_distance = 0
-        shortest_distance = 100
-        farthest_distance = 0
+    while (x_location < CAMERA_X_CENTER - PIXEL_TOLERANCE) and
+          (x_location > CAMERA_X_CENTER + PIXEL_TOLERANCE) and 
+          (y_location < CAMERA_Y_CENTER - PIXEL_TOLERANCE) and
+          (y_location > CAMERA_Y_CENTER + PIXEL_TOLERANCE):
 
-        find_target(target)
+        center_location = yield sub.get_target_location(target)
+        x_location = center_location.x
+        y_location = center_location.y
+        orientation = center_location.z
+        print oientation
+
+        x_angle = calc_x_angle(x_location)
+        y_angle = calc_y_angle(y_location)
+
+        print x_angle, y_angle
+
+        if x_location > CAMERA_X_CENTER:
+            sub.move.right(.1)
+
+        if y_location > CAMERA_Y_CENTER:
+            sub.move.up(.1)
+
+        if x_location < CAMERA_Y_CENTER:
+            sub.move.right(-.1)
+
+        if y_location < CAMERA_Y_CENTER:
+            sub.move.down(-.1) 
 
         '''
 
-        avg_distance = temp_distance/len(hold) - sub_LENGTH_OFFSET
-        shortest_distance = shortest_distance/MOVE_OFFSET - sub_LENGTH_OFFSET
-        farthest_distance = farthest_distance - sub_LENGTH_OFFSET
+    TL = yield sub.get_torpedo_location('top_left')
+    TL_location = TL.x + TL.y
 
-        print "Average distance from target:", avg_distance 
-        print "Shortest distance between sub and object:", shortest_distance 
-        print "Farther distance between sub and object:", farthest_distance 
+    while TL_location > 50:
+        yield sub.move.forward(1).go()
+        TL = yield sub.get_torpedo_location('top_left')
+        TL_location = TL.x + TL.y
 
-        final_move = shortest_distance
+    # Still need to figure out how to get ditance from object
 
-        if farthest_distance > 3.5: 
-            input("Press enter to move forward" + str(final_move) + " meters")
-            # Print only if a move is commanded
-            print "Moving forward " + str(final_move) + " meters"
-            yield sub.move.forward(final_move).go()
-        if farthest_distance <= 2: 
-            input("Press enter to move forward one meter")
-            # Print only if a move is commanded
-            print "Moving forward one meter"
-            yield sub.move.forward(1).go()
-            yield sub.move.forward(-6).go()
-            print 'Find target success'
-            break
 
-        # delete variables to avoid any threading problems
-        del avg_distance, temp_distance, farthest_distance, shortest_distance
-        '''
+

@@ -15,22 +15,38 @@ TORPEDO_TIME = ONE_MINUTE * 2
 PATH_TIME = ONE_MINUTE / 2
 
 @util.cancellableInlineCallbacks
-def buoys(nh):
+def buoys(nh, sub):
 
+    pos = yield sub.pose.position
+    print pos
+    '''
+    
     try:
         yield util.wrap_timeout(yellow_buoy.main(nh), BUOY_TIME / 3)
     except Exception:
         traceback.print_exc()
+
+    yield sub.move.set_position(pos).go()
+
+    '''
+
 
     try:
         yield util.wrap_timeout(red_buoy.main(nh), BUOY_TIME / 3)
     except Exception:
         traceback.print_exc()
 
+    yield sub.move.set_position(pos).go()
+
+    '''
+
     try:
         yield util.wrap_timeout(green_buoy.main(nh), BUOY_TIME / 3)
     except Exception:
         traceback.print_exc()
+
+    '''
+
 
 @util.cancellableInlineCallbacks
 def torpedos(nh):
@@ -56,19 +72,28 @@ def main_list(nh):
     yield sub.move.depth(1).go()
 
     try:
-        yield util.wrap_timeout(buoys(nh), BUOY_TIME)
+        yield util.wrap_timeout(buoys(nh, sub), BUOY_TIME)
     except Exception:
         traceback.print_exc()
+
+    '''
 
     try:
         yield util.wrap_timeout(path.main(nh), PATH_TIME)
     except Exception:
         traceback.print_exc()
+    '''
 
+    yield sub.move.right(8).go()
+
+    
+    
     try:
         yield util.wrap_timeout(torpedos(nh), TORPEDO_TIME)
     except Exception:
         traceback.print_exc()
+
+    
 
 
 @util.cancellableInlineCallbacks

@@ -17,6 +17,8 @@ PATH_TIME = ONE_MINUTE / 2
 @util.cancellableInlineCallbacks
 def buoys(nh, sub):
 
+    sub.change_current_vision(False,False,False,False,False,True)
+
     pos = yield sub.pose.position
     print pos
     
@@ -43,6 +45,8 @@ def buoys(nh, sub):
 @util.cancellableInlineCallbacks
 def torpedos(nh):
 
+    sub.change_current_vision(False,True,True,False,False,False)
+
     try:
         yield util.wrap_timeout(torpedo.main(nh), TORPEDO_TIME / 2)
     except Exception:
@@ -63,26 +67,30 @@ def main_list(nh):
     sub = yield sub_scripting.get_sub(nh)
     yield sub.move.depth(1).go()
 
-    sub.change_current_vision(False,False,False,False,False,True)
+    
 
     try:
         yield util.wrap_timeout(buoys(nh, sub), BUOY_TIME)
     except Exception:
         traceback.print_exc()
+    finally:
+        sub.change_current_vision(False,False,False,False,False,False)
 
-    sub.change_current_vision(False,False,False,False,True,False)
 
     try:
+        sub.change_current_vision(False,False,False,False,True,False)
         yield util.wrap_timeout(path.main(nh), PATH_TIME)
     except Exception:
         traceback.print_exc()
-
-    sub.change_current_vision(False,True,True,False,False,False)
+    finally:
+        sub.change_current_vision(False,False,False,False,False,False)
 
     try:
         yield util.wrap_timeout(torpedos(nh), TORPEDO_TIME)
     except Exception:
         traceback.print_exc()
+    finally:
+        sub.change_current_vision(False,False,False,False,False,False)
 
 
 @util.cancellableInlineCallbacks

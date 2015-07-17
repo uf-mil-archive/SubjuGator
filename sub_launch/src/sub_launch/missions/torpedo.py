@@ -14,6 +14,10 @@ CAMERA_Y_CENTER = Y_RES/2
 PIXEL_TOLERANCE = 20
 MOVE_SCALE = 1
 ANGULAR_TOLERANCE = .1
+YELLOW_AREA_LIMIT = .43
+FORWARD_MOVE_SCALE = 10
+
+ready_to_fire = False
 
 def calc_y_angle(opp_input):
     adjacent = CAMERA_Y_CENTER
@@ -57,18 +61,19 @@ def center_target(sub):
 @util.cancellableInlineCallbacks
 def move_to_target(sub):
 
+    global ready_to_fire
+
     TL = yield sub.get_torpedo_location('top_left')
     TL_location = TL.x + TL.y
     yellow_area = yield sub.get_torpedo_location('area')
-
-    if yellow_area > YELLOW_AREA_LIMIT: pass
-        #return True
         
     if yellow_area <= YELLOW_AREA_LIMIT:
-        yield sub.move.forward(1).go()
+        yield sub.move.forward((YELLOW_AREA_LIMIT - yellow_area)*FORWARD_MOVE_SCALE).go()
         TL = yield sub.get_torpedo_location('top_left')
         TL_location = TL.x + TL.y
-        #return False
+
+    if yellow_area > YELLOW_AREA_LIMIT:
+        ready_to_fire = True
 
 
 @util.cancellableInlineCallbacks
@@ -81,16 +86,22 @@ def main(nh, target = None):
     x_location = .5
     y_location = .5
 
-    ready_to_fire = False
+    global ready_to_fire
     door_open = False
 
     while not rospy.is_shutdown():
 
         yield center_target(sub)
-        ready_to_fire = yield move_to_target(sub)
+        yield move_to_target(sub)
 
         if ready_to_fire == True:
             break
+
+    
+
+    # Need to measure the torpedo target to get distances to dead recon from here
+
+    #yield sub.move.forward(1).go()
 
     
 

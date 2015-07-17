@@ -19,7 +19,6 @@ def buoys(nh, sub):
 
     pos = yield sub.pose.position
     print pos
-    '''
     
     try:
         yield util.wrap_timeout(yellow_buoy.main(nh), BUOY_TIME / 3)
@@ -28,9 +27,6 @@ def buoys(nh, sub):
 
     yield sub.move.set_position(pos).go()
 
-    '''
-
-
     try:
         yield util.wrap_timeout(red_buoy.main(nh), BUOY_TIME / 3)
     except Exception:
@@ -38,14 +34,10 @@ def buoys(nh, sub):
 
     yield sub.move.set_position(pos).go()
 
-    '''
-
     try:
         yield util.wrap_timeout(green_buoy.main(nh), BUOY_TIME / 3)
     except Exception:
         traceback.print_exc()
-
-    '''
 
 
 @util.cancellableInlineCallbacks
@@ -71,40 +63,51 @@ def main_list(nh):
     sub = yield sub_scripting.get_sub(nh)
     yield sub.move.depth(1).go()
 
+    sub.change_current_vision(False,False,False,False,False,True)
+
     try:
         yield util.wrap_timeout(buoys(nh, sub), BUOY_TIME)
     except Exception:
         traceback.print_exc()
 
-    '''
+    sub.change_current_vision(False,False,False,False,True,False)
 
     try:
         yield util.wrap_timeout(path.main(nh), PATH_TIME)
     except Exception:
         traceback.print_exc()
-    '''
 
-    yield sub.move.right(8).go()
+    sub.change_current_vision(False,True,True,False,False,False)
 
-    
-    
     try:
         yield util.wrap_timeout(torpedos(nh), TORPEDO_TIME)
     except Exception:
         traceback.print_exc()
 
-    
-
 
 @util.cancellableInlineCallbacks
 def main(nh):
     sub = yield sub_scripting.get_sub(nh)
+
+    '''
+
+    Vision order:
+        recovery_vision
+        torpedo_vision
+        torpedo_area_vision
+        train_vision
+        path_vision
+        buoys_vision
+
+    '''
+
+    sub.change_current_vision(False,False,False,False,False,False)
     
     # WRAP ENTIRE MISSION IN TIMEOUT
     try:
         yield util.wrap_timeout(main_list(nh), TOTAL_TIME)
     except Exception:
         traceback.print_exc()
-    
+
 
 

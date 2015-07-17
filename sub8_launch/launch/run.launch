@@ -109,4 +109,5 @@ shift: [3.413877569289349e-06, -4.128412594086165e-06, -1.2491711473117817e-06]
   </rosparam></node>
 	
   <include file="$(find sub8_launch)/launch/cameras.launch"/>
+  <include file="$(find sub8_vision)/launch/sub8_vision.launch"/>
 </launch>

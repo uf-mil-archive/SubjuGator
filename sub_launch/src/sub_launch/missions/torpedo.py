@@ -61,14 +61,14 @@ def move_to_target(sub):
     TL_location = TL.x + TL.y
     yellow_area = yield sub.get_torpedo_location('area')
 
-    if yellow_area > YELLOW_AREA_LIMIT:
-        return True
+    if yellow_area > YELLOW_AREA_LIMIT: pass
+        #return True
         
     if yellow_area <= YELLOW_AREA_LIMIT:
         yield sub.move.forward(1).go()
         TL = yield sub.get_torpedo_location('top_left')
         TL_location = TL.x + TL.y
-        return False
+        #return False
 
 
 @util.cancellableInlineCallbacks

@@ -22,7 +22,7 @@ from c3_trajectory_generator.srv import SetDisabled, SetDisabledRequest
 from odom_estimator.srv import SetIgnoreMagnetometer, SetIgnoreMagnetometerRequest
 from hydrophones.msg import ProcessedPing
 from geometry_msgs.msg import WrenchStamped, Point
-
+from sub8_vision_arbiter.msg import *
 
 class _PoseProxy(object):
     def __init__(self, sub, pose):
@@ -78,7 +78,8 @@ class _Sub(object):
         self._torpedo_center = self._node_handle.subscribe("torpedo/center", Point)
         self._torpedo_TL = self._node_handle.subscribe("torpedo/TL", Point)
 
-        
+        self._vision_control_sub = self._node_handle.advertise('vision_arbiter', vision_arbiter)
+
         if(need_trajectory == True):
             yield self._trajectory_sub.get_next_message()
 
@@ -259,6 +260,23 @@ class _Sub(object):
         finally:
             yield goal_mgr.cancel()
             if move_goal_mgr is not None: yield move_goal_mgr.cancel()
+
+    @util.cancellableInlineCallbacks
+    def change_current_vision(self, recovery_vision = False,
+                                    torpedo_vision = False,
+                                    torpedo_area_vision = False,
+                                    train_vision = False,
+                                    path_vision = False,
+                                    buoys_vision = False,
+                            ):
+        msg = vision_arbiter()
+        msg.recovery_vision = recovery_vision
+        msg.torpedo_vision = torpedo_vision
+        msg.torpedo_area_vision = torpedo_area_vision
+        msg.train_vision = train_vision
+        msg.path_vision = path_vision
+        msg.buoys_vision = buoys_vision
+        self._vision_control_sub.publish(msg)
 
     @util.cancellableInlineCallbacks
     def get_target_location(self, target):

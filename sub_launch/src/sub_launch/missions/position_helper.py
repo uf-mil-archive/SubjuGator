@@ -8,7 +8,7 @@ import sub_scripting
 def main(nh):
     sub = yield sub_scripting.get_sub(nh)
 
-    while not rospy.is_shutdown():
+    while True:
         raw_input("Press enter for sub location...")
-        pose = yield sub.pose
+        pose = yield sub.pose.position
         print pose

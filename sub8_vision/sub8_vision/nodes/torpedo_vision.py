@@ -6,6 +6,7 @@ import rospy
 from geometry_msgs.msg import Point
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
+from sub8_vision_arbiter.msg import *
 
 LOWER_YELLOW = np.array([20,50,50])
 UPPER_YELLOW = np.array([40,255,255])
@@ -30,6 +31,9 @@ class find_signs(object):
 
         self.x_set = set()
         self.y_set = set()
+
+        self.RUN_VISION = False
+        rospy.Subscriber("/vision_arbiter", vision_arbiter, self.update_vision)
         
 
         self.x_y_added = []
@@ -47,24 +51,30 @@ class find_signs(object):
         rospy.Subscriber("/forward_camera/image_color", Image , self.update_image)
         rospy.spin()
 
+    def update_vision(self, msg):
+        self.RUN_VISION = msg.torpedo_vision
+
     def update_image(self, msg):
+
+        if self.RUN_VISION == True:
+            
         
-        try:
-          vid = self.bridge.imgmsg_to_cv2(msg, "bgr8")
-          self.master_import = vid
-        except CvBridgeError, e:
-          print e    
+            try:
+              vid = self.bridge.imgmsg_to_cv2(msg, "bgr8")
+              self.master_import = vid
+            except CvBridgeError, e:
+              print e    
 
-        self.height, self.width, self.chan = vid.shape
-        self.master_hsv = cv2.cvtColor(vid, cv2.COLOR_BGR2HSV)
+            self.height, self.width, self.chan = vid.shape
+            self.master_hsv = cv2.cvtColor(vid, cv2.COLOR_BGR2HSV)
 
-        self.red_work()
-        self.yellow_work()
-        self.filter_and_assign()
-        self.contour_then_filter()
-        #self.filter_centers()
-        if len(self.x_set) > 3:
-            self.output()
+            self.red_work()
+            self.yellow_work()
+            self.filter_and_assign()
+            self.contour_then_filter()
+            #self.filter_centers()
+            if len(self.x_set) > 3:
+                self.output()
 
     def red_work(self):
         # Mask for red colors

@@ -3,6 +3,7 @@
 import cv2
 import numpy as np
 import rospy
+from std_msgs.msg import Float64
 from geometry_msgs.msg import Point
 from sensor_msgs.msg import Image, CompressedImage
 from cv_bridge import CvBridge, CvBridgeError
@@ -24,7 +25,7 @@ class find_signs(object):
         self.x_y_added = []
         self.bridge = CvBridge()
         self.RUN_VISION = False
-        self.area_pub = rospy.Publisher("torpedo/area", Point, queue_size = 1)
+        self.area_pub = rospy.Publisher("torpedo/area", Float64, queue_size = 1)
         rospy.Subscriber("/forward_camera/image_color", Image , self.update_image)
         rospy.Subscriber("/vision_arbiter", vision_arbiter, self.update_vision)
         rospy.spin()

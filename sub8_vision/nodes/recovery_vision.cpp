@@ -20,6 +20,7 @@ using namespace cv;
 ros::Publisher delorean_pub;
 ros::Publisher train_pub;
 ros::Publisher handle_pub;
+ros::Publisher guide_strip_pub;
 
 // We need a global variable n order to use the slider in our callback function
 int rec_viz_thresh_slider;
@@ -43,6 +44,7 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 	ros::Publisher delorean_pub = n.advertise<geometry_msgs::Point>("delorean", 1000);
 	ros::Publisher train_pub = n.advertise<geometry_msgs::Point>("train", 1000);
 	ros::Publisher handle_pub = n.advertise<geometry_msgs::Point>("handle", 1000);
+	ros::Publisher guide_strip_pub = n.advertise<geometry_msgs::Point>("guide_strip", 1000);
 	//ros::Publisher tracks_pub = n.Publisher<Geometry_msgs::Point>("tracks", 1000)
 
 	// Wait for publisher subscriber connections to get set up
@@ -157,7 +159,7 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 		}
 	}
 
-	//imshow("first contours", floodFillContours); // DBG
+	imshow("joined contours", blobExtractionImg); // DBG
 	//waitKey(10);
 
 	// Extract object contours from joined blobs
@@ -183,7 +185,7 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 		}
 		circle(outputFrame, rect.center, 3, Scalar(0, 255, 0), CV_FILLED);
 	}
-	imshow("Recognition Objects", blobExtractionImg); // DBG
+	//imshow("Recognition Objects", blobExtractionImg); // DBG
 
 	// Containers for hue averaging and centroid calculation
 	int avgHue, hueSum, pixCount, xSum, ySum;
@@ -191,7 +193,16 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 	// Object recognition loop
 	Recognized identifiedVehicle = Recognized::None; //  0 -> No vehicle identified
 	bool objectsRecognized = false;			// Temp, want to replace this
+	int joinedBlobArea = 0;
 	for (RotatedRect currentObject : rotatedRects){
+
+		// Make contour of min area rect
+		vector<Point> minAreaRectContour;
+		Point2f vertices[4];
+		currentObject.points(vertices);
+		for( int i = 0; i < 4; i++){
+			minAreaRectContour.push_back(vertices[i]);
+		}
 		
 		// Reset hue averaging counters
 		avgHue = hueSum = pixCount = xSum = ySum = 0;
@@ -251,9 +262,10 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 					if (insideOutside > 0) {	
 						hueSum += frameHUE.at<uchar>(Point(x, y));
 						pixCount++;
+						joinedBlobArea++;
 						xSum += x;
 						ySum += y;
-						frameHUE.at<uchar>(Point(x, y)) = 255; // Dbg
+						//frameHUE.at<uchar>(Point(x, y)) = 255; // Dbg
 						continue;
 					}
 					if (insideOutside == 0) frameHUE.at<uchar>(Point(x, y)) = 0; // Dbg
@@ -275,24 +287,27 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 		
 		// Orientation angle of vector from rect center to vehicle centroid
 		double vehicleOrientation = -1; // -1 is flag for no vehicle rec
-		circle(frameHUE, centroid, 2, Scalar(0), CV_FILLED);
-		circle(frameHUE, currentObject.center, 2, Scalar(122), CV_FILLED);
+		//circle(frameHUE, centroid, 2, Scalar(0), CV_FILLED);
+		//circle(frameHUE, currentObject.center, 2, Scalar(122), CV_FILLED);
 
-		float RR_height = rotatedRectHeight(currentObject);
-		//cout << "height(long) : " << RR_height << endl;
+		// Calculate ratio of short side to long side of the object's min Area Rect
 		float RR_width = rotatedRectWidth(currentObject);
-		//cout << "width(short): " << RR_width << endl;
+		float RR_height = rotatedRectHeight(currentObject);
 		float w_h_ratio = RR_width/RR_height;
+		//cout << "width(short): " << RR_width << endl;
+		//cout << "height(long) : " << RR_height << endl;
 		cout << "width/height : ** " << w_h_ratio << endl;
 
 		// Set limits for acceptable width/height ratios for recognition
-		const float maxTrainRatio = 0.6;
-		const float minDeloreanRatio = 0.7;
-		const float idealHandleRatio = 0.5;
 		
+		// Calculate ratio of a the joined blob area to the area of its min area rectangle (NOT WORKING CORRECTLY!)
+		Size_<float> minAreaRectSize = currentObject.size;
+		float blobAreaRatio = joinedBlobArea / (minAreaRectSize.height * minAreaRectSize.width);
+		//cout << "area ratio: " << blobAreaRatio << endl;
+		cout << "avg Hue: " << avgHue << endl;
 
 		// Outcomes of identification
-		if (componentBlobs.size() == 2 && w_h_ratio > minDeloreanRatio && w_h_ratio < 0.9) {		// Delorean Identified
+		if (componentBlobs.size() == 2 && w_h_ratio > 0.7 && w_h_ratio < 0.9 && avgHue <= 12) {		// Delorean Identified
 			identifiedVehicle = Recognized::DeLorean;
 			objectsRecognized = true;			// Temp, want to replace this
 			float orientation = currentObject.angle;
@@ -314,22 +329,23 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 			//cout << "DeLorean: " << "x = " << delorean_point.x << " y = " << delorean_point.y << " z = " << delorean_point.z << endl; // DBG
 		}
 
-		else if(componentBlobs.size() == 1 && w_h_ratio < maxTrainRatio && w_h_ratio > 0.4){		// Could be handle
+		if(w_h_ratio > 0.4 && w_h_ratio < 0.6 && avgHue <= 12){		// Could be handle
 			//Mat handleROI = frameHUE(objectRectangle);
 
 			// Calculate the average hue value of the pixels inside the object above a threshold
-			const int hueThresh = 130;
+			const int hueThresh = 30;
 			int _hueSum = 0;
 			int _xSum = 0;
 			int _ySum = 0;
 			int _pixCount = 0;
 
-			for (int y = objectRectangle.y; y < objectRectangle.y + objectRectangle.width; y ++){
+			for (int y = objectRectangle.y; y < objectRectangle.y + objectRectangle.height; y ++){
+				imshow("hue Handle DBG", frameHUE);
 				for (int x = objectRectangle.x; x < objectRectangle.x + objectRectangle.width; x ++){
 					int _hueVal = frameHUE.at<uchar>(y,x);
 
 					// Test returns positive value if point is inside contour
-					int insideOutside = pointPolygonTest(componentBlobs[0], Point(x, y), false);
+					int insideOutside = pointPolygonTest(minAreaRectContour, Point(x, y), false);
 
 					// If pixel is inside object and isn't orange'ish
 					if(insideOutside > 0 && _hueVal > hueThresh){
@@ -341,21 +357,38 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 				}
 			}
 			cout << "hueSum: " << _hueSum << " pixCount: " << _pixCount << endl;
-			if (_pixCount > 250) {
+			if (_pixCount > 40) {
 				int _avgHue = _hueSum / _pixCount;
 				Point _centroid = Point(_xSum/_pixCount, _ySum/_pixCount);
-				cout << "Average Handle Hue:" << _avgHue << endl;
-				circle(outputFrame, _centroid, 5, Scalar(255,0,255), CV_FILLED);
-				string Handle = "Handle";
-				putText(outputFrame, Handle, _centroid, FONT_HERSHEY_SIMPLEX, 1, Scalar(255,0,255), 3);
-				geometry_msgs::Point handle_point;
-				handle_point.x = _centroid.x * RE_UPSAMPLING_FACTOR;
-				handle_point.y = _centroid.y * RE_UPSAMPLING_FACTOR;
-				handle_point.z = vehicleOrientation;
-				handle_pub.publish(handle_point);
+				if (_avgHue > 130){
+					cout << "Average Handle Hue:" << _avgHue << endl;
+					circle(outputFrame, _centroid, 5, Scalar(255,0,255), CV_FILLED);
+					string Handle = "Handle";
+					putText(outputFrame, Handle, _centroid, FONT_HERSHEY_SIMPLEX, 1, Scalar(255,0,255), 3);
+					geometry_msgs::Point handle_point;
+					handle_point.x = _centroid.x * RE_UPSAMPLING_FACTOR;
+					handle_point.y = _centroid.y * RE_UPSAMPLING_FACTOR;
+					handle_point.z = vehicleOrientation;
+					handle_pub.publish(handle_point);
+				}
 			}
 		}
-		else if (componentBlobs.size() == 4 && w_h_ratio < maxTrainRatio) {	// Train Identified
+		if (componentBlobs.size() == 1 && fabs(w_h_ratio - 0.125) < 0.8 && avgHue <= 12){	// Guide marker identified
+			// Create a point along the central long axis of the marker
+			double dist01 = Distance(vertices[0].x, vertices[0].y, vertices[1].x, vertices[1].y);
+			double dist12 = Distance(vertices[1].x, vertices[1].y, vertices[2].x, vertices[2].y);
+			Point ptOnLongAxis;
+			if (dist01 < dist12) ptOnLongAxis = Point((vertices[0].x + vertices[1].x)/2, (vertices[0].y + vertices[1].y)/2);
+			else ptOnLongAxis = Point((vertices[1].x + vertices[2].x)/2, (vertices[1].y + vertices[2].y)/2);
+			double guideStripOrientation = rayOrientationAngle(currentObject.center, ptOnLongAxis);
+			geometry_msgs::Point guide_strip_point;
+			guide_strip_point.x = currentObject.center.x;
+			guide_strip_point.y = currentObject.center.y;
+			guide_strip_point.z = guideStripOrientation;
+			guide_strip_pub.publish(guide_strip_point);
+
+		}
+		if (componentBlobs.size() == 4 && w_h_ratio > 0.4 && w_h_ratio < 0.6 && avgHue >= 12) {	// Train Identified
 			identifiedVehicle = Recognized::Train;
 			objectsRecognized = true;			// Temp, want to replace this
 			int orientation = currentObject.angle;
@@ -454,7 +487,7 @@ int main(int argc, char* argv[]){
 
  	// Create and initialize slider
  	namedWindow("Thresholding");
- 	rec_viz_thresh_slider = 120;
+ 	rec_viz_thresh_slider = 140;
 	createTrackbar("Saturation Threshold: ", "Thresholding", &rec_viz_thresh_slider, 255);
 
 	// Since we're subscribing to an image, use an image_transport::Subscriber

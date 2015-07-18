@@ -7,13 +7,13 @@ from geometry_msgs.msg import *
 import rospy
 import math
 
-X_RES = 680
-Y_RES = 340
+X_RES = 640
+Y_RES = 480
 CAMERA_X_CENTER = X_RES/2
 CAMERA_Y_CENTER = Y_RES/2
 PIXEL_TOLERANCE = 20
 MOVE_SCALE = 1
-ANGULAR_TOLERANCE = .1
+ANGULAR_TOLERANCE = .05
 YELLOW_AREA_LIMIT = .43
 FORWARD_MOVE_SCALE = 10
 
@@ -24,37 +24,44 @@ def calc_y_angle(opp_input):
     opposite = opp_input
     hypotenuse = math.sqrt(adjacent*adjacent + opposite*opposite)
     arcsin = math.acos(opposite/hypotenuse)
-    return .90 - arcsin
+    return abs(.80 - arcsin)
 
 def calc_x_angle(opp_input):
     adjacent = CAMERA_X_CENTER
     opposite = opp_input
     hypotenuse = math.sqrt(adjacent*adjacent + opposite*opposite)
     arcsin = math.acos(opposite/hypotenuse)
-    return .90 - arcsin
+    return abs(.80 - arcsin)
 
 @util.cancellableInlineCallbacks
 def center_target(sub):
 
-    while x_location < ANGULAR_TOLERANCE and y_location < ANGULAR_TOLERANCE:
+    global align_target
 
-        center_location = yield sub.get_torpedo_location(target)
+    x_location = 1
+    y_location = 1
+
+    while x_location > ANGULAR_TOLERANCE and y_location > ANGULAR_TOLERANCE:
+
+        center_location = yield sub.get_torpedo_location(align_target)
         x_location = center_location.x
         y_location = center_location.y
+
+        print x_location, y_location
 
         x_move = calc_x_angle(x_location) * MOVE_SCALE
         y_move = calc_y_angle(y_location) * MOVE_SCALE
 
-        if x_location > CAMERA_X_CENTER: 
+        if x_location < CAMERA_X_CENTER: 
             print "Moving right", x_move
             yield sub.move.right(x_move)
-        if x_location < CAMERA_X_CENTER: 
-            print "Moving left", -x_move
-            yield sub.move.left(-x_move)
-        if y_location > CAMERA_Y_CENTER: 
+        if x_location > CAMERA_X_CENTER: 
+            print "Moving left", x_move
+            yield sub.move.left(x_move)
+        if y_location < CAMERA_Y_CENTER: 
             print "Moving down", y_move
             yield sub.move.down(y_move)
-        if y_location < CAMERA_Y_CENTER:
+        if y_location > CAMERA_Y_CENTER:
             print "Moving up", y_move
             yield sub.move.up(y_move)
 
@@ -81,12 +88,12 @@ def main(nh, target = None):
 
     sub = yield sub_scripting.get_sub(nh)
 
-    if target == None: target = 'center'
-
-    x_location = .5
-    y_location = .5
 
     global ready_to_fire
+    global align_target
+    align_target = target
+    if align_target == None: align_target = 'vis_simulator'
+
     door_open = False
 
     while not rospy.is_shutdown():

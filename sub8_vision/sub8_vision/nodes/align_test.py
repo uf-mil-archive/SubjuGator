@@ -20,23 +20,16 @@ def main():
     rospy.init_node("align_simulation")
     display = pygame.display.set_mode(SCREEN_DIM)
     pygame.display.set_caption("align_simulation")
-    des_pose_pub = rospy.Publisher('align_test_point', PointStamped, queue_size=1)
+    des_pose_pub = rospy.Publisher('align_test_point', Point, queue_size=1)
 
     #des_pose_pub_base = rospy.Publisher('base_des_pose', PointStamped, queue_size=1)
 
     def publish_des_pos((x, y, z)):
         '''Publish desired position of the arm end-effector based on click position'''
-        des_pose_pub.publish(
-            PointStamped(
-                header = Header(
-                    stamp=rospy.Time.now(),
-                    frame_id='/robot',
-                ),
-                point=Point(
+        des_pose_pub.publish(Point(
                     x=x, 
                     y=y, 
-                    z=z,
-                )
+                    z=z,  
             )
         )
 

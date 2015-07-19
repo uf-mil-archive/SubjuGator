@@ -15,6 +15,14 @@ TORPEDO_TIME = ONE_MINUTE * 2
 PATH_TIME = ONE_MINUTE / 2
 
 @util.cancellableInlineCallbacks
+def inch_forward(nh, sub):
+
+    sub.change_current_vision(False,False,False,False,True,False)
+
+    while: # PUT CONDITION OF SEEING NEXT ORANGE OBJECT
+        yield sub.move.forward(1).go()
+
+@util.cancellableInlineCallbacks
 def buoys(nh, sub):
 
     sub.change_current_vision(False,False,False,False,False,True)
@@ -66,8 +74,6 @@ def main_list(nh):
 
     sub = yield sub_scripting.get_sub(nh)
     yield sub.move.depth(1).go()
-
-    
 
     try:
         yield util.wrap_timeout(buoys(nh, sub), BUOY_TIME)

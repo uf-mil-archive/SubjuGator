@@ -24,6 +24,11 @@ from hydrophones.msg import ProcessedPing
 from geometry_msgs.msg import WrenchStamped, Point, PointStamped
 from sub8_vision_arbiter.msg import *
 
+X_RES = 640
+Y_RES = 480
+CAMERA_X_CENTER = X_RES/2
+CAMERA_Y_CENTER = Y_RES/2
+
 class _PoseProxy(object):
     def __init__(self, sub, pose):
         self._sub = sub
@@ -77,7 +82,9 @@ class _Sub(object):
         self._tracks_sub = self._node_handle.subscribe("tracks" , Point)
         self._torpedo_center = self._node_handle.subscribe("torpedo/center", Point)
         self._torpedo_TL = self._node_handle.subscribe("torpedo/TL", Point)
-        self._vision_simulator = self._node_handle.subscribe("align_test_point", PointStamped)
+        self._handle_location_sub = self._node_handle.subscribe("handle", Point)
+        self._vision_simulator = self._node_handle.subscribe("align_test_point", Point)
+        self._delorean_sub = self._node_handle.subscribe("delorean", Point)
 
         self._vision_control_sub = self._node_handle.advertise('vision_arbiter', Point)
 
@@ -290,12 +297,9 @@ class _Sub(object):
         if target == 'tracks':
             msg = yield self._tracks_sub.get_next_message()
             defer.returnValue(msg)
-
-        print 'Invalid target ', target
-        assert False
-    
-    @util.cancellableInlineCallbacks
-    def get_torpedo_location(self, target):
+        if target == 'handle':
+            msg = yield self._handle_location_sub.get_next_message()
+            defer.returnValue(msg)
         if target == 'center':
             msg = yield self._torpedo_center.get_next_message()
             defer.returnValue(msg)
@@ -306,6 +310,100 @@ class _Sub(object):
             msg = yield self._vision_simulator.get_next_message()
             defer.returnValue(msg)
 
+        print 'Invalid target ', target
+        assert False
+    
+    @util.cancellableInlineCallbacks
+    def orient_and_align(self, linear_align_target, orientation_align_target, move_scale, angular_tolerance, orientation_tolerance):
+
+        def calc_y_angle(opp_input):
+            adjacent = CAMERA_Y_CENTER
+            opposite = opp_input
+            hypotenuse = math.sqrt(adjacent*adjacent + opposite*opposite)
+            arcsin = math.acos(opposite/hypotenuse)
+            return abs(.80 - arcsin)
+
+        def calc_x_angle(opp_input):
+            adjacent = CAMERA_X_CENTER
+            opposite = opp_input
+            hypotenuse = math.sqrt(adjacent*adjacent + opposite*opposite)
+            arcsin = math.acos(opposite/hypotenuse)
+            return abs(.80 - arcsin)
+
+        x_location = 1
+        y_location = 1
+        orientation = 1
+
+        target_orientation = self.get_target_location(orientation_align_target)
+        goal_move = abs(.9 - target_orientation)
+        if target_orientation > .9: yield self.move.yaw_left(goal_move).go()
+        else: yield self.move.yaw_right(goal_move).go()
+
+
+        while x_location > angular_tolerance and y_location > angular_tolerance:
+
+            center_location = yield self.get_target_location(linear_align_target)
+            x_location = center_location.x
+            y_location = center_location.y
+            orientation = center_location.z
+
+            x_move = calc_x_angle(x_location) * move_scale
+            y_move = calc_y_angle(y_location) * move_scale
+
+            if x_location < CAMERA_X_CENTER: 
+                print "Moving right", x_move
+                yield self.move.right(x_move)
+            if x_location > CAMERA_X_CENTER: 
+                print "Moving left", x_move
+                yield self.move.left(x_move)
+            if y_location < CAMERA_Y_CENTER: 
+                print "Moving down", y_move
+                yield self.move.down(y_move)
+            if y_location > CAMERA_Y_CENTER:
+                print "Moving up", y_move
+                yield self.move.up(y_move)
+
+    @util.cancellableInlineCallbacks
+    def align(self, align_target, move_scale, angular_tolerance):
+
+        def calc_y_angle(opp_input):
+            adjacent = CAMERA_Y_CENTER
+            opposite = opp_input
+            hypotenuse = math.sqrt(adjacent*adjacent + opposite*opposite)
+            arcsin = math.acos(opposite/hypotenuse)
+            return abs(.80 - arcsin)
+
+        def calc_x_angle(opp_input):
+            adjacent = CAMERA_X_CENTER
+            opposite = opp_input
+            hypotenuse = math.sqrt(adjacent*adjacent + opposite*opposite)
+            arcsin = math.acos(opposite/hypotenuse)
+            return abs(.80 - arcsin)
+
+        x_location = 1
+        y_location = 1
+
+        while x_location > angular_tolerance and y_location > angular_tolerance:
+
+            center_location = yield self.get_target_location(align_target)
+            x_location = center_location.x
+            y_location = center_location.y
+
+            x_move = calc_x_angle(x_location) * move_scale
+            y_move = calc_y_angle(y_location) * move_scale
+
+            if x_location < CAMERA_X_CENTER: 
+                print "Moving right", x_move
+                yield self.move.right(x_move)
+            if x_location > CAMERA_X_CENTER: 
+                print "Moving left", x_move
+                yield self.move.left(x_move)
+            if y_location < CAMERA_Y_CENTER: 
+                print "Moving down", y_move
+                yield self.move.down(y_move)
+            if y_location > CAMERA_Y_CENTER:
+                print "Moving up", y_move
+                yield self.move.up(y_move)
 
 
     @util.cancellableInlineCallbacks

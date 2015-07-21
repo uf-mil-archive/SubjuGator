@@ -84,7 +84,7 @@ shift: [3.413877569289349e-06, -4.128412594086165e-06, -1.2491711473117817e-06]
 
   <node pkg="kill_handling" type="kill_on_cond" name="height_over_bottom_kill">
     <remap from="topic" to="dvl/range"/>
-    <param name="cond" value="data &lt; .25"/>
+    <param name="cond" value="data &lt; .2"/>
   </node>
   
   <node pkg="videoray_m5_thruster_driver" type="videoray_m5_thruster_driver" name="thruster_driver"><rosparam>

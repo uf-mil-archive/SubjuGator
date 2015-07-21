@@ -10,6 +10,7 @@ def main(nh, sub=None):
     if sub is None:
         sub = yield sub_scripting.get_sub(nh)
 
+        #forward_move = numpy.linalg.norm((x,y)-(x,y))
     while True:
         
         angles = yield sub.get_green_buoy()
@@ -29,6 +30,7 @@ def main(nh, sub=None):
     
 
     print 'CENTERED ON BUOY'
+    #yield sub.move.forward(forward_move/2).go()
     yield sub.move.forward(3.5).go()
 
     while True:
@@ -49,9 +51,9 @@ def main(nh, sub=None):
             break
             
     print 'CENTERED ON BUOY'
-    yield sub.move.forward(3.5).go()
-    yield sub.move.forward(-6).go()
-
+    #yield sub.move.forward(forward_move/2).go()
+    yield sub.move.forward(1).go()
+    #return to buoy home
 
 
 

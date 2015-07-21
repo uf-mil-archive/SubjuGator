@@ -9,8 +9,8 @@ import sub_scripting
 from sub_launch.missions import green_buoy, yellow_buoy, red_buoy, torpedo, path
 
 ONE_MINUTE = 60
-TOTAL_TIME = ONE_MINUTE * 20
-BUOY_TIME = ONE_MINUTE * 3
+TOTAL_TIME = ONE_MINUTE * 15
+BUOY_TIME = ONE_MINUTE * 2
 TORPEDO_TIME = ONE_MINUTE * 2
 PATH_TIME = ONE_MINUTE / 2
 
@@ -27,25 +27,8 @@ def buoys(nh, sub):
 
     sub.change_current_vision(False,False,False,False,False,True)
 
-    pos = yield sub.pose.position
-    print pos
-    
     try:
-        yield util.wrap_timeout(yellow_buoy.main(nh), BUOY_TIME / 3)
-    except Exception:
-        traceback.print_exc()
-
-    yield sub.move.set_position(pos).go()
-
-    try:
-        yield util.wrap_timeout(red_buoy.main(nh), BUOY_TIME / 3)
-    except Exception:
-        traceback.print_exc()
-
-    yield sub.move.set_position(pos).go()
-
-    try:
-        yield util.wrap_timeout(green_buoy.main(nh), BUOY_TIME / 3)
+        yield util.wrap_timeout(buoys.main(nh), BUOY_TIME)
     except Exception:
         traceback.print_exc()
 

@@ -58,7 +58,6 @@ class find_signs(object):
 
         if self.RUN_VISION == True:
             
-        
             try:
               vid = self.bridge.imgmsg_to_cv2(msg, "bgr8")
               self.master_import = vid

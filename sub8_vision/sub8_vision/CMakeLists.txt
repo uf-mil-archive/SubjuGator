@@ -10,7 +10,6 @@ find_package(catkin REQUIRED COMPONENTS
 	rospy
 	std_msgs
 	geometry_msgs
-	OpenCV
 	cv_bridge
 	image_transport
 )

@@ -323,7 +323,7 @@ class _Sub(object):
             arcsin = math.acos(opposite/hypotenuse)
             return abs(.80 - arcsin)
 
-        def calc_x_angle(opp_input):
+        def calc_x_angle(opp_input): 
             adjacent = CAMERA_X_CENTER
             opposite = opp_input
             hypotenuse = math.sqrt(adjacent*adjacent + opposite*opposite)
@@ -333,12 +333,6 @@ class _Sub(object):
         x_location = 1
         y_location = 1
         orientation = 1
-
-        target_orientation = self.get_target_location(orientation_align_target)
-        goal_move = abs(.9 - target_orientation)
-        if target_orientation > .9: yield self.move.yaw_left(goal_move).go()
-        else: yield self.move.yaw_right(goal_move).go()
-
 
         while x_location > angular_tolerance and y_location > angular_tolerance:
 
@@ -351,17 +345,29 @@ class _Sub(object):
             y_move = calc_y_angle(y_location) * move_scale
 
             if x_location < CAMERA_X_CENTER: 
-                print "Moving right", x_move
-                yield self.move.right(x_move)
-            if x_location > CAMERA_X_CENTER: 
                 print "Moving left", x_move
                 yield self.move.left(x_move)
+            if x_location > CAMERA_X_CENTER: 
+                print "Moving right", x_move
+                yield self.move.right(x_move)
             if y_location < CAMERA_Y_CENTER: 
-                print "Moving down", y_move
-                yield self.move.down(y_move)
-            if y_location > CAMERA_Y_CENTER:
                 print "Moving up", y_move
                 yield self.move.up(y_move)
+            if y_location > CAMERA_Y_CENTER:
+                print "Moving down", y_move
+                yield self.move.down(y_move)
+
+        target_orientation = yield self.get_target_location(orientation_align_target)
+
+        goal_move = abs(90 - target_orientation.z)
+        if goal_move > 180: goal_move = 360 - goal_move
+
+        if target_orientation.z > 90 and target_orientation.z < 270:
+            print "Move Left", goal_move
+            yield self.move.yaw_left(goal_move).go()
+        else: 
+            print "Move right", goal_move
+            yield self.move.yaw_right(goal_move).go()  
 
     @util.cancellableInlineCallbacks
     def align(self, align_target, move_scale, angular_tolerance):
@@ -393,17 +399,17 @@ class _Sub(object):
             y_move = calc_y_angle(y_location) * move_scale
 
             if x_location < CAMERA_X_CENTER: 
-                print "Moving right", x_move
-                yield self.move.right(x_move)
-            if x_location > CAMERA_X_CENTER: 
                 print "Moving left", x_move
                 yield self.move.left(x_move)
+            if x_location > CAMERA_X_CENTER: 
+                print "Moving right", x_move
+                yield self.move.right(x_move)
             if y_location < CAMERA_Y_CENTER: 
-                print "Moving down", y_move
-                yield self.move.down(y_move)
-            if y_location > CAMERA_Y_CENTER:
                 print "Moving up", y_move
                 yield self.move.up(y_move)
+            if y_location > CAMERA_Y_CENTER:
+                print "Moving down", y_move
+                yield self.move.down(y_move)
 
 
     @util.cancellableInlineCallbacks
@@ -463,7 +469,8 @@ class _Sub(object):
     @util.cancellableInlineCallbacks
     def set_trajectory_generator_enable(self, enabled):
         yield self._trajectory_generator_set_disabled_service(SetDisabledRequest(
-            disabled=not enabled,
+            disabled=not enabled, 
+
         ))
 
 

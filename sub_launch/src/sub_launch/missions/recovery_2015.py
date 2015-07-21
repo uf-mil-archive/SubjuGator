@@ -22,16 +22,17 @@ def move_down(sub):
 
     dist_from_ground = yield sub.get_dvl_range()
 
-    while dist_from_ground > 1:
+    while dist_from_ground > .5:
         yield sub.move.down(DOWN_MOVEMENT).go()
 
 
 @util.cancellableInlineCallbacks
 def main(nh, target = None, orient_target = None):
     sub = yield sub_scripting.get_sub(nh)
+    picked_up_target = False
 
     align_target = target
-    if align_target == None: align_target = 'vis_simulator'
+    if align_target == None: align_target = 'delorean'
     orientation_align_target = orient_target
     if orientation_align_target == None: orientation_align_target = 'delorean'
 
@@ -41,9 +42,23 @@ def main(nh, target = None, orient_target = None):
     while not rospy.is_shutdown():
 
         yield sub.orient_and_align(align_target, orientation_align_target, MOVE_SCALE, ANGULAR_TOLERANCE, ORIENTATION_TOLERANCE)
-        #yield sub.align(align_target, MOVE_SCALE, ANGULAR_TOLERANCE)
+    # Move down until distance from obbject is 1 meter
+    yield move_down(sub)
 
-    # Still need to figure out how to get ditance from object
+    while picked_up_target == False:
+        yield sub.close_gripper()
+        yield sub.move.up(1).go()
+        # Scan ten times to verify that we have picked up object
+        for x in xrange(1,10):
+            target_scan = yield sub.get_target_location(align_target)
+            yield util.sleep(.1)
+            if target_scan.x == 0 and target_scan.y == 0: picked_up_target = True
+    
+
+
+
+
+
 
 
 

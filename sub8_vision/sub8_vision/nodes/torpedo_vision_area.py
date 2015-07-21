@@ -44,8 +44,11 @@ class find_signs(object):
                 if yellow_mask[i][j] == 255:
                     count += 1
 
-        yellow_area = (count / (640.0*480.0))
+        print count
+
+        yellow_area = (count / (a640.0*480.0))
         self.area_pub.publish(yellow_area)
+        print yellow_area
 
     def update_image(self, msg):
 

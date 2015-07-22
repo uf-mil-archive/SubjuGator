@@ -48,9 +48,9 @@ shift: [3.413877569289349e-06, -4.128412594086165e-06, -1.2491711473117817e-06]
   <node pkg="nodelet" type="nodelet" args="standalone odom_estimator/nodelet" name="odom_estimator" respawn="true"><rosparam>
       have_gps: false
       local_frame: /map
-      start_x_ecef:   740883 <!-- gainesville -->
-      start_y_ecef: -5497747
-      start_z_ecef:  3136908
+      start_x_ecef:   -2459847 <!-- San Diego -->
+      start_y_ecef: -4776091
+      start_z_ecef:  3426313
     </rosparam>
     <remap from="odom" to="imu_odom"/>
   </node>
@@ -91,9 +91,9 @@ shift: [3.413877569289349e-06, -4.128412594086165e-06, -1.2491711473117817e-06]
     buses:
       - port: /dev/serial/by-id/usb-FTDI_FT232R_USB_UART_A403IMC9-if00-port0
         thrusters:
-          FLV: {node_id: 10, frame_id: /base_link, position: [0.1583, -0.169, 0.0142], direction: [0, 0, 1]}
-          FLL: {node_id: 11, frame_id: /base_link, position: [0.2678, 0.2795, 0], direction: [0.866, -0.5, 0]}
-      - port: /dev/serial/by-id/usb-FTDI_FT232R_USB_UART_A403IMCD-if00-port0
+          FLV: {node_id: 10, frame_id: /base_link, position: [0.1583, 0.169, 0.0142], direction: [0, 0, -1]}
+          FLL: {node_id: 11, frame_id: /base_link, position: [0.2678, 0.2795, 0], direction: [-0.866, 0.5, 0]}
+      - port: /dev/serial/by-id/usb-FTDI_FT232R_USB_UART_A403IMCI-if00-port0
         thrusters:
           FRV: {node_id: 12, frame_id: /base_link, position: [0.1583, -0.169, 0.0142], direction: [0, 0, -1]}
           FRL: {node_id: 13, frame_id: /base_link, position: [0.2678, -0.2795, 0], direction: [-0.866, -0.5, 0]}
@@ -112,23 +112,3 @@ shift: [3.413877569289349e-06, -4.128412594086165e-06, -1.2491711473117817e-06]
   <include file="$(find sub8_vision)/launch/sub8_vision.launch"/>
 </launch>
 
-  <node pkg="videoray_m5_thruster_driver" type="videoray_m5_thruster_driver" name="thruster_driver"><rosparam>
-    buses:
-      - port: /dev/serial/by-id/usb-FTDI_FT232R_USB_UART_A403IMC9-if00-port0
-        thrusters:
-          FLV: {node_id: 10, frame_id: /base_link, position: [0.1583, -0.169, 0.0142], direction: [0, 0, -1]}
-          FLL: {node_id: 11, frame_id: /base_link, position: [0.2678, 0.2795, 0], direction: [-0.866, 0.5, 0]}
-      - port: /dev/serial/by-id/usb-FTDI_FT232R_USB_UART_A403IMCI-if00-port0
-        thrusters:
-          FRV: {node_id: 12, frame_id: /base_link, position: [0.1583, -0.169, 0.0142], direction: [0, 0, -1]}
-          FRL: {node_id: 13, frame_id: /base_link, position: [0.2678, -0.2795, 0], direction: [-0.866, -0.5, 0]}
-      - port: /dev/serial/by-id/usb-FTDI_FT232R_USB_UART_A403IN02-if00-port0
-        thrusters:
-          BLV: {node_id: 14, frame_id: /base_link, position: [-0.1583, 0.169, 0.0142], direction: [0, 0, 1]}
-          BLL: {node_id: 15, frame_id: /base_link, position: [-0.2678, 0.2795, 0], direction: [0.866, 0.5, 0]}
-      - port: /dev/serial/by-id/usb-FTDI_FT232R_USB_UART_A403IN03-if00-port0
-        thrusters:
-          BRV: {node_id: 16, frame_id: /base_link, position: [-0.1583, -0.169, 0.0142], direction: [0, 0, 1]}
-          BRL: {node_id: 17, frame_id: /base_link, position: [-0.2678, -0.2795, 0], direction: [0.866, -0.5, 0]}
-
-  </rosparam></node>

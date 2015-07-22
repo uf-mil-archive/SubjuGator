@@ -34,42 +34,42 @@ def main(nh):
     #yield sub.move.forward(4.5).depth(1).go()
     while True:
             
-            angles = yield sub.get_green_buoy()
-            print "Buoy at", angles
-            if abs(angles.x)>10 or abs(angles.y)>10:
-                if angles.x<0:
-                    yield sub.move.left(abs(angles.x/500)).go()
-                if angles.x>0:
-                    yield sub.move.right(abs(angles.x/500)).go()
-                if angles.y>0:
-                    yield sub.move.down(abs(angles.y/500)).go()
-                if angles.y<0:
-                    yield sub.move.up(abs(angles.y/500)).go()
-            else:
-                break
+        angles = yield sub.get_green_buoy()
+        print "Buoy at", angles
+        if abs(angles.x)>10 or abs(angles.y)>10:
+            if angles.x<0:
+                yield sub.move.left(abs(angles.x/500)).go()
+            if angles.x>0:
+                yield sub.move.right(abs(angles.x/500)).go()
+            if angles.y>0:
+                yield sub.move.down(abs(angles.y/500)).go()
+            if angles.y<0:
+                yield sub.move.up(abs(angles.y/500)).go()
+        else:
+            break
         
 
         print 'CENTERED ON BUOY'
         yield sub.move.forward(3.5).go()
 
-        while True:
-            
-            angles = yield sub.get_green_buoy()
-            print "Buoy at", angles
-            if abs(angles.x)>10 or abs(angles.y)>10:
-                if angles.x<0:
-                    yield sub.move.left(abs(angles.x/500)).go()
-                if angles.x>0:
-                    yield sub.move.right(abs(angles.x/500)).go()
-                if angles.y>0:
-                    yield sub.move.down(abs(angles.y/500)).go()
-                if angles.y<0:
-                    yield sub.move.up(abs(angles.y/500)).go()
-            else:
-                break
+    while True:
+        
+        angles = yield sub.get_green_buoy()
+        print "Buoy at", angles
+        if abs(angles.x)>10 or abs(angles.y)>10:
+            if angles.x<0:
+                yield sub.move.left(abs(angles.x/500)).go()
+            if angles.x>0:
+                yield sub.move.right(abs(angles.x/500)).go()
+            if angles.y>0:
+                yield sub.move.down(abs(angles.y/500)).go()
+            if angles.y<0:
+                yield sub.move.up(abs(angles.y/500)).go()
+        else:
+            break
                 
-        print 'CENTERED ON BUOY'
-        yield sub.move.forward(3.5).depth(0.6).go()
-        yield sub.move.forward(-1).go()
-        yield sub.move.up(1).go()
-        break
+    print 'CENTERED ON BUOY'
+    yield sub.move.forward(3.5).depth(0.6).go()
+    yield sub.move.forward(-1).go()
+    yield sub.move.up(1).go()
+    

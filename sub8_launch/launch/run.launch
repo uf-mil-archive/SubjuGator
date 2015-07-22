@@ -1,3 +1,4 @@
+
 <launch>
   <node pkg="kill_handling" type="kill_master" name="kill_master"/>
   <node pkg="uf_common" type="param_saver" name="param_saver"/>
@@ -91,8 +92,8 @@ shift: [3.413877569289349e-06, -4.128412594086165e-06, -1.2491711473117817e-06]
     buses:
       - port: /dev/serial/by-id/usb-FTDI_FT232R_USB_UART_A403IMC9-if00-port0
         thrusters:
-          FLV: {node_id: 10, frame_id: /base_link, position: [0.1583, -0.169, 0.0142], direction: [0, 0, -1]}
-          FLL: {node_id: 11, frame_id: /base_link, position: [0.2678, 0.2795, 0], direction: [-0.866, 0.5, 0]}
+          FLV: {node_id: 10, frame_id: /base_link, position: [0.1583, 0.169, 0.0142], direction: [0, 0, -1]}
+          FLL: {node_id: 11, frame_id: /base_link, position: [0.2678, 0.2795, 0], direction: [0.866, -0.5, 0]}
       - port: /dev/serial/by-id/usb-FTDI_FT232R_USB_UART_A403IMCI-if00-port0
         thrusters:
           FRV: {node_id: 12, frame_id: /base_link, position: [0.1583, -0.169, 0.0142], direction: [0, 0, -1]}

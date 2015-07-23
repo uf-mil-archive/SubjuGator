@@ -10,6 +10,7 @@
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/image_encodings.h>
+#include <sub8_vision_arbiter/vision_arbiter.h>
 
 #define PI        3.14159265358979323846
 
@@ -21,9 +22,14 @@ ros::Publisher delorean_pub;
 ros::Publisher train_pub;
 ros::Publisher handle_pub;
 ros::Publisher guide_strip_pub;
+bool recovery_vision_node_switch = false;
 
 // We need a global variable n order to use the slider in our callback function
 int rec_viz_thresh_slider;
+
+void nodeToggler(const sub8_vision_arbiter::vision_arbiter::ConstPtr& msg){
+	recovery_vision_node_switch = msg->tracks_vision;
+}
 
 void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 
@@ -489,6 +495,9 @@ int main(int argc, char* argv[]){
  	namedWindow("Thresholding");
  	rec_viz_thresh_slider = 140;
 	createTrackbar("Saturation Threshold: ", "Thresholding", &rec_viz_thresh_slider, 255);
+
+	// Subscribe to node activation topic
+ 	ros::Subscriber node_activation_sub = n.subscribe("/vision_arbiter",1,nodeToggler);
 
 	// Since we're subscribing to an image, use an image_transport::Subscriber
 	image_transport::ImageTransport it(n);

@@ -11,6 +11,7 @@
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/image_encodings.h>
+#include <sub8_vision_arbiter/vision_arbiter.h>
 
 #define PI        3.14159265358979323846
 
@@ -19,12 +20,19 @@ using namespace std;
 using namespace cv;
 
 ros::Publisher tracks_pub;
+bool rr_track_locator_node_switch = false;
 
 // We need a global variable n order to use the slider in our callback function
 int max_corners_slider;
 int min_dist_slider;
 
+void nodeToggler(const sub8_vision_arbiter::vision_arbiter::ConstPtr& msg){
+	rr_track_locator_node_switch = msg->tracks_vision;
+}
+
 void imgCallback(const sensor_msgs::ImageConstPtr& msg){
+
+	if(rr_track_locator_node_switch == false) return;
 
 	const double DOWNSAMPLING_FACTOR = .5;	// Downsampling scale factor
 	const double RE_UPSAMPLING_FACTOR = 1/DOWNSAMPLING_FACTOR;
@@ -279,6 +287,8 @@ int main(int argc, char* argv[]){
  	createTrackbar("Max Corners: ", "Corners", &max_corners_slider, 100);
  	createTrackbar("Min Distance: ", "Corners", &min_dist_slider, 50);
 
+ 	// Subscribe to node activation topic
+ 	ros::Subscriber node_activation_sub = n.subscribe("/vision_arbiter",1,nodeToggler);
  	
 	// Since we're subscribing to an image, use an image_transport::Subscriber
 	image_transport::ImageTransport it(n);

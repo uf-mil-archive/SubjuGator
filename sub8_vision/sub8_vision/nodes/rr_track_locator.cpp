@@ -1,4 +1,5 @@
 #include <iostream>
+#include <stdlib.h>
 #include "vision_tools.h"
 
 #include <opencv2/core/core.hpp>
@@ -17,10 +18,11 @@
 using namespace std;
 using namespace cv;
 
-ros::Publisher rr_tracks_pub;
+ros::Publisher tracks_pub;
 
 // We need a global variable n order to use the slider in our callback function
-int corner_thresh_slider;
+int max_corners_slider;
+int min_dist_slider;
 
 void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 
@@ -29,19 +31,14 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 	const int RECOGNITION_RADIUS = 100;		// Only recognizes objects within this distance from origin
 
 	// Image containers
-	Mat currentFrame, frameHSV, frameHUE, frameSAT, frameVAL, blobExtractionImg, outputFrame;
+	Mat currentFrame, outputFrame, cornerDetectImg, floodFillMask, contourExtractImg;
 
 	//Node Handle
 	ros::NodeHandle n;
 
 	// Publishers
-	ros::Publisher rr_tracks_pub = n.advertise<geometry_msgs::Point>("rr_tracks", 1000);
+	ros::Publisher tracks_pub = n.advertise<geometry_msgs::Point>("train_tracks", 1000);
 
-	// Wait for publisher subscriber connections to get set up
-	// while (true){
-	// 	bool readyToPublish = delorean_pub.getNumSubscribers() > 0 && train_pub.getNumSubscribers() > 0;
-	// 	if (readyToPublish) break;
-	// }
 	usleep(1000*100);
 
 	// Get current frame
@@ -68,57 +65,181 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 	resize(currentFrame, outputFrame, Size(0, 0), DOWNSAMPLING_FACTOR, DOWNSAMPLING_FACTOR, INTER_NEAREST);
 	Size kernelSize = Size(3, 3);
 	GaussianBlur(outputFrame, outputFrame, kernelSize, 0);
+	Mat readOnlySrcColor = outputFrame.clone();
+	Mat readOnlySrcGray;
+	cvtColor(outputFrame, readOnlySrcGray, CV_BGR2GRAY);
 
-	imshow("Resized Frame", outputFrame); // DBG
-	waitKey(10);
-	cout << "line: " << 74 << endl;
-	// Containers for color conversion
-	vector<Mat> separtedHSV(3);
-	vector<vector<Point>> HSVcontours;
-	cout << "line: " << 78 << endl;
+	imshow("Input", outputFrame); // DBG
+	waitKey(300);
+	
+
+/*
+	// *DBG*
+	cout << "outputFrame dimensions:\n";
+	cout << "	rows = " << outputFrame.rows << endl;
+	cout << "	cols = " << outputFrame.cols << endl;
+*/
+
 	// Converting to HSV colorspace and isolating Hue and Sat channels
-	cvtColor(outputFrame, frameHSV, CV_BGR2HSV);
-	split(frameHSV, separtedHSV);
-	frameHUE =  separtedHSV[0].clone(); 
-	frameSAT =  separtedHSV[1].clone(); 
-	frameVAL =  separtedHSV[2].clone(); 
-	cout << "line: " << 85 << endl;
 
-	imshow("Hue Img", frameHUE); // DBG
-	imshow("Sat Img", frameSAT); // DBG
-	imshow("Val Img", frameVAL); // DBG
-	cout << "line: " << 90 << endl;
-
-	Sobel(frameVAL, blobExtractionImg, CV_8U, 1, 1);
-
-	imshow("Eges (1st derivatives)", blobExtractionImg);
-
-	Sobel(frameVAL, blobExtractionImg, CV_8U, 2, 2);
-
-	imshow("Eges (2nd derivatives)", blobExtractionImg);
-
-	// //threshold(frameVAL, blobExtractionImg, 120, 255, THRESH_BINARY);
-	// //imshow("val thresh", blobExtractionImg); // DBG
-
-	// findContours(frameVAL, HSVcontours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
-	// cout << "line: " << 95 << endl;
-	// drawContours(outputFrame, HSVcontours, -1, Scalar(0,0,255), 3);
-	// cout << "line: " << 97 << endl;
-	// waitKey(10);
-
-	// imshow("Contours", outputFrame); // DBG
-
-	Mat cornerDetectImg = Mat(outputFrame.size(), CV_8UC1, Scalar(0));
-	// cornerHarris(frameVAL, cornerDetectImg, )
+	vector<Point2f> corners;
+	double qualityLevel = 0.01;
+	double minDistance = min_dist_slider;
+	int blockSize = 3;
+	bool useHarrisDetector = false;
+	double k =  0.04;
 
 
 
+	// Apply corner detection
+	goodFeaturesToTrack(readOnlySrcGray,
+				corners,
+				max_corners_slider,
+				qualityLevel,
+				minDistance,
+				Mat(),
+				blockSize,
+				useHarrisDetector,
+				k);
+
+	
+	//Initialize needed matrices
+	cornerDetectImg = Mat(readOnlySrcGray.size(), CV_8UC1, Scalar(0));
+	contourExtractImg = Mat(readOnlySrcGray.size(), CV_8UC1, Scalar(0));
+	floodFillMask = Mat(readOnlySrcGray.size() + Size(2,2), CV_8UC1, Scalar(0)); // adds an all around pixel wide border
+	Mat mask_rect = floodFillMask.clone(); 
+
+/*
+	// *DBG*
+	cout << "floodFillMask dimensions:\n";
+	cout << "	rows = " << floodFillMask.rows << endl;
+	cout << "	cols = " << floodFillMask.cols << endl;
+*/
+
+ 	cout << "** Number of corners detected: " << corners.size()<< endl;
+
+ 	// Draw corners detected
+  	int r = 2; // dot radius
+  	for( int i = 0; i < corners.size(); i++ ){ 
+  		//circle( outputFrame, corners[i], r, Scalar(122), -1, 8, 0 );
+	    circle( cornerDetectImg, corners[i], r, Scalar(255), -1, 8, 0);
+	}
+	imshow("Corners", cornerDetectImg); //waitKey(0);
+	
+
+	// Calculate centroid and standard deviation of detected points
+	double xSum = 0;
+	double ySum = 0;
+	double ptCount = 0;
+	for (int i = 0; i < corners.size(); i++){
+		xSum += corners[i].x;
+		ySum += corners[i].y;
+		ptCount++;
+	}
+	Point2f prelimCentroid = Point2f(-1,-1); 
+	if (ptCount > 0) prelimCentroid= Point2f(xSum/ptCount,ySum/ptCount);
+
+	// Create a rectangle around the centroid
+	int crWidth = 30;
+	int crHeight = 30;
+	int crX = (int)prelimCentroid.x - crWidth/2;
+	int crY = (int)prelimCentroid.y - crHeight/2;
+	Rect centerRect = Rect(crX, crY, crWidth, crHeight);
+	rectangle(cornerDetectImg, centerRect, Scalar(255));
+
+/*
+	TODO: 
+	* calculate avg distance from centroid;
+	* eliminate corner points that are too far from the centroid
+	* calculate new centroid
+*/
+
+	// Sharpen img to prepare for floodfill
+	Mat sharpened = readOnlySrcGray.clone();
+	unsharpMask(sharpened);
+	imshow("Sharpened", sharpened); // DBG
+
+	// Iterate through pixels inside the rect and floodfill a mask of contiguous dark pixels
+	bool floodFilled = false;
+	for(int y = centerRect.y; y < centerRect.y + centerRect.height; y += 3){
+		for(int x = centerRect.x; x < centerRect.x + centerRect.width; x += 2){
+			Point currentPt = Point(x, y);
+			//cout << "currentPt: " << currentPt << "	Val: " << (int)sharpened.at<uchar>(currentPt) << endl;
+			if (sharpened.at<uchar>(currentPt) < 60){
+				floodFill(sharpened, floodFillMask, currentPt, Scalar(), 0, Scalar(10), Scalar(8), 8 | (255 << 8) | cv::FLOODFILL_MASK_ONLY);
+				floodFilled = true;
+				cout << "floodfill successful!\n"; break;
+			}
+		}
+	}
+	if (!floodFilled) return;
+	cout << "mask area: " << maskArea(floodFillMask) << endl;
+
+	imshow("Tracks Mask", floodFillMask); // DBG
 
 
+	// Create mask of dark pixels using blackFilter()
+	Mat brightnessThreshImg = Mat(outputFrame.size(), CV_8UC1, Scalar(0));
+	//threshold(readOnlySrcGray, brightnessThreshImg, 40, 255, THRESH_BINARY_INV);
+	brightnessThreshImg = blackFilter(readOnlySrcColor); cout << "black filter complete\n";
+	imshow("black filter", brightnessThreshImg);
 
+	// Extract contours from floodFill mask
+	vector<vector<Point>> contours;
+	contourExtractImg = floodFillMask(Rect(1,1, outputFrame.cols, outputFrame.rows));
+	findContours(contourExtractImg, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
 
+	// Find index of the largest contour
+	int largestContIdx = 0;
+	if(contours.size() > 1){
+		int largestSizeYet = contours[0].size();
+		for(int i = 0; i < contours.size(); i++){
+			if(contours[i].size() > largestSizeYet){
+				largestContIdx = i;
+				largestSizeYet = contours[i].size();
+			}
+		}
+	}
 
+	// Draw what we expect to be the outside track contours on debugging imgs
+	drawContours(mask_rect, contours, largestContIdx, Scalar(255), 1);
+	drawContours(outputFrame, contours, largestContIdx, Scalar(255), 1);
+	
 
+	// Calculate the track countour's minimum enclosing rect
+	RotatedRect minArea = minAreaRect(contours[largestContIdx]);
+	
+	// Draw min area rect
+	Point2f vertices[4];
+	minArea.points(vertices);
+	for (int i = 0; i < 4; i++){
+		if (i == 3) line(mask_rect, vertices[i], vertices[0], Scalar(255), 2);
+		else line(mask_rect, vertices[i], vertices[i + 1], Scalar(255), 2);
+	}
+	imshow("mask_rect", mask_rect);
+
+	// Put debug text on debug imgs
+	float track_orientation_deg = trainTracksLeastAngle(minArea);
+	std::stringstream to_deg;
+	std::stringstream to_pos;
+	to_deg << "Angle: " << (int)track_orientation_deg << " deg";
+	to_pos << "Pose: " << "(" << (int)(minArea.center.x * RE_UPSAMPLING_FACTOR) << ", " << (int)(minArea.center.y * RE_UPSAMPLING_FACTOR) << ")";
+	string debugImgTxt =  to_deg.str();
+	string debugImgTxt2 =  to_pos.str();
+	putText(outputFrame, debugImgTxt, Point(5, 20), FONT_HERSHEY_SIMPLEX, .7, Scalar(255,255,0), 2);
+	putText(outputFrame, debugImgTxt2, Point(5, 45), FONT_HERSHEY_SIMPLEX, .7, Scalar(255,255,0), 2);
+
+	// Publish train track pose and orientation
+	geometry_msgs::Point track_center_orientation;
+	track_center_orientation.x = minArea.center.x * RE_UPSAMPLING_FACTOR;
+	track_center_orientation.y = minArea.center.y * RE_UPSAMPLING_FACTOR;
+	track_center_orientation.z = track_orientation_deg;
+	tracks_pub.publish(track_center_orientation);
+
+	// Display final debug imgs
+	circle( outputFrame, prelimCentroid, 4, Scalar(255), -1, 8, 0);
+	imshow("Visuals", outputFrame); // DBG
+	// imshow("Val Img", frameVAL); // DBG
 }	
 
 int main(int argc, char* argv[]){
@@ -148,17 +269,20 @@ int main(int argc, char* argv[]){
  // 	imshow("Polished Tracks", tracksImg);
  // 	waitKey(0);
  // 	return 0;
+ 	
 
 
  	// Create and initialize slider and its window
  	namedWindow("Corners");
- 	corner_thresh_slider = 0;
- 	createTrackbar("Corner threshold:", "Corners", &corner_thresh_slider, 500);
+ 	max_corners_slider = 50;
+ 	min_dist_slider = 1;
+ 	createTrackbar("Max Corners: ", "Corners", &max_corners_slider, 100);
+ 	createTrackbar("Min Distance: ", "Corners", &min_dist_slider, 50);
 
-
+ 	
 	// Since we're subscribing to an image, use an image_transport::Subscriber
 	image_transport::ImageTransport it(n);
- 	image_transport::Subscriber cam_sub = it.subscribe("/down_camera/image_color",\
+ 	image_transport::Subscriber cam_sub = it.subscribe("/forward_camera/image_color",\
 		 1, imgCallback); // Needs to be changed to downward camera
 
  	ros::spin();

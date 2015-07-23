@@ -146,7 +146,7 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 
 	// Joining Blobs that are close together
 	blobExtractionImg = Mat::zeros(outputFrame.size(), CV_8U);
-	double distThresh = 50; 												// Will join blobs that are closer than this
+	double distThresh = 30; 												// Will join blobs that are closer than this
 	drawContours(blobExtractionImg, floodFillContours, -1, Scalar(255), 2);	// Draw blob mask image
 	//imshow("First Countours", blobExtractionImg); // DBG
 	for (int i = 0; i < floodFillContours.size(); i++){
@@ -307,7 +307,7 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 		cout << "avg Hue: " << avgHue << endl;
 
 		// Outcomes of identification
-		if (componentBlobs.size() == 2 && w_h_ratio > 0.7 && w_h_ratio < 0.9 && avgHue <= 12) {		// Delorean Identified
+		if (componentBlobs.size() == 2 && w_h_ratio > 0.7 && w_h_ratio < 0.9 && avgHue <= 20) {		// Delorean Identified
 			identifiedVehicle = Recognized::DeLorean;
 			objectsRecognized = true;			// Temp, want to replace this
 			float orientation = currentObject.angle;
@@ -340,7 +340,7 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 			int _pixCount = 0;
 
 			for (int y = objectRectangle.y; y < objectRectangle.y + objectRectangle.height; y ++){
-				imshow("hue Handle DBG", frameHUE);
+				// imshow("hue Handle DBG", frameHUE);
 				for (int x = objectRectangle.x; x < objectRectangle.x + objectRectangle.width; x ++){
 					int _hueVal = frameHUE.at<uchar>(y,x);
 

@@ -10,6 +10,51 @@
 using namespace cv;
 using namespace std;
 
+// Throw out points outside a defined distance from the centroid
+
+
+// Count non-zero pixels in an image
+int maskArea(cv::Mat& mask){
+	int area = 0;
+	for(int y = 0; y < mask.rows; y++){
+		for(int x = 0; x < mask.cols; x++){
+			if(mask.at<uchar>(y,x) > 0) area++;
+		}
+	}
+	return area;
+}
+
+// Perform in place in-place unsharp masking operation
+void unsharpMask(cv::Mat& img){
+	cv::Mat tmp;
+	cv::GaussianBlur(img, tmp, cv::Size(3, 3), 5);
+	addWeighted(img, 2, tmp, -1, 0, img);
+}
+
+double trainTracksLeastAngle(cv::RotatedRect& RR){
+	Point2f vertices[4];
+	RR.points(vertices);
+	float dist01 = Distance(vertices[0].x, vertices[0].y, vertices[1].x, vertices[1].y);
+	float dist12 = Distance(vertices[1].x, vertices[1].y, vertices[2].x, vertices[2].y);
+	Point2f shortSideMidPoint;
+	if (dist01 < dist12) {
+		float x = (vertices[0].x + vertices[1].x) / 2.0;
+		float y = (vertices[0].y + vertices[1].y) / 2.0;
+		shortSideMidPoint = Point2f(x, y);
+	}
+	else{
+		float x = (vertices[1].x + vertices[2].x) / 2.0;
+		float y = (vertices[1].y + vertices[2].y) / 2.0;
+		shortSideMidPoint = Point2f(x, y);
+	}
+
+	float angle, angleReverseDir;
+	angle = rayOrientationAngle(RR.center, shortSideMidPoint);
+	angleReverseDir = rayOrientationAngle( shortSideMidPoint,RR.center);
+
+	return angle < angleReverseDir ? angle : angleReverseDir;
+}
+
 double distCameraToObject(double actualLengthMM, double folcalLengthMM, double lengthInPixels){
 	return (actualLengthMM * folcalLengthMM) / lengthInPixels;
 }
@@ -336,5 +381,43 @@ Mat filterGray(Mat srcColor, int graynessThreshold){
 		}
 	}
 
+	return result;
+}
+
+cv::Mat blackFilter(cv::Mat& srcColor){
+
+	/*
+	Function takes in a 3 channel image and returns a single channel binary image of the same size.
+	- David Santiago Soto
+	*/
+	const int rows = srcColor.rows;
+	const int cols = srcColor.cols;
+
+	Mat result = Mat::zeros(rows, cols, CV_8UC1);
+
+
+	for (int y = 0; y < cols; y++){
+		for (int x = 0; x < rows; x++){
+
+			float BGR_average, BGR_sum, BGR_stdDev = 0;
+
+			Vec3b BGR = srcColor.at<Vec3b>(x, y);
+			int blue = BGR[0];
+			int green = BGR[1];
+			int red = BGR[2];
+
+			BGR_sum = red + green + blue;
+			BGR_average = BGR_sum / 3;
+
+
+			float blueDev = abs(blue - BGR_average);
+			float greenDev = abs(green - BGR_average);
+			float redDev = abs(red - BGR_average);
+
+			BGR_stdDev = (redDev + greenDev + blueDev) / 3;
+
+			if (BGR_stdDev < 10 && BGR_average < 50) result.at<uchar>(x, y) = 255;
+		}
+	}
 	return result;
 }

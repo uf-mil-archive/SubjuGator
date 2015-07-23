@@ -1,3 +1,3 @@
 <launch>
-  <node name="rr_track_locator" pkg="sub8_vision" type="rr_track_locator"/>
+  <node name="rr_track_locator" pkg="sub8_vision" type="rr_track_locator" launch-prefix="xterm -e gdb --args"/>
 </launch>

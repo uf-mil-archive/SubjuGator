@@ -9,6 +9,11 @@
 
 int calcIdealThreshold(cv::Mat histogram);
 cv::Mat filterGray(cv::Mat srcColor, int graynessThreshold);
+cv::Mat blackFilter(cv::Mat& srcColor);
+
+int maskArea(cv::Mat& mask);
+void unsharpMask(cv::Mat& img);
+double trainTracksLeastAngle(cv::RotatedRect& RR);
 
 double Distance(double dX0, double dY0, double dX1, double dY1);
 double radToDeg(double radians);

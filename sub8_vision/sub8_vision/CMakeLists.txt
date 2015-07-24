@@ -32,16 +32,21 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 
 add_executable(recovery_vision nodes/recovery_vision.cpp)
 add_executable(rr_track_locator nodes/rr_track_locator.cpp)
+add_executable(portal_vision nodes/portal_vision.cpp)
 add_library(vision_tools ${YOUR_LIB_SOURCES})
 target_link_libraries(recovery_vision ${catkin_LIBRARIES} vision_tools)
 target_link_libraries(recovery_vision ${OpenCV_LIBRARIES})
 target_link_libraries(rr_track_locator ${catkin_LIBRARIES} vision_tools)
 target_link_libraries(rr_track_locator ${OpenCV_LIBRARIES})
+target_link_libraries(portal_vision ${catkin_LIBRARIES} vision_tools)
+target_link_libraries(portal_vision ${OpenCV_LIBRARIES})
 
 add_dependencies(recovery_vision sub_vision_generate_messages_cpp)
 add_dependencies(recovery_vision src/vision_tools.cpp)
 add_dependencies(rr_track_locator sub_vision_generate_messages_cpp)
 add_dependencies(rr_track_locator src/vision_tools.cpp)
+add_dependencies(portal_vision sub_vision_generate_messages_cpp)
+add_dependencies(portal_vision src/vision_tools.cpp)
 
 add_definitions(-std=c++11)
 

@@ -92,8 +92,8 @@ void rotatedRectWidth_TEST(){
 	drawRotatedRect(img, RR2, Scalar(255), 2);
 	std::cout << "Should be 20.5:	" << rotatedRectWidth(RR1) << endl;
 	std::cout << "Should be 20.5:	" << rotatedRectWidth(RR2) << endl;
-	imshow("rotatedRectWidth_TEST()", img);
-	waitKey(0);
+	// imshow("rotatedRectWidth_TEST()", img);
+	// waitKey(0);
 }
 
 
@@ -188,8 +188,8 @@ void drawArrowByAngle_TEST(){
 		angleDEG += 22.5;
 		length += 10;
 	}					// Set breakpoint here to check for correct intermediate image
-	imshow("Debug Image", img);
-	waitKey(0);
+	// imshow("Debug Image", img);
+	// waitKey(0);
 }
 
 double rayOrientationAngle(cv::Point2d p1, cv::Point2d p2){

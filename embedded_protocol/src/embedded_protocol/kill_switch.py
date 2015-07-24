@@ -4,9 +4,11 @@ import time
 import serial
 from kill_handling.listener import KillListener
 from kill_handling.broadcaster import KillBroadcaster
+from std_msgs.msg import Bool
 try:
     rospy.init_node('kill_switch') 
     kill_broadcaster = KillBroadcaster(id=rospy.get_name(), description='kill button kill')
+    begin = rospy.publisher("begin", Bool, queue_size = 1) 
     last_pressed = ''
     killed = True
     # configure the serial connections (the parameters differs on the device you are connecting to)
@@ -44,6 +46,10 @@ try:
                         killed = False
                 kill_broadcaster.send(killed)
 
+        if out == str(8) and str(out) != last_pressed:
+            print last_pressed
+            begin.publish(True)
+            
         last_pressed = str(out)
         time.sleep(.1)
 finally:

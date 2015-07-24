@@ -11,7 +11,7 @@ from twisted.internet import defer
 from txros import action, util, tf
 
 import genpy
-from std_msgs.msg import Header
+from std_msgs.msg import Header, Bool
 from uf_common.msg import MoveToAction, PoseTwistStamped, Float64Stamped
 from legacy_vision import msg as legacy_vision_msg
 from object_finder import msg as object_finder_msg
@@ -87,6 +87,8 @@ class _Sub(object):
         self._delorean_sub = self._node_handle.subscribe("delorean", Point)
 
         self._vision_control_sub = self._node_handle.advertise('vision_arbiter', Point)
+        self._vision_control_sub = self._node_handle.advertise('vision_arbiter', Point)
+        self._begin = self._node_handle.subscribe('begin', Bool)
 
         if(need_trajectory == True):
             yield self._trajectory_sub.get_next_message()
@@ -106,6 +108,11 @@ class _Sub(object):
     @util.cancellableInlineCallbacks
     def get_dvl_range(self):
         msg = yield self._dvl_range_sub.get_next_message()
+        defer.returnValue(msg.data)
+
+    @util.cancellableInlineCallbacks
+    def get_begin(self):
+        msg = yield self._begin.get_next_message()
         defer.returnValue(msg.data)
     
     @util.cancellableInlineCallbacks

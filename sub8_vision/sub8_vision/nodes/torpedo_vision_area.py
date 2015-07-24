@@ -7,14 +7,15 @@ from std_msgs.msg import Float64
 from geometry_msgs.msg import Point
 from sensor_msgs.msg import Image, CompressedImage
 from cv_bridge import CvBridge, CvBridgeError
-from txros import util
+import time
 from sub8_vision_arbiter.msg import *
 
-LOWER_YELLOW = np.array([15,50,50])
-UPPER_YELLOW = np.array([40,255,255])
+LOWER_YELLOW = np.array([10,50,50])
+UPPER_YELLOW = np.array([60,255,255])
 
 LOWER_RED = np.array([0,50,50])
 UPPER_RED = np.array([10,255,255])
+
 
 class find_signs(object):
     def __init__(self):
@@ -44,9 +45,7 @@ class find_signs(object):
                 if yellow_mask[i][j] == 255:
                     count += 1
 
-        print count
-
-        yellow_area = (count / (a640.0*480.0))
+        yellow_area = (count / (640.0*480.0))
         self.area_pub.publish(yellow_area)
         print yellow_area
 
@@ -56,17 +55,18 @@ class find_signs(object):
 
             try:
               vid = self.bridge.imgmsg_to_cv2(msg, "bgr8")
-              self.master_import = vid
             except CvBridgeError, e:
               print e    
 
-            self.height, self.width, self.chan = self.master_import.shape
-            self.master_hsv = cv2.cvtColor(self.master_import, cv2.COLOR_BGR2HSV)
+            self.height, self.width, self.chan = vid.shape
+            self.master_hsv = cv2.cvtColor(vid, cv2.COLOR_BGR2HSV)
+
+            time.sleep(1)
 
             self.get_torpedo_area()
 
 if __name__ == "__main__":
-    rospy.init_node('torpedo_vision')
+    rospy.init_node('torpedo_vision_area')
     find_signs = find_signs()
 
     

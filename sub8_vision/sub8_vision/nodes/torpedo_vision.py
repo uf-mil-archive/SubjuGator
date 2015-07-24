@@ -8,8 +8,8 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 from sub8_vision_arbiter.msg import *
 
-LOWER_YELLOW = np.array([20,50,50])
-UPPER_YELLOW = np.array([40,255,255])
+LOWER_YELLOW = np.array([10,50,50])
+UPPER_YELLOW = np.array([60,255,255])
 
 LOWER_RED = np.array([0,50,50])
 UPPER_RED = np.array([10,255,255])
@@ -20,8 +20,6 @@ class find_signs(object):
         self.master_import = None #cv2.imread('IMG_1533.JPG', cv2.IMREAD_COLOR)
         self.height, self.width, self.chan = 0,0,0
         self.master_hsv = None #cv2.cvtColor(self.master_import, cv2.COLOR_BGR2HSV)
-
-        print self.height, self.width
 
         self.yellow_overlay = None
         self.red_overlay = None
@@ -38,6 +36,7 @@ class find_signs(object):
 
         self.x_y_added = []
         self.bridge = CvBridge()
+        self.full_view = False
 
         self.BL, self.TL, self.BR, self.TR, self.sign_center = 0,0,0,0,0
 
@@ -73,7 +72,12 @@ class find_signs(object):
             self.contour_then_filter()
             #self.filter_centers()
             if len(self.x_set) > 3:
-                self.output()
+                self.full_output()
+                self.full_view = True
+                print "fulll"
+            else:
+                self.full_view = False
+                print "half"
 
     def red_work(self):
         # Mask for red colors
@@ -105,6 +109,9 @@ class find_signs(object):
         # Add colors back to final image
         self.final = cv2.bitwise_and(self.master_import,self.master_import, mask = self.final_shape)
 
+        #cv2.imshow('res',self.final)
+        #k = cv2.waitKey(3)
+
     def contour_then_filter(self):
         # Find contours in the image
         contours, heirarchy = cv2.findContours(self.final_shape,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
@@ -120,7 +127,7 @@ class find_signs(object):
                     cnt = contours[x]
                     M = cv2.moments(cnt)
                     area = cv2.contourArea(cnt)
-                    if M['m10'] and M['m00'] and M['m01'] and M['m00'] and area > 500 != 0:
+                    if M['m10'] and M['m00'] and M['m01'] and M['m00'] and area > 200 != 0:
                         cx = int(M['m10']/M['m00'])
                         cy = int(M['m01']/M['m00'])
                         x_pixel_array.append(cx)
@@ -128,6 +135,23 @@ class find_signs(object):
                         self.x_set = x_pixel_array
                         self.y_set = y_pixel_array
                         self.x_y_added.append(cx+cy)
+
+
+        if self.full_view == False:
+            for x in xrange(1, len(contours)):
+                if heirarchy[0][x] != None:
+                    temp = heirarchy[0][x]
+                    if temp[3] == -1:
+                        cv2.drawContours(self.final, contours, x, (0,255,0), 3)
+                        cnt = contours[x]
+                        M = cv2.moments(cnt)
+                        area = cv2.contourArea(cnt)
+                        if M['m10'] and M['m00'] and M['m01'] and M['m00'] and area > 4000 != 0:
+                            cx = int(M['m10']/M['m00'])
+                            cy = int(M['m01']/M['m00'])
+                            cv2.circle(self.master_import,(cx, cy),4,(0,0,255),-1)
+                            cv2.imshow('res',self.master_import)
+                            k = cv2.waitKey(3)
 
 
     def filter_centers(self):
@@ -141,7 +165,7 @@ class find_signs(object):
                 self.y_set.pop(x-count)
                 count += 1
 
-    def output(self):
+    def full_output(self):
 
         x_temp = 0
         y_temp = 0
@@ -167,11 +191,11 @@ class find_signs(object):
         self.TL = Point(x = self.x_set[2], y = self.y_set[2], z = 0)
         self.TR = Point(x = self.x_set[3], y = self.y_set[3], z = 0)
 
-        print "Top left point\n", self.TL
-        print "Top right point\n", self.TR
-        print "Bottom left point\n", self.BL
-        print "Bottom right point\n", self.BR 
-        print "Center at", (self.sign_center.x, self.sign_center.y)
+        #print "Top left point\n", self.TL
+        #print "Top right point\n", self.TR
+        #print "Bottom left point\n", self.BL
+        #print "Bottom right point\n", self.BR 
+        #print "Center at", (self.sign_center.x, self.sign_center.y)
 
         # Print values onto image
         cv2.circle(self.master_import,(self.TL.x, self.TL.y),4,(255,0,0),-1)
@@ -198,6 +222,7 @@ class find_signs(object):
         self.x_set.clear()
         self.y_set = set() 
         self.y_set.clear()
+
 
 if __name__ == "__main__":
     rospy.init_node('torpedo_vision')

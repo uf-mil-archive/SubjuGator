@@ -13,6 +13,7 @@ TOTAL_TIME = ONE_MINUTE * 15
 BUOY_TIME = ONE_MINUTE * 2
 TORPEDO_TIME = ONE_MINUTE * 2
 PATH_TIME = ONE_MINUTE / 2
+PORTAL_TIME = ONE_MINUTE * 2
 
 @util.cancellableInlineCallbacks
 def inch_forward(nh, sub):
@@ -57,6 +58,7 @@ def main_list(nh):
 
     sub = yield sub_scripting.get_sub(nh)
     yield sub.move.depth(1).go()
+    yield sub.move.forward(10).go()
 
     try:
         yield util.wrap_timeout(buoys(nh, sub), BUOY_TIME)
@@ -65,7 +67,6 @@ def main_list(nh):
     finally:
         sub.change_current_vision(False,False,False,False,False,False)
 
-
     try:
         sub.change_current_vision(False,False,False,False,True,False)
         yield util.wrap_timeout(path.main(nh), PATH_TIME)
@@ -73,6 +74,17 @@ def main_list(nh):
         traceback.print_exc()
     finally:
         sub.change_current_vision(False,False,False,False,False,False)
+
+    yield sub.move.forward(3).go()
+    try:
+        sub.change_current_vision(False,False,False,False,True,False)
+        yield util.wrap_timeout(portal.main(nh), PORTAL_TIME)
+    except Exception:
+        traceback.print_exc()
+    finally:
+        sub.change_current_vision(False,False,False,False,False,False)
+
+    yield sub.move.forward(3).go()
 
     try:
         yield util.wrap_timeout(torpedos(nh), TORPEDO_TIME)
@@ -85,6 +97,15 @@ def main_list(nh):
 @util.cancellableInlineCallbacks
 def main(nh):
     sub = yield sub_scripting.get_sub(nh)
+
+    begin = False 
+
+    while True:
+        begin = yield sub.get_begin()
+        if begin == True:
+            break
+
+    print "Starting mission"
 
     '''
 
@@ -99,7 +120,7 @@ def main(nh):
     '''
 
     sub.change_current_vision(False,False,False,False,False,False)
-    
+
     # WRAP ENTIRE MISSION IN TIMEOUT
     try:
         yield util.wrap_timeout(main_list(nh), TOTAL_TIME)

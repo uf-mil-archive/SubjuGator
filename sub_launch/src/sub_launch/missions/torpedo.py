@@ -70,7 +70,7 @@ def move_to_target(sub):
 @util.cancellableInlineCallbacks
 def main(nh):
 
-    sub = yield sub_scripting.get_sub(nh)s
+    sub = yield sub_scripting.get_sub(nh)
 
     global door_pos
     global centered_pos
@@ -81,6 +81,8 @@ def main(nh):
     yield move_to_target(sub)
     # Grab centered position of the sub
     centered_pos = yield sub.pose.position
+
+    '''
 
     yield open_door()
     # Move back to position of door 
@@ -96,6 +98,8 @@ def main(nh):
     if handle_local == 4: yield sub.move.left(1).go()
 
     yield sub.fire_right_torpedo()
+
+    '''
 
     
 

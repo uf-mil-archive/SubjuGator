@@ -25,7 +25,7 @@ ros::Publisher guide_strip_pub;
 bool recovery_vision_node_switch = false;
 
 // We need a global variable n order to use the slider in our callback function
-int rec_viz_thresh_slider;
+int rec_viz_thresh_slider = 140;
 
 void nodeToggler(const sub8_vision_arbiter::vision_arbiter::ConstPtr& msg){
 	recovery_vision_node_switch = msg->tracks_vision;
@@ -492,9 +492,9 @@ int main(int argc, char* argv[]){
  	ros::NodeHandle n;
 
  	// Create and initialize slider
- 	namedWindow("Thresholding");
+ 	// namedWindow("Thresholding");
  	rec_viz_thresh_slider = 140;
-	createTrackbar("Saturation Threshold: ", "Thresholding", &rec_viz_thresh_slider, 255);
+	// createTrackbar("Saturation Threshold: ", "Thresholding", &rec_viz_thresh_slider, 255);
 
 	// Subscribe to node activation topic
  	ros::Subscriber node_activation_sub = n.subscribe("/vision_arbiter",1,nodeToggler);

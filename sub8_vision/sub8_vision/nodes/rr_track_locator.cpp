@@ -23,8 +23,8 @@ ros::Publisher tracks_pub;
 bool rr_track_locator_node_switch = false;
 
 // We need a global variable n order to use the slider in our callback function
-int max_corners_slider;
-int min_dist_slider;
+int max_corners_slider = 50;
+int min_dist_slider = 1;
 
 void nodeToggler(const sub8_vision_arbiter::vision_arbiter::ConstPtr& msg){
 	rr_track_locator_node_switch = msg->tracks_vision;
@@ -281,11 +281,11 @@ int main(int argc, char* argv[]){
 
 
  	// Create and initialize slider and its window
- 	namedWindow("Corners");
+ 	// namedWindow("Corners");
  	max_corners_slider = 50;
  	min_dist_slider = 1;
- 	createTrackbar("Max Corners: ", "Corners", &max_corners_slider, 100);
- 	createTrackbar("Min Distance: ", "Corners", &min_dist_slider, 50);
+ 	// createTrackbar("Max Corners: ", "Corners", &max_corners_slider, 100);
+ 	// createTrackbar("Min Distance: ", "Corners", &min_dist_slider, 50);
 
  	// Subscribe to node activation topic
  	ros::Subscriber node_activation_sub = n.subscribe("/vision_arbiter",1,nodeToggler);

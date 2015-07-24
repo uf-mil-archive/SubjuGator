@@ -1,6 +1,7 @@
 <launch>
-  <node name="recovery_vision" pkg="sub8_vision" type="recovery_vision" launch-prefix="xterm -e gdb --args" />
+  <node name="recovery_vision" pkg="sub8_vision" type="recovery_vision"/>
   <node name="rr_track_locator" pkg="sub8_vision" type="rr_track_locator"/>
+  <node name="portal_vision" pkg="sub8_vision" type="portal_vision"/>
   <node name="torpedo_vision" pkg="sub8_vision" type="torpedo_vision.py"/>
   <node name="torpedo_vision_area" pkg="sub8_vision" type="torpedo_vision_area.py"/>
 </launch>

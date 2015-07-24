@@ -288,7 +288,7 @@ class _Sub(object):
         msg.recovery_vision = recovery_vision
         msg.torpedo_vision = torpedo_vision
         msg.torpedo_area_vision = torpedo_area_vision
-        msg.train_vision = train_vision
+        msg.tracks_vision = train_vision
         msg.path_vision = path_vision
         msg.buoys_vision = buoys_vision
         self._vision_control_sub.publish(msg)

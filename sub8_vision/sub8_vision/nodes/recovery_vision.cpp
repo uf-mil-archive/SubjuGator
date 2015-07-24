@@ -25,7 +25,7 @@ ros::Publisher guide_strip_pub;
 bool recovery_vision_node_switch = false;
 
 // We need a global variable n order to use the slider in our callback function
-int rec_viz_thresh_slider;
+int rec_viz_thresh_slider = 140;
 
 void nodeToggler(const sub8_vision_arbiter::vision_arbiter::ConstPtr& msg){
 	recovery_vision_node_switch = msg->tracks_vision;
@@ -137,12 +137,12 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 	threshold(frameSAT, blobExtractionImg, rec_viz_thresh_slider, 255, THRESH_BINARY);
 
 	
-	imshow("HUE", frameHUE); // DBG
-	imshow("SAT", frameSAT); // DBG
-	//imshow("VAL", frameVAL); // DBG
-	//waitKey(10);
-	imshow("Thresholding", blobExtractionImg); // DBG
-	//waitKey(10);
+	// imshow("HUE", frameHUE); // DBG
+	// imshow("SAT", frameSAT); // DBG
+	////imshow("VAL", frameVAL); // DBG
+	////waitKey(10);
+	// imshow("Thresholding", blobExtractionImg); // DBG
+	////waitKey(10);
 	
 	// Containers for blob extraction
 	vector<vector<Point>> floodFillContours, joinedFFContours;
@@ -165,7 +165,7 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 		}
 	}
 
-	imshow("joined contours", blobExtractionImg); // DBG
+	// imshow("joined contours", blobExtractionImg); // DBG
 	//waitKey(10);
 
 	// Extract object contours from joined blobs
@@ -480,8 +480,8 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 	circle(outputFrame, camCenter, RECOGNITION_RADIUS, color, 3);	// Recognition Circle
 	
 	// Display Results
-	imshow("Vehicle Detection Output", outputFrame);
-	waitKey(1);
+	// imshow("Vehicle Detection Output", outputFrame);
+	// waitKey(1);
 
 	//destroyAllWindows();
 }	
@@ -492,9 +492,9 @@ int main(int argc, char* argv[]){
  	ros::NodeHandle n;
 
  	// Create and initialize slider
- 	namedWindow("Thresholding");
+ 	// namedWindow("Thresholding");
  	rec_viz_thresh_slider = 140;
-	createTrackbar("Saturation Threshold: ", "Thresholding", &rec_viz_thresh_slider, 255);
+	// createTrackbar("Saturation Threshold: ", "Thresholding", &rec_viz_thresh_slider, 255);
 
 	// Subscribe to node activation topic
  	ros::Subscriber node_activation_sub = n.subscribe("/vision_arbiter",1,nodeToggler);

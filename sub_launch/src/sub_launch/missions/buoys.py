@@ -1,3 +1,4 @@
+#! usr/bin/env python
 from __future__ import division
 
 from geometry_msgs.msg import PoseWithCovariance, Quaternion, Pose
@@ -23,6 +24,9 @@ buoy_targetdesc = object_finder_msg.TargetDesc(
 
 @util.cancellableInlineCallbacks
 def main(nh):
+
+    print "ssfvsdf"
+
     sub = yield sub_scripting.get_sub(nh)
     
     orig_depth = -sub.pose.position[2]

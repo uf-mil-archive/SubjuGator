@@ -51,6 +51,13 @@ try:
             begin.publish(True)
 
         last_pressed = str(out)
+<<<<<<< HEAD
         time.sleep(.1)
 finally: pass
     #ser.write('b')
+=======
+        time.sleep(.5)
+finally:
+    ser.write('b')
+
+>>>>>>> e5fe35e9f04576e86a9f4e9bf03ef068e2dd10f7

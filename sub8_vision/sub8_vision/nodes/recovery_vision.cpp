@@ -137,12 +137,12 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 	threshold(frameSAT, blobExtractionImg, rec_viz_thresh_slider, 255, THRESH_BINARY);
 
 	
-	imshow("HUE", frameHUE); // DBG
-	imshow("SAT", frameSAT); // DBG
-	//imshow("VAL", frameVAL); // DBG
-	//waitKey(10);
-	imshow("Thresholding", blobExtractionImg); // DBG
-	//waitKey(10);
+	// imshow("HUE", frameHUE); // DBG
+	// imshow("SAT", frameSAT); // DBG
+	////imshow("VAL", frameVAL); // DBG
+	////waitKey(10);
+	// imshow("Thresholding", blobExtractionImg); // DBG
+	////waitKey(10);
 	
 	// Containers for blob extraction
 	vector<vector<Point>> floodFillContours, joinedFFContours;
@@ -165,7 +165,7 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 		}
 	}
 
-	imshow("joined contours", blobExtractionImg); // DBG
+	// imshow("joined contours", blobExtractionImg); // DBG
 	//waitKey(10);
 
 	// Extract object contours from joined blobs
@@ -480,8 +480,8 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 	circle(outputFrame, camCenter, RECOGNITION_RADIUS, color, 3);	// Recognition Circle
 	
 	// Display Results
-	imshow("Vehicle Detection Output", outputFrame);
-	waitKey(1);
+	// imshow("Vehicle Detection Output", outputFrame);
+	// waitKey(1);
 
 	//destroyAllWindows();
 }	

@@ -77,8 +77,8 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 	Mat readOnlySrcGray;
 	cvtColor(outputFrame, readOnlySrcGray, CV_BGR2GRAY);
 
-	imshow("Input", outputFrame); // DBG
-	waitKey(300);
+	// imshow("Input", outputFrame); // DBG
+	// waitKey(300);
 	
 
 /*
@@ -132,7 +132,7 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
   		//circle( outputFrame, corners[i], r, Scalar(122), -1, 8, 0 );
 	    circle( cornerDetectImg, corners[i], r, Scalar(255), -1, 8, 0);
 	}
-	imshow("Corners", cornerDetectImg); //waitKey(0);
+	// imshow("Corners", cornerDetectImg); //waitKey(0);
 	
 
 	// Calculate centroid and standard deviation of detected points
@@ -165,7 +165,7 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 	// Sharpen img to prepare for floodfill
 	Mat sharpened = readOnlySrcGray.clone();
 	unsharpMask(sharpened);
-	imshow("Sharpened", sharpened); // DBG
+	// imshow("Sharpened", sharpened); // DBG
 
 	// Iterate through pixels inside the rect and floodfill a mask of contiguous dark pixels
 	bool floodFilled = false;
@@ -183,14 +183,14 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 	if (!floodFilled) return;
 	cout << "mask area: " << maskArea(floodFillMask) << endl;
 
-	imshow("Tracks Mask", floodFillMask); // DBG
+	// imshow("Tracks Mask", floodFillMask); // DBG
 
 
 	// Create mask of dark pixels using blackFilter()
 	Mat brightnessThreshImg = Mat(outputFrame.size(), CV_8UC1, Scalar(0));
 	//threshold(readOnlySrcGray, brightnessThreshImg, 40, 255, THRESH_BINARY_INV);
 	brightnessThreshImg = blackFilter(readOnlySrcColor); cout << "black filter complete\n";
-	imshow("black filter", brightnessThreshImg);
+	// imshow("black filter", brightnessThreshImg);
 
 	// Extract contours from floodFill mask
 	vector<vector<Point>> contours;
@@ -224,7 +224,7 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 		if (i == 3) line(mask_rect, vertices[i], vertices[0], Scalar(255), 2);
 		else line(mask_rect, vertices[i], vertices[i + 1], Scalar(255), 2);
 	}
-	imshow("mask_rect", mask_rect);
+	// imshow("mask_rect", mask_rect);
 
 	// Put debug text on debug imgs
 	float track_orientation_deg = trainTracksLeastAngle(minArea);
@@ -246,7 +246,7 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 
 	// Display final debug imgs
 	circle( outputFrame, prelimCentroid, 4, Scalar(255), -1, 8, 0);
-	imshow("Visuals", outputFrame); // DBG
+	// imshow("Visuals", outputFrame); // DBG
 	// imshow("Val Img", frameVAL); // DBG
 }	
 

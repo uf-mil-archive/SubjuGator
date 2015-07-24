@@ -8,7 +8,7 @@ from std_msgs.msg import Bool
 try:
     rospy.init_node('kill_switch') 
     kill_broadcaster = KillBroadcaster(id=rospy.get_name(), description='kill button kill')
-    begin = rospy.publisher("begin", Bool, queue_size = 1) 
+    begin = rospy.Publisher("begin", Bool, queue_size = 1) 
     last_pressed = ''
     killed = True
     # configure the serial connections (the parameters differs on the device you are connecting to)
@@ -37,20 +37,20 @@ try:
         while ser.inWaiting() > 0:
             out += ser.read(1)
         if out == str(4) and str(out) != last_pressed:
-	        print last_pressed
-                if killed == False:
-		        ser.write('B')
-                        killed = True
-                elif killed == True:
-		        ser.write('b')
-                        killed = False
-                kill_broadcaster.send(killed)
+            print last_pressed
+            if killed == False:
+                ser.write('B')
+                killed = True
+            elif killed == True:
+                ser.write('b')
+                killed = False
+            kill_broadcaster.send(killed)
 
         if out == str(8) and str(out) != last_pressed:
             print last_pressed
             begin.publish(True)
-            
+
         last_pressed = str(out)
         time.sleep(.1)
-finally:
-    ser.write('b')
+finally: pass
+    #ser.write('b')

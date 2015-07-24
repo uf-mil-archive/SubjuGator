@@ -139,6 +139,10 @@ void imgCallback(const sensor_msgs::ImageConstPtr& msg){
 	portal_center.y = y * RE_UPSAMPLING_FACTOR;
 	portal_pub.publish(portal_center);
 
+	circle(outputFrame, Point(x,y), 3, Scalar(0, 255, 255), CV_FILLED);
+
+	imshow("output", outputFrame);
+
 }
 
 int main(int argc, char* argv[]){
@@ -152,7 +156,7 @@ int main(int argc, char* argv[]){
 	//createTrackbar("Saturation Threshold: ", "Thresholding", &rec_viz_thresh_slider, 255);
 
 	// Subscribe to node activation topic
- 	ros::Subscriber node_activation_sub = n.subscribe("/vision_arbiter",1,nodeToggler);
+ 	ros::Subscriber node_activation_sub = n.subscribe("/vision_arbiter", 1 ,nodeToggler);
 
 	// Since we're subscribing to an image, use an image_transport::Subscriber
 	image_transport::ImageTransport it(n);

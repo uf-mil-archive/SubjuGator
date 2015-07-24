@@ -1,0 +1,3 @@
+<launch>
+	<node pkg="embedded_protocol" type="kill_switch.py" name="kill_switch"/>
+</launch>

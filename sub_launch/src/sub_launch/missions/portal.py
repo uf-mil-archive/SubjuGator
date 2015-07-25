@@ -28,7 +28,7 @@ def main(nh, sub=None):
             break
 
     print 'CENTERED ON MARKER'
-    yield sub.move.forward(4).go()
+    yield sub.move.forward(2).go()
 
     while True:
         
@@ -50,9 +50,10 @@ def main(nh, sub=None):
     print 'CENTERED ON MARKER'
 
     yield sub.move.up(0.7).go()
-    yield sub.move.forward(1).go()
+    #yield sub.move.forward(1).go()
     yield sub.move.turn_left_deg(90).go()
     yield sub.move.right(3).go()
+    yield sub.move.turn_left_deg(-90).go()
 
 
 

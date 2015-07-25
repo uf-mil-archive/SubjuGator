@@ -75,5 +75,7 @@ def main(nh):
     print 'CENTERED ON BUOY'
     yield sub.move.forward(3.5).depth(0.6).go()
     yield sub.move.forward(-2).go()
-    yield sub.move.up(1).go()
+    yield sub.move.depth(1).go()
+    yield sub.move.forward(-2).go()
+
     
